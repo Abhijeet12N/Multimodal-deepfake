@@ -1,0 +1,58 @@
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.ipynb_checkpoints/
+.venv/
+venv/
+env/
+.env
+
+# ===== Model weights / checkpoints =====
+# Checkpoints are large local files and are not committed to the repository.
+# Store local checkpoints in models/ or point to them with MODEL_PATH/AUDIO_MODEL_PATH.
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.h5
+*.safetensors
+
+# ===== Web UI runtime files =====
+# User uploads are created at runtime and are not versioned.
+ui/uploads/
+demo_site/uploads/
+
+# ===== FakeAVCeleb dataset clips =====
+# FakeAVCeleb is research-only and may not be redistributed. Clips are also excluded for privacy.
+# Add your own samples under ui/samples/ (see ui/samples/README.md).
+ui/samples/**/*.mp4
+ui/samples/**/*.avi
+ui/samples/**/*.mov
+ui/samples/**/*.mkv
+demo_site/samples/**/*.mp4
+demo_site/samples/**/*.avi
+demo_site/samples/**/*.mov
+demo_site/samples/**/*.mkv
+
+# ===== Training workspace cache =====
+training/work/
+work/
+*.npy
+
+# ===== Operating system / editor =====
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# ===== Logs / temporary files =====
+*.log
+*.tmp
+.pytest_cache/
+
+# ===== Generated presentation files =====
+slides/*.pdf
+slides/*.pptx
