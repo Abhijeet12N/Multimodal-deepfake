@@ -1,0 +1,119 @@
+{
+  "reference_timestamp": "2026-10-20T20:27:00Z",
+  "pipeline": "legacy_wav2vec_mlp",
+  "task": "audio_deepfake_detection",
+  "input": {
+    "filename": "jay_shetty_vocals.wav",
+    "filepath": "C:/Users/avina/Documents/Mega Project/initial setup/deepfake_phase1/Audios/jay_shetty_vocals.wav",
+    "sha256": "cc0c1d4bff3e67530447a122ce7e3147f3027d98553205626f13255b74e4f460",
+    "sample_rate": 16000,
+    "channels": 1,
+    "duration_seconds": 10.5361,
+    "total_samples": 168577
+  },
+  "checkpoint": {
+    "filename": "wav2vec_best.pt",
+    "filepath": "C:/Users/avina/Documents/Mega Project/initial setup/deepfake_phase1/checkpoints/wav2vec_best.pt",
+    "sha256": "efba2b1fadcb602b928b49496d6bd0ce9786fc10f8d28f76a6de77dfd378159f",
+    "backbone": "facebook/wav2vec2-base",
+    "input_dim": 512,
+    "hidden_dim": 256,
+    "dropout": 0.3,
+    "dev_eer": 0.0347155215485217,
+    "dev_threshold": 0.9849822521209717,
+    "dev_accuracy": 0.9786668813395588
+  },
+  "runtime": {
+    "device": "cpu",
+    "python_version": "3.13.5",
+    "torch_version": "2.10.0+cpu",
+    "runtime_seconds": 0.5316
+  },
+  "window_parameters": {
+    "window_seconds": 2.0,
+    "window_samples": 32000,
+    "hop_seconds": 1.0,
+    "hop_samples": 16000,
+    "min_rms_vad": 0.015
+  },
+  "decision": {
+    "threshold": 0.9849822521209717,
+    "recording_spoof_probability": 0.999966,
+    "verdict": "FAKE",
+    "is_fake": true,
+    "window_count": 10,
+    "speech_window_count": 10
+  },
+  "windows": [
+    {
+      "start_seconds": 0.0,
+      "end_seconds": 2.0,
+      "spoof_probability": 0.999953,
+      "is_fake": true,
+      "status": "speech"
+    },
+    {
+      "start_seconds": 1.0,
+      "end_seconds": 3.0,
+      "spoof_probability": 1.0,
+      "is_fake": true,
+      "status": "speech"
+    },
+    {
+      "start_seconds": 2.0,
+      "end_seconds": 4.0,
+      "spoof_probability": 0.999932,
+      "is_fake": true,
+      "status": "speech"
+    },
+    {
+      "start_seconds": 3.0,
+      "end_seconds": 5.0,
+      "spoof_probability": 0.999974,
+      "is_fake": true,
+      "status": "speech"
+    },
+    {
+      "start_seconds": 4.0,
+      "end_seconds": 6.0,
+      "spoof_probability": 1.0,
+      "is_fake": true,
+      "status": "speech"
+    },
+    {
+      "start_seconds": 5.0,
+      "end_seconds": 7.0,
+      "spoof_probability": 1.0,
+      "is_fake": true,
+      "status": "speech"
+    },
+    {
+      "start_seconds": 6.0,
+      "end_seconds": 8.0,
+      "spoof_probability": 0.999994,
+      "is_fake": true,
+      "status": "speech"
+    },
+    {
+      "start_seconds": 7.0,
+      "end_seconds": 9.0,
+      "spoof_probability": 0.999997,
+      "is_fake": true,
+      "status": "speech"
+    },
+    {
+      "start_seconds": 8.0,
+      "end_seconds": 10.0,
+      "spoof_probability": 0.999915,
+      "is_fake": true,
+      "status": "speech"
+    },
+    {
+      "start_seconds": 9.0,
+      "end_seconds": 10.5361,
+      "spoof_probability": 0.999894,
+      "is_fake": true,
+      "status": "speech"
+    }
+  ]
+}

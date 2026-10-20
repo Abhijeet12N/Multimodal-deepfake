@@ -35,6 +35,16 @@ from .inference import (
 )
 from .audio_inference import StandaloneAudioPredictor
 from .reporting import build_report, risk_level
+from .audio_detection import (
+    AASISTDetector,
+    AudioDetector,
+    LegacyWav2VecDetector,
+    SSLAASISTDetector,
+    StandaloneAudioService,
+    XLSRMamBoDetector,
+    get_detector,
+    list_detectors,
+)
 
 __version__ = "1.0.0"
 
@@ -42,6 +52,14 @@ __all__ = [
     # Inference
     "DeepfakePredictor",
     "StandaloneAudioPredictor",
+    "StandaloneAudioService",
+    "AudioDetector",
+    "LegacyWav2VecDetector",
+    "AASISTDetector",
+    "SSLAASISTDetector",
+    "XLSRMamBoDetector",
+    "get_detector",
+    "list_detectors",
     "interpret",
     "category_from_path",
     "build_report",
