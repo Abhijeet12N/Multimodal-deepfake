@@ -1,0 +1,36 @@
+# AASIST Audio Anti-Spoofing Detector Configuration
+model:
+  model_id: "aasist"
+  model_class: "AASISTDetector"
+  architecture: "AASIST"
+  is_lightweight: false
+  checkpoint_path: "aasist/models/weights/AASIST.pth"
+  checkpoint_sha256: "51d2d9cf0738172f61e2a384ec50a54a55363240f67c971ed55a92435bc1a1c0"
+  upstream_repo: "https://github.com/clovaai/aasist"
+  license: "MIT"
+
+preprocessing:
+  sample_rate: 16000
+  channels: 1
+
+windowing:
+  window_seconds: 4.0375
+  window_samples: 64600
+  hop_seconds: 2.0
+  hop_samples: 32000
+  padding_mode: "repeat"
+  min_rms_vad: 0.015
+
+score_semantics:
+  raw_score_semantics: "two_class_logits"
+  score_orientation: "higher_is_bonafide"
+  class_index_mapping:
+    0: "spoof"
+    1: "bonafide"
+  target_score_index: 1  # bonafide logit evaluated in ASVspoof protocol
+  calibrated_threshold: 0.0  # Logit threshold (bonafide > threshold => genuine)
+
+aggregation:
+  strategy: "mean"
+  top_k: 3
+  vad_enabled: true

@@ -206,11 +206,21 @@ def serve_upload(filename: str):
 @app.route("/api/analyze", methods=["POST"])
 def analyze():
     """Analyze a chosen sample or an uploaded video file."""
+    mode = request.form.get("mode", "sample")
+    if mode not in ("sample", "upload"):
+        return jsonify({"ok": False, "error": f"Unknown mode: {mode}"}), 400
+
+    if mode == "upload":
+        f = request.files.get("file")
+        if not f or not f.filename:
+            return jsonify({"ok": False, "error": "No video file was uploaded"}), 400
+        if not allowed_video(f.filename):
+            return jsonify({"ok": False, "error": "Unsupported video format. Allowed: MP4, MOV, AVI, MKV"}), 400
+
     pred = load_predictor()
     if pred is None:
         return jsonify({"ok": False, "error": predictor_error or "Model is not available"}), 503
 
-    mode = request.form.get("mode", "sample")
     if mode == "sample":
         sample_name = request.form.get("sample", "").strip()
         if not allowed_video(sample_name):
@@ -221,11 +231,6 @@ def analyze():
         ground = category_from_path(str(video_path))
         video_url = f"/samples/{sample_name}"
     elif mode == "upload":
-        f = request.files.get("file")
-        if not f or not f.filename:
-            return jsonify({"ok": False, "error": "No video file was uploaded"}), 400
-        if not allowed_video(f.filename):
-            return jsonify({"ok": False, "error": "Unsupported video format. Allowed: MP4, MOV, AVI, MKV"}), 400
         clean_name = secure_filename(Path(f.filename).name)
         if not clean_name:
             return jsonify({"ok": False, "error": "Invalid filename"}), 400
@@ -234,8 +239,6 @@ def analyze():
         f.save(video_path)
         ground = category_from_path(f.filename)
         video_url = f"/uploads/{safe}"
-    else:
-        return jsonify({"ok": False, "error": f"Unknown mode: {mode}"}), 400
 
     t0 = time.time()
     scores, info = pred.predict(str(video_path))
@@ -285,10 +288,6 @@ def analyze():
 @app.route("/api/analyze-audio", methods=["POST"])
 def analyze_audio():
     """Analyze an uploaded audio recording with the standalone sliding-window audio detector."""
-    pred = load_audio_predictor()
-    if pred is None:
-        return jsonify({"ok": False, "error": audio_predictor_error or "Audio model is not available"}), 503
-
     f = request.files.get("file")
     if not f or not f.filename:
         return jsonify({"ok": False, "error": "Please select an audio file to analyze"}), 400
@@ -296,6 +295,10 @@ def analyze_audio():
     extension = Path(f.filename).suffix.lower()
     if extension not in ALLOWED_AUDIO_EXTENSIONS:
         return jsonify({"ok": False, "error": "Supported audio formats: WAV, MP3, M4A, FLAC, OGG, AAC"}), 400
+
+    pred = load_audio_predictor()
+    if pred is None:
+        return jsonify({"ok": False, "error": audio_predictor_error or "Audio model is not available"}), 503
 
     clean_name = secure_filename(Path(f.filename).name)
     if not clean_name:

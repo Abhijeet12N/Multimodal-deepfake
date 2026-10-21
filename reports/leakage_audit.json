@@ -1,0 +1,142 @@
+{
+  "overall_status": "PASS",
+  "total_splits_audited": 4,
+  "split_sample_counts": {
+    "asvspoof2019_la:train": 25380,
+    "asvspoof2019_la:dev": 24844,
+    "asvspoof2019_la:eval": 71237,
+    "local_eval:eval": 6
+  },
+  "speaker_audit": {
+    "status": "PASS",
+    "has_speaker_leakage": false,
+    "speaker_counts_by_split": {
+      "asvspoof2019_la:train": 1,
+      "asvspoof2019_la:dev": 1,
+      "asvspoof2019_la:eval": 1,
+      "local_eval:eval": 3
+    },
+    "overlaps": []
+  },
+  "source_audit": {
+    "status": "PASS",
+    "has_source_leakage": false,
+    "source_counts_by_split": {
+      "asvspoof2019_la:train": 25380,
+      "asvspoof2019_la:dev": 24844,
+      "asvspoof2019_la:eval": 71237,
+      "local_eval:eval": 6
+    },
+    "overlaps": []
+  },
+  "sample_duplication_audit": {
+    "status": "PASS",
+    "has_duplicate_samples": false,
+    "sample_counts_by_split": {
+      "asvspoof2019_la:train": 25380,
+      "asvspoof2019_la:dev": 24844,
+      "asvspoof2019_la:eval": 71237,
+      "local_eval:eval": 6
+    },
+    "cross_split_duplicates": []
+  },
+  "pretrained_provenance_audit": {
+    "legacy_wav2vec_mlp": {
+      "checkpoint": "wav2vec_best.pt",
+      "training_dataset": "asvspoof2019_la",
+      "training_split": "train",
+      "eval_split_validity": {
+        "manifest_asvspoof2019_train": {
+          "valid_held_out": true,
+          "status": "Valid held-out split"
+        },
+        "manifest_asvspoof2019_dev": {
+          "valid_held_out": true,
+          "status": "Valid held-out split"
+        },
+        "manifest_asvspoof2019_eval": {
+          "valid_held_out": true,
+          "status": "Valid held-out split"
+        },
+        "manifest_local_eval": {
+          "valid_held_out": true,
+          "status": "Valid held-out split"
+        }
+      }
+    },
+    "aasist": {
+      "checkpoint": "AASIST.pth",
+      "training_dataset": "asvspoof2019_la",
+      "training_split": "train",
+      "eval_split_validity": {
+        "manifest_asvspoof2019_train": {
+          "valid_held_out": true,
+          "status": "Valid held-out split"
+        },
+        "manifest_asvspoof2019_dev": {
+          "valid_held_out": true,
+          "status": "Valid held-out split"
+        },
+        "manifest_asvspoof2019_eval": {
+          "valid_held_out": true,
+          "status": "Valid held-out split"
+        },
+        "manifest_local_eval": {
+          "valid_held_out": true,
+          "status": "Valid held-out split"
+        }
+      }
+    },
+    "aasist_l": {
+      "checkpoint": "AASIST-L.pth",
+      "training_dataset": "asvspoof2019_la",
+      "training_split": "train",
+      "eval_split_validity": {
+        "manifest_asvspoof2019_train": {
+          "valid_held_out": true,
+          "status": "Valid held-out split"
+        },
+        "manifest_asvspoof2019_dev": {
+          "valid_held_out": true,
+          "status": "Valid held-out split"
+        },
+        "manifest_asvspoof2019_eval": {
+          "valid_held_out": true,
+          "status": "Valid held-out split"
+        },
+        "manifest_local_eval": {
+          "valid_held_out": true,
+          "status": "Valid held-out split"
+        }
+      }
+    },
+    "audio_model_v1": {
+      "checkpoint": "audio_model.pt",
+      "training_dataset": "fakeavceleb",
+      "training_split": "train",
+      "eval_split_validity": {
+        "manifest_asvspoof2019_train": {
+          "valid_held_out": true,
+          "status": "Valid held-out split"
+        },
+        "manifest_asvspoof2019_dev": {
+          "valid_held_out": true,
+          "status": "Valid held-out split"
+        },
+        "manifest_asvspoof2019_eval": {
+          "valid_held_out": true,
+          "status": "Valid held-out split"
+        },
+        "manifest_local_eval": {
+          "valid_held_out": true,
+          "status": "Valid held-out split"
+        }
+      }
+    }
+  },
+  "recommendations": [
+    "Ensure validation threshold selection strictly occurs on dev split.",
+    "Never tune or calibrate decision thresholds on eval/test splits.",
+    "Treat training split metrics as fitting diagnostics only, not benchmark scores."
+  ]
+}

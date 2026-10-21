@@ -1,0 +1,7 @@
+sample_id,dataset,split,attack_type,ground_truth,predicted_score,predicted_label,threshold,is_correct,runtime_ms
+Deepfake video of Volodymyr Zelensky surrendering surfaces on social media - The Telegraph,local_eval,eval,voice_clone_or_deepfake,1,-3.668453,1,0.0,1,12959.86
+jay_shetty_vocals,local_eval,eval,voice_clone,1,-2.476288,1,0.0,1,1238.08
+audio [vocals],local_eval,eval,-,0,-0.440273,1,0.0,0,1000.98
+audio_vocal,local_eval,eval,-,0,-2.549298,1,0.0,0,1278.24
+Such a great quote 🔥 #shorts - Jay Shetty,local_eval,eval,-,0,-2.515044,1,0.0,0,1203.16
+What is the best advice Alia Bhatt has ever received #jayshetty #podcast #aliabhatt - Jay Shetty Podcast,local_eval,eval,-,0,-0.461324,1,0.0,0,994.18

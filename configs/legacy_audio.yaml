@@ -1,0 +1,46 @@
+# Configuration for Legacy Wav2Vec 2.0 + MLP Audio Deepfake Detector
+model:
+  model_id: "legacy_wav2vec_mlp"
+  model_class: "LegacyWav2VecDetector"
+  backbone: "facebook/wav2vec2-base"
+  feature_extractor_type: "cnn_feature_extractor"  # Wav2Vec 2.0 CNN 512-dim mean-pooled
+  classifier_arch: "DeepfakeClassifier"
+  input_dim: 512
+  hidden_dim: 256
+  dropout: 0.3
+  checkpoint_path: "initial setup/deepfake_phase1/checkpoints/wav2vec_best.pt"
+  checkpoint_sha256: "efba2b1fadcb602b928b49496d6bd0ce9786fc10f8d28f76a6de77dfd378159f"
+
+preprocessing:
+  sample_rate: 16000
+  channels: 1
+  normalize_volume: false
+  vocal_separation: false
+
+windowing:
+  window_seconds: 2.0
+  window_samples: 32000
+  hop_seconds: 1.0
+  hop_samples: 16000
+  min_rms_vad: 0.015
+  handle_trailing_window: "pad"
+  padding_value: 0.0
+
+score_semantics:
+  raw_output_type: "two_class_logits"
+  class_indices:
+    0: "bonafide"
+    1: "spoof"
+  score_orientation: "higher_is_fake"
+  probability_transform: "softmax"
+  target_score_index: 1  # spoof_prob
+  default_threshold: 0.984982  # Calibrated on ASVspoof 2019 LA dev set
+
+aggregation:
+  method: "mean_speech_window_probability"
+  top_suspicious_windows: 5
+  gating: "rms_vad"
+
+hardware:
+  device: "cpu"
+  mixed_precision: false

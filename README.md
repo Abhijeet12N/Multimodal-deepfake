@@ -130,8 +130,8 @@ Clone the repository and set up a virtual environment:
 
 #### Windows PowerShell:
 ```powershell
-git clone https://github.com/your-username/multimodal-deepfake-detection.git
-cd multimodal-deepfake-detection
+git clone https://github.com/Abhijeet12N/Multimodal-deepfake.git
+cd Multimodal-deepfake
 
 python -m venv .venv
 .venv\Scripts\Activate.ps1
@@ -141,8 +141,8 @@ pip install -r requirements.txt
 
 #### Linux / macOS:
 ```bash
-git clone https://github.com/your-username/multimodal-deepfake-detection.git
-cd multimodal-deepfake-detection
+git clone https://github.com/Abhijeet12N/Multimodal-deepfake.git
+cd Multimodal-deepfake
 
 python3 -m venv .venv
 source .venv/bin/activate

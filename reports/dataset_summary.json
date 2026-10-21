@@ -1,0 +1,96 @@
+{
+  "total_samples": 121467,
+  "datasets": {
+    "asvspoof2019_la": {
+      "total": 121461,
+      "genuine": 12483,
+      "fake": 108978,
+      "splits": {
+        "train": {
+          "total": 25380,
+          "genuine": 2580,
+          "fake": 22800
+        },
+        "dev": {
+          "total": 24844,
+          "genuine": 2548,
+          "fake": 22296
+        },
+        "eval": {
+          "total": 71237,
+          "genuine": 7355,
+          "fake": 63882
+        }
+      }
+    },
+    "local_eval": {
+      "total": 6,
+      "genuine": 4,
+      "fake": 2,
+      "splits": {
+        "eval": {
+          "total": 6,
+          "genuine": 4,
+          "fake": 2
+        }
+      }
+    }
+  },
+  "splits": {
+    "train": {
+      "total": 25380,
+      "genuine": 2580,
+      "fake": 22800
+    },
+    "dev": {
+      "total": 24844,
+      "genuine": 2548,
+      "fake": 22296
+    },
+    "eval": {
+      "total": 71243,
+      "genuine": 7359,
+      "fake": 63884
+    }
+  },
+  "labels": {
+    "genuine_count": 12487,
+    "fake_count": 108980,
+    "fake_ratio": 0.8972
+  },
+  "attack_types": {
+    "-": 12487,
+    "A01": 7516,
+    "A02": 7516,
+    "A03": 7516,
+    "A04": 7516,
+    "A05": 7516,
+    "A06": 7516,
+    "A11": 4914,
+    "A14": 4914,
+    "A16": 4914,
+    "A09": 4914,
+    "A13": 4914,
+    "A12": 4914,
+    "A18": 4914,
+    "A15": 4914,
+    "A08": 4914,
+    "A17": 4914,
+    "A10": 4914,
+    "A07": 4914,
+    "A19": 4914,
+    "voice_clone_or_deepfake": 1,
+    "voice_clone": 1
+  },
+  "speakers": {
+    "total_unique_speakers": 7,
+    "speakers_by_dataset": {
+      "asvspoof2019_la": 3,
+      "local_eval": 4
+    }
+  },
+  "languages": {
+    "en": 121466,
+    "uk": 1
+  }
+}

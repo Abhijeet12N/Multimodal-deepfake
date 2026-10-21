@@ -1,0 +1,37 @@
+# Legacy Wav2Vec 2.0 + MLP Audio Detector Configuration
+model:
+  model_id: "legacy_wav2vec_mlp"
+  model_class: "LegacyWav2VecDetector"
+  backbone: "facebook/wav2vec2-base"
+  feature_extractor_type: "cnn_feature_extractor"
+  classifier_arch: "DeepfakeClassifier"
+  input_dim: 512
+  hidden_dim: 256
+  dropout: 0.3
+  checkpoint_path: "initial setup/deepfake_phase1/checkpoints/wav2vec_best.pt"
+  checkpoint_sha256: "efba2b1fadcb602b928b49496d6bd0ce9786fc10f8d28f76a6de77dfd378159f"
+
+preprocessing:
+  sample_rate: 16000
+  channels: 1
+
+windowing:
+  window_seconds: 2.0
+  window_samples: 32000
+  hop_seconds: 1.0
+  hop_samples: 16000
+  padding_mode: "zero"
+  min_rms_vad: 0.015
+
+score_semantics:
+  raw_score_semantics: "two_class_logits"
+  score_orientation: "higher_is_fake"
+  class_index_mapping:
+    0: "bonafide"
+    1: "spoof"
+  calibrated_threshold: 0.9849822521209717
+
+aggregation:
+  strategy: "mean"
+  top_k: 5
+  vad_enabled: true

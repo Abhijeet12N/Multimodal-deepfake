@@ -1,0 +1,103 @@
+{
+  "metadata": {
+    "model_id": "aasist_l",
+    "display_name": "Official AASIST-L Anti-Spoofing Baseline",
+    "upstream_repo": "https://github.com/clovaai/aasist",
+    "upstream_commit": "official-main",
+    "license": "MIT (NAVER Corp.)",
+    "uses_ssl_frontend": false,
+    "checkpoint_path": "C:\\Users\\avina\\Documents\\Mega Project\\aasist\\models\\weights\\AASIST-L.pth",
+    "checkpoint_sha256": "814331d088032bb4c3fa61cc014789eadeed464209dd094ab3a2dd6ffbdce27a",
+    "score_orientation": "higher_is_bonafide"
+  },
+  "requirements": {
+    "sample_rate": 16000,
+    "input_length_samples": 64600,
+    "input_length_seconds": 4.0375,
+    "hop_samples": 32000,
+    "hop_seconds": 2.0,
+    "padding_mode": "repeat",
+    "raw_score_semantics": "two_class_logits",
+    "score_orientation": "higher_is_bonafide",
+    "class_index_mapping": {
+      "0": "spoof",
+      "1": "bonafide"
+    },
+    "calibrated_threshold": 0.0
+  },
+  "evaluation_config": {
+    "model": "aasist_l",
+    "manifest": "data\\manifests\\manifest_local_eval.csv",
+    "val_manifest": null,
+    "protocol": "sliding_window",
+    "threshold": 0.0,
+    "threshold_source": "model_calibrated_default",
+    "batch_size": 256,
+    "device": "cpu"
+  },
+  "overall_metrics": {
+    "eer": 0.5,
+    "eer_threshold": -2.515044,
+    "threshold": 0.0,
+    "accuracy": 0.3333333333333333,
+    "precision": 0.3333333333333333,
+    "recall": 1.0,
+    "f1": 0.5,
+    "roc_auc": 0.75,
+    "pr_auc": 0.75,
+    "genuine_false_positive_rate": 1.0,
+    "specificity": 0.0,
+    "confusion_matrix": {
+      "true_negatives": 0,
+      "false_positives": 4,
+      "false_negatives": 0,
+      "true_positives": 2
+    },
+    "total_samples": 6,
+    "genuine_samples": 4,
+    "fake_samples": 2,
+    "threshold_source": "model_calibrated_default",
+    "model_load_time_seconds": 0.06500169995706528,
+    "total_eval_time_seconds": 18.674755099986214,
+    "average_latency_ms": 3112.413700000616,
+    "throughput_samples_per_sec": 0.3212893538831162,
+    "device": "cpu",
+    "protocol": "sliding_window",
+    "model": "aasist_l"
+  },
+  "per_attack_breakdown": [
+    {
+      "dataset": "local_eval",
+      "split": "eval",
+      "attack_type": "bonafide (-)",
+      "total_samples": 4,
+      "detected_spoofs": 0,
+      "missed_spoofs": 0,
+      "recall": 0.0,
+      "false_positive_rate": 1.0,
+      "eer": NaN
+    },
+    {
+      "dataset": "local_eval",
+      "split": "eval",
+      "attack_type": "voice_clone",
+      "total_samples": 1,
+      "detected_spoofs": 1,
+      "missed_spoofs": 0,
+      "recall": 1.0,
+      "false_positive_rate": NaN,
+      "eer": 0.75
+    },
+    {
+      "dataset": "local_eval",
+      "split": "eval",
+      "attack_type": "voice_clone_or_deepfake",
+      "total_samples": 1,
+      "detected_spoofs": 1,
+      "missed_spoofs": 0,
+      "recall": 1.0,
+      "false_positive_rate": NaN,
+      "eer": 0.0
+    }
+  ]
+}

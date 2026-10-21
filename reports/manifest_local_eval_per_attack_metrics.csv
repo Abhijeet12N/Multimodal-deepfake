@@ -1,0 +1,4 @@
+dataset,split,attack_type,total_samples,detected_spoofs,missed_spoofs,recall,false_positive_rate,eer
+local_eval,eval,bonafide (-),4,0,0,0.0,1.0,nan
+local_eval,eval,voice_clone,1,1,0,1.0,nan,0.75
+local_eval,eval,voice_clone_or_deepfake,1,1,0,1.0,nan,0.0

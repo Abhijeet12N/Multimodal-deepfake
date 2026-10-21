@@ -1,0 +1,225 @@
+{
+  "metadata": {
+    "model_id": "legacy_wav2vec_mlp",
+    "display_name": "Legacy Wav2Vec 2.0 + MLP",
+    "upstream_repo": "https://github.com/facebookresearch/fairseq",
+    "upstream_commit": "official-wav2vec2-base",
+    "license": "Apache-2.0 / MIT",
+    "uses_ssl_frontend": true,
+    "checkpoint_path": "C:\\Users\\avina\\Documents\\Mega Project\\initial setup\\deepfake_phase1\\checkpoints\\wav2vec_best.pt",
+    "checkpoint_sha256": "efba2b1fadcb602b928b49496d6bd0ce9786fc10f8d28f76a6de77dfd378159f",
+    "threshold": 0.9849822521209717
+  },
+  "requirements": {
+    "sample_rate": 16000,
+    "input_length_samples": 32000,
+    "input_length_seconds": 2.0,
+    "hop_samples": 16000,
+    "hop_seconds": 1.0,
+    "padding_mode": "zero",
+    "raw_score_semantics": "two_class_logits",
+    "score_orientation": "higher_is_fake",
+    "class_index_mapping": {
+      "0": "bonafide",
+      "1": "spoof"
+    },
+    "calibrated_threshold": 0.9849822521209717,
+    "min_rms_vad": 0.015
+  },
+  "evaluation_config": {
+    "model": "legacy_wav2vec_mlp",
+    "manifest": "data\\manifests\\manifest_asvspoof2019_eval.csv",
+    "val_manifest": "data/manifests/manifest_asvspoof2019_dev.csv",
+    "protocol": "native_benchmark",
+    "threshold": 0.9849822521209717,
+    "threshold_source": "validation_eer_selected (manifest_asvspoof2019_dev)",
+    "batch_size": 256,
+    "device": "cpu"
+  },
+  "overall_metrics": {
+    "eer": 0.0713050038234371,
+    "eer_threshold": 0.46425536274909973,
+    "threshold": 0.9849822521209717,
+    "accuracy": 0.8490250852787176,
+    "precision": 0.9979753669647377,
+    "recall": 0.8333333333333334,
+    "f1": 0.9082533589251439,
+    "roc_auc": 0.981472844721289,
+    "pr_auc": 0.9977792005911805,
+    "genuine_false_positive_rate": 0.01468388851121686,
+    "specificity": 0.9853161114887832,
+    "confusion_matrix": {
+      "true_negatives": 7247,
+      "false_positives": 108,
+      "false_negatives": 10647,
+      "true_positives": 53235
+    },
+    "total_samples": 71237,
+    "genuine_samples": 7355,
+    "fake_samples": 63882,
+    "threshold_source": "validation_eer_selected (manifest_asvspoof2019_dev)",
+    "model_load_time_seconds": 0.43735550000565127,
+    "total_eval_time_seconds": 0.4072971999994479,
+    "average_latency_ms": 0.0031303760733428277,
+    "throughput_samples_per_sec": 174901.76706369835,
+    "device": "cpu",
+    "protocol": "native_benchmark",
+    "model": "legacy_wav2vec_mlp"
+  },
+  "per_attack_breakdown": [
+    {
+      "dataset": "asvspoof2019_la",
+      "split": "eval",
+      "attack_type": "bonafide (-)",
+      "total_samples": 7355,
+      "detected_spoofs": 0,
+      "missed_spoofs": 0,
+      "recall": 0.0,
+      "false_positive_rate": 0.01468388851121686,
+      "eer": NaN
+    },
+    {
+      "dataset": "asvspoof2019_la",
+      "split": "eval",
+      "attack_type": "A07",
+      "total_samples": 4914,
+      "detected_spoofs": 4788,
+      "missed_spoofs": 126,
+      "recall": 0.9743589743589743,
+      "false_positive_rate": NaN,
+      "eer": 0.01891211364358885
+    },
+    {
+      "dataset": "asvspoof2019_la",
+      "split": "eval",
+      "attack_type": "A08",
+      "total_samples": 4914,
+      "detected_spoofs": 4843,
+      "missed_spoofs": 71,
+      "recall": 0.9855514855514855,
+      "false_positive_rate": NaN,
+      "eer": 0.014430239549206251
+    },
+    {
+      "dataset": "asvspoof2019_la",
+      "split": "eval",
+      "attack_type": "A09",
+      "total_samples": 4914,
+      "detected_spoofs": 4907,
+      "missed_spoofs": 7,
+      "recall": 0.9985754985754985,
+      "false_positive_rate": NaN,
+      "eer": 0.007028282793068677
+    },
+    {
+      "dataset": "asvspoof2019_la",
+      "split": "eval",
+      "attack_type": "A10",
+      "total_samples": 4914,
+      "detected_spoofs": 4812,
+      "missed_spoofs": 102,
+      "recall": 0.9792429792429792,
+      "false_positive_rate": NaN,
+      "eer": 0.017893727241109998
+    },
+    {
+      "dataset": "asvspoof2019_la",
+      "split": "eval",
+      "attack_type": "A11",
+      "total_samples": 4914,
+      "detected_spoofs": 4759,
+      "missed_spoofs": 155,
+      "recall": 0.9684574684574685,
+      "false_positive_rate": NaN,
+      "eer": 0.020711617108625964
+    },
+    {
+      "dataset": "asvspoof2019_la",
+      "split": "eval",
+      "attack_type": "A12",
+      "total_samples": 4914,
+      "detected_spoofs": 4868,
+      "missed_spoofs": 46,
+      "recall": 0.9906389906389906,
+      "false_positive_rate": NaN,
+      "eer": 0.013071948320078857
+    },
+    {
+      "dataset": "asvspoof2019_la",
+      "split": "eval",
+      "attack_type": "A13",
+      "total_samples": 4914,
+      "detected_spoofs": 4911,
+      "missed_spoofs": 3,
+      "recall": 0.9993894993894994,
+      "false_positive_rate": NaN,
+      "eer": 0.00373496886073364
+    },
+    {
+      "dataset": "asvspoof2019_la",
+      "split": "eval",
+      "attack_type": "A14",
+      "total_samples": 4914,
+      "detected_spoofs": 4891,
+      "missed_spoofs": 23,
+      "recall": 0.9953194953194954,
+      "false_positive_rate": NaN,
+      "eer": 0.009303210322924804
+    },
+    {
+      "dataset": "asvspoof2019_la",
+      "split": "eval",
+      "attack_type": "A15",
+      "total_samples": 4914,
+      "detected_spoofs": 4322,
+      "missed_spoofs": 592,
+      "recall": 0.8795278795278795,
+      "false_positive_rate": NaN,
+      "eer": 0.04549766521214517
+    },
+    {
+      "dataset": "asvspoof2019_la",
+      "split": "eval",
+      "attack_type": "A16",
+      "total_samples": 4914,
+      "detected_spoofs": 4334,
+      "missed_spoofs": 580,
+      "recall": 0.881969881969882,
+      "false_positive_rate": NaN,
+      "eer": 0.05289962196828274
+    },
+    {
+      "dataset": "asvspoof2019_la",
+      "split": "eval",
+      "attack_type": "A17",
+      "total_samples": 4914,
+      "detected_spoofs": 1331,
+      "missed_spoofs": 3583,
+      "recall": 0.27085877085877086,
+      "false_positive_rate": NaN,
+      "eer": 0.18925709836654772
+    },
+    {
+      "dataset": "asvspoof2019_la",
+      "split": "eval",
+      "attack_type": "A18",
+      "total_samples": 4914,
+      "detected_spoofs": 1873,
+      "missed_spoofs": 3041,
+      "recall": 0.38115588115588117,
+      "false_positive_rate": NaN,
+      "eer": 0.13418429897015893
+    },
+    {
+      "dataset": "asvspoof2019_la",
+      "split": "eval",
+      "attack_type": "A19",
+      "total_samples": 4914,
+      "detected_spoofs": 2596,
+      "missed_spoofs": 2318,
+      "recall": 0.5282865282865283,
+      "false_positive_rate": NaN,
+      "eer": 0.12674857307760093
+    }
+  ]
+}
