@@ -19,10 +19,13 @@ Verify GPU availability:
 
 SSL-AASIST requires compatible ANTLR, OmegaConf, and a pinned Fairseq commit:
 ```bash
-# 1. Core deep learning, audio, and Python 3.12/3.13 compatible antlr4 runtime
-!pip install -q torch torchvision torchaudio soundfile librosa scikit-learn tqdm tensorboardX "antlr4-python3-runtime>=4.9.3" omegaconf
+# 1. Core packages pinned to satisfy hydra-core 1.3.7 dependency requirements
+!pip install -q torch torchvision torchaudio soundfile librosa scikit-learn tqdm tensorboardX "antlr4-python3-runtime==4.9.3" "omegaconf==2.3.0"
 
-# 2. Clone and install compatible Fairseq commit
+# 2. Patch antlr4 for Python 3.12/3.13 compatibility (removes removed typing.io import)
+!sed -i 's/from typing.io import TextIO/from typing import TextIO/g' /usr/local/lib/python3.*/dist-packages/antlr4/*.py 2>/dev/null || true
+
+# 3. Clone and install compatible Fairseq commit
 !git clone https://github.com/pytorch/fairseq
 %cd fairseq
 !git checkout a54021305d6b3c4c5959ac9395135f63202db8f1

@@ -54,6 +54,20 @@ if "typing.re" not in sys.modules:
     sys.modules["typing.re"] = _typing_re
     setattr(typing, "re", _typing_re)
 
+# Auto-patch antlr4 files on disk if running under Python 3.12/3.13
+import glob
+for _p in glob.glob("/usr/local/lib/python3*/dist-packages/antlr4/*.py") + glob.glob(
+    os.path.expanduser("~/.local/lib/python3*/dist-packages/antlr4/*.py")
+):
+    try:
+        with open(_p, "r", encoding="utf-8") as _f:
+            _code = _f.read()
+        if "from typing.io import TextIO" in _code:
+            with open(_p, "w", encoding="utf-8") as _f:
+                _f.write(_code.replace("from typing.io import TextIO", "from typing import TextIO"))
+    except Exception:
+        pass
+
 # Auto-add Colab workspace directories to sys.path if present
 for _colab_p in ["/content/SSL_Anti-spoofing", "/content/fairseq", "/content/Multimodal-deepfake"]:
     if os.path.exists(_colab_p) and _colab_p not in sys.path:
