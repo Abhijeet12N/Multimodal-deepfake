@@ -30,6 +30,14 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 import typing
 
+import numpy as np
+import soundfile as sf
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.utils.data import DataLoader, Dataset
+from tqdm.auto import tqdm
+
 # ============================================================================
 # Compatibility Shim 1: Python 3.12+ removal of typing.io & typing.re
 # ============================================================================
