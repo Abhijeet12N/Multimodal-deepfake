@@ -1,0 +1,148 @@
+{
+  "metadata": {
+    "model_id": "legacy_wav2vec_mlp",
+    "display_name": "Legacy Wav2Vec 2.0 + MLP",
+    "upstream_repo": "https://github.com/facebookresearch/fairseq",
+    "upstream_commit": "official-wav2vec2-base",
+    "license": "Apache-2.0 / MIT",
+    "uses_ssl_frontend": true,
+    "checkpoint_path": "C:\\Users\\avina\\Documents\\Mega Project\\initial setup\\deepfake_phase1\\checkpoints\\wav2vec_best.pt",
+    "checkpoint_sha256": "efba2b1fadcb602b928b49496d6bd0ce9786fc10f8d28f76a6de77dfd378159f",
+    "threshold": 0.9849822521209717
+  },
+  "requirements": {
+    "sample_rate": 16000,
+    "input_length_samples": 32000,
+    "input_length_seconds": 2.0,
+    "hop_samples": 16000,
+    "hop_seconds": 1.0,
+    "padding_mode": "zero",
+    "raw_score_semantics": "two_class_logits",
+    "score_orientation": "higher_is_fake",
+    "class_index_mapping": {
+      "0": "bonafide",
+      "1": "spoof"
+    },
+    "calibrated_threshold": 0.9849822521209717,
+    "min_rms_vad": 0.015
+  },
+  "evaluation_config": {
+    "model": "legacy_wav2vec_mlp",
+    "manifest": "data\\manifests\\manifest_asvspoof2019_dev.csv",
+    "val_manifest": null,
+    "protocol": "native_benchmark",
+    "threshold": 0.9849822521209717,
+    "threshold_source": "model_calibrated_default",
+    "batch_size": 256,
+    "device": "cpu"
+  },
+  "overall_metrics": {
+    "eer": 0.0347155215485217,
+    "eer_threshold": 0.9849822521209717,
+    "threshold": 0.9849822521209717,
+    "accuracy": 0.9651424891321848,
+    "precision": 0.9959270572988984,
+    "recall": 0.9651058485827054,
+    "f1": 0.9802742471869164,
+    "roc_auc": 0.9946577294700275,
+    "pr_auc": 0.9993844656922293,
+    "genuine_false_positive_rate": 0.03453689167974882,
+    "specificity": 0.9654631083202512,
+    "confusion_matrix": {
+      "true_negatives": 2460,
+      "false_positives": 88,
+      "false_negatives": 778,
+      "true_positives": 21518
+    },
+    "total_samples": 24844,
+    "genuine_samples": 2548,
+    "fake_samples": 22296,
+    "threshold_source": "model_calibrated_default",
+    "model_load_time_seconds": 0.4498967999825254,
+    "total_eval_time_seconds": 0.15049039997393265,
+    "average_latency_ms": 0.003700402531074997,
+    "throughput_samples_per_sec": 165086.9424515011,
+    "device": "cpu",
+    "protocol": "native_benchmark",
+    "model": "legacy_wav2vec_mlp"
+  },
+  "per_attack_breakdown": [
+    {
+      "dataset": "asvspoof2019_la",
+      "split": "dev",
+      "attack_type": "bonafide (-)",
+      "total_samples": 2548,
+      "detected_spoofs": 0,
+      "missed_spoofs": 0,
+      "recall": 0.0,
+      "false_positive_rate": 0.03453689167974882,
+      "eer": NaN
+    },
+    {
+      "dataset": "asvspoof2019_la",
+      "split": "dev",
+      "attack_type": "A01",
+      "total_samples": 3716,
+      "detected_spoofs": 3711,
+      "missed_spoofs": 5,
+      "recall": 0.998654467168999,
+      "false_positive_rate": NaN,
+      "eer": 0.0033190513930172368
+    },
+    {
+      "dataset": "asvspoof2019_la",
+      "split": "dev",
+      "attack_type": "A02",
+      "total_samples": 3716,
+      "detected_spoofs": 3715,
+      "missed_spoofs": 1,
+      "recall": 0.9997308934337998,
+      "false_positive_rate": NaN,
+      "eer": 0.0033190513930172368
+    },
+    {
+      "dataset": "asvspoof2019_la",
+      "split": "dev",
+      "attack_type": "A03",
+      "total_samples": 3716,
+      "detected_spoofs": 3707,
+      "missed_spoofs": 9,
+      "recall": 0.9975780409041981,
+      "false_positive_rate": NaN,
+      "eer": 0.008095798557892971
+    },
+    {
+      "dataset": "asvspoof2019_la",
+      "split": "dev",
+      "attack_type": "A04",
+      "total_samples": 3716,
+      "detected_spoofs": 3389,
+      "missed_spoofs": 327,
+      "recall": 0.9120021528525296,
+      "false_positive_rate": NaN,
+      "eer": 0.05923280548453545
+    },
+    {
+      "dataset": "asvspoof2019_la",
+      "split": "dev",
+      "attack_type": "A05",
+      "total_samples": 3716,
+      "detected_spoofs": 3714,
+      "missed_spoofs": 2,
+      "recall": 0.9994617868675996,
+      "false_positive_rate": NaN,
+      "eer": 0.010680404479420293
+    },
+    {
+      "dataset": "asvspoof2019_la",
+      "split": "dev",
+      "attack_type": "A06",
+      "total_samples": 3716,
+      "detected_spoofs": 3282,
+      "missed_spoofs": 434,
+      "recall": 0.8832077502691066,
+      "false_positive_rate": NaN,
+      "eer": 0.06546724842126964
+    }
+  ]
+}
