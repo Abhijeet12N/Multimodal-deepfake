@@ -25,19 +25,42 @@ import os
 import random
 import sys
 import time
+import types
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
-
-import numpy as np
-import soundfile as sf
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.utils.data import DataLoader, Dataset
-from tqdm.auto import tqdm
+import typing
 
 # ============================================================================
-# Compatibility Shim: fairseq + omegaconf (Google Colab / Modern Runtimes)
+# Compatibility Shim 1: Python 3.12+ removal of typing.io & typing.re
+# ============================================================================
+# In Python 3.12/3.13, typing.io and typing.re were completely removed.
+# Older packages like antlr4-python3-runtime (used by omegaconf/fairseq)
+# execute `from typing.io import TextIO`. This shim restores compatibility.
+if not hasattr(typing, "__path__"):
+    typing.__path__ = []
+
+if "typing.io" not in sys.modules:
+    _typing_io = types.ModuleType("typing.io")
+    _typing_io.IO = typing.IO
+    _typing_io.TextIO = typing.TextIO
+    _typing_io.BinaryIO = typing.BinaryIO
+    sys.modules["typing.io"] = _typing_io
+    setattr(typing, "io", _typing_io)
+
+if "typing.re" not in sys.modules:
+    _typing_re = types.ModuleType("typing.re")
+    _typing_re.Pattern = getattr(typing, "Pattern", object)
+    _typing_re.Match = getattr(typing, "Match", object)
+    sys.modules["typing.re"] = _typing_re
+    setattr(typing, "re", _typing_re)
+
+# Auto-add Colab workspace directories to sys.path if present
+for _colab_p in ["/content/SSL_Anti-spoofing", "/content/fairseq", "/content/Multimodal-deepfake"]:
+    if os.path.exists(_colab_p) and _colab_p not in sys.path:
+        sys.path.insert(0, _colab_p)
+
+# ============================================================================
+# Compatibility Shim 2: fairseq + omegaconf (Google Colab / Modern Runtimes)
 # ============================================================================
 # In omegaconf >= 2.1, `omegaconf._utils.is_primitive_type` was deprecated/removed,
 # causing fairseq.checkpoint_utils.load_checkpoint_to_cpu to fail with AttributeError.
@@ -157,6 +180,23 @@ class ASVspoofRawDataset(Dataset):
 # ============================================================================
 def build_ssl_aasist_model(device: torch.device, fairseq_cp_path: Optional[str] = None) -> nn.Module:
     """Build SSL-AASIST model with XLSR frontend and AASIST GAT backend."""
+    # Ensure typing.io shim for Python 3.12+ (used by antlr4 inside omegaconf/fairseq)
+    if not hasattr(typing, "__path__"):
+        typing.__path__ = []
+    if "typing.io" not in sys.modules:
+        _t_io = types.ModuleType("typing.io")
+        _t_io.IO = typing.IO
+        _t_io.TextIO = typing.TextIO
+        _t_io.BinaryIO = typing.BinaryIO
+        sys.modules["typing.io"] = _t_io
+        setattr(typing, "io", _t_io)
+    if "typing.re" not in sys.modules:
+        _t_re = types.ModuleType("typing.re")
+        _t_re.Pattern = getattr(typing, "Pattern", object)
+        _t_re.Match = getattr(typing, "Match", object)
+        sys.modules["typing.re"] = _t_re
+        setattr(typing, "re", _t_re)
+
     # Ensure omegaconf._utils compatibility shim is bound
     try:
         import omegaconf._utils
@@ -172,8 +212,9 @@ def build_ssl_aasist_model(device: torch.device, fairseq_cp_path: Optional[str] 
     try:
         import fairseq
         from fairseq.checkpoint_utils import load_model_ensemble_and_task
-    except ImportError:
-        print("[train_ssl_aasist] Fairseq is not installed. To run training, run on Google Colab:")
+    except Exception as e:
+        print(f"[train_ssl_aasist] Error importing fairseq ({e}). To run training, run on Google Colab:")
+        print("  !pip install --upgrade 'antlr4-python3-runtime>=4.9.3'")
         print("  !pip install --editable ./fairseq")
         raise
 

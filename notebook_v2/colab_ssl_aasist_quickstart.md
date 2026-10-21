@@ -17,10 +17,10 @@ Verify GPU availability:
 
 ## 2. Install Dependencies & Fairseq
 
-SSL-AASIST requires a specific pinned Fairseq version and compatible OmegaConf:
+SSL-AASIST requires compatible ANTLR, OmegaConf, and a pinned Fairseq commit:
 ```bash
-# 1. Core deep learning, audio, and pinned OmegaConf for Fairseq compatibility
-!pip install -q torch torchvision torchaudio soundfile librosa scikit-learn tqdm tensorboardX "omegaconf<2.2.0"
+# 1. Core deep learning, audio, and Python 3.12/3.13 compatible antlr4 runtime
+!pip install -q torch torchvision torchaudio soundfile librosa scikit-learn tqdm tensorboardX "antlr4-python3-runtime>=4.9.3" omegaconf
 
 # 2. Clone and install compatible Fairseq commit
 !git clone https://github.com/pytorch/fairseq
