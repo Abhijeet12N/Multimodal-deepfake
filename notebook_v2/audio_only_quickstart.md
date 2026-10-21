@@ -53,7 +53,7 @@ Download `audio_model.pt` from Drive. Create/activate the project's Python envir
 ```powershell
 $env:MODEL_PATH = "C:\path\to\best_model.pt"
 $env:AUDIO_MODEL_PATH = "C:\path\to\audio_model.pt"
-cd demo_site
+cd ui
 python app.py
 ```
 
