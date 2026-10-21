@@ -82,6 +82,7 @@ class StandaloneAudioService:
         # Run batched inference
         all_window_results: list[dict[str, Any]] = []
         fake_window_scores: list[float] = []
+        bonafide_window_scores: list[float] = []
 
         for b_start in range(0, len(active_windows), self.batch_size):
             b_windows = active_windows[b_start : b_start + self.batch_size]
@@ -94,10 +95,12 @@ class StandaloneAudioService:
             orientation = pred_res.get("score_orientation", self.reqs.get("score_orientation", "higher_is_fake"))
 
             for idx, win in enumerate(b_windows):
+                bonafide_score = None
                 if orientation == "higher_is_bonafide":
                     bonafide_score = float(pred_res["bonafide_scores"][idx])
                     fake_score = float(pred_res["fake_scores"][idx])
-                    # Higher fake_score means fake
+                    bonafide_window_scores.append(bonafide_score)
+                    # Higher fake_score means fake, lower bonafide_score means fake
                     is_flagged = bonafide_score < self.threshold
                 else:  # higher_is_fake
                     if "fake_probabilities" in pred_res:
@@ -107,19 +110,23 @@ class StandaloneAudioService:
                     is_flagged = fake_score >= self.threshold
 
                 fake_window_scores.append(fake_score)
-                all_window_results.append({
+                win_dict = {
                     "start_seconds": win.start_seconds,
                     "end_seconds": win.end_seconds,
                     "fake_score": round(fake_score, 4),
                     "is_fake": is_flagged,
                     "rms_energy": win.rms_energy,
-                })
+                    "is_speech": win.is_speech,
+                }
+                if bonafide_score is not None:
+                    win_dict["bonafide_score"] = round(bonafide_score, 4)
+                all_window_results.append(win_dict)
 
         # Recording-level aggregation
         rec_score = self.aggregator.aggregate(fake_window_scores)
         if orientation == "higher_is_bonafide":
-            # For bonafide orientation, rec_score is evaluated against threshold
-            bonafide_rec = float(np.mean([pred_res["bonafide_scores"][i] for i in range(len(active_windows))]))
+            # For bonafide orientation, bonafide_rec is evaluated against threshold
+            bonafide_rec = float(np.mean(bonafide_window_scores)) if bonafide_window_scores else 0.0
             is_fake_verdict = bonafide_rec < self.threshold
             calibrated_prob = None  # Do not invent uncalibrated probabilities for logits
         else:
@@ -141,7 +148,7 @@ class StandaloneAudioService:
             "verdict": "fake" if is_fake_verdict else "real",
             "model_id": self.meta.get("model_id"),
             "model_version": self.meta.get("checkpoint_sha256", "unknown")[:10],
-            "raw_recording_score": round(rec_score, 6),
+            "raw_recording_score": round(bonafide_rec if orientation == "higher_is_bonafide" else rec_score, 6),
             "calibrated_fake_probability": calibrated_prob,
             "calibration_version": None,
             "threshold": self.threshold,
@@ -154,6 +161,7 @@ class StandaloneAudioService:
             "evaluated_windows": len(active_windows),
             "suspicious_intervals": suspicious_intervals,
             "top_windows": sorted(all_window_results, key=lambda w: w["fake_score"], reverse=True)[:5],
+            "windows": all_window_results,
             "inference_seconds": elapsed,
             "warnings": warnings,
         }
