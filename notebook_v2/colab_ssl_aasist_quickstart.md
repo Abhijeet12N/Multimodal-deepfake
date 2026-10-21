@@ -67,6 +67,16 @@ drive.mount('/content/drive')
 # Option B: Download directly from Edinburgh DataShare:
 # !curl -o /content/LA.zip "https://datashare.ed.ac.uk/bitstream/handle/10283/3336/LA.zip?sequence=3&isAllowed=y"
 # !unzip -q /content/LA.zip -d /content/ASVspoof2019_LA
+
+# Option C: Download using Kaggle API (Fast & Reliable):
+# Step 1: Set your Kaggle API credentials (from kaggle.com -> Account -> Create New Token)
+import os
+os.environ['KAGGLE_USERNAME'] = "your_kaggle_username"
+os.environ['KAGGLE_KEY'] = "your_kaggle_key"
+
+# Step 2: Download LA.zip from the ASVspoof 2019 Kaggle dataset
+!kaggle datasets download -d awsaf49/asvpoof-2019-dataset -f LA.zip -p /content
+!unzip -q /content/LA.zip -d /content/ASVspoof2019_LA
 ```
 
 ---
