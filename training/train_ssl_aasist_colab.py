@@ -82,7 +82,47 @@ for _colab_p in ["/content/SSL_Anti-spoofing", "/content/fairseq", "/content/Mul
         sys.path.insert(0, _colab_p)
 
 # ============================================================================
-# Compatibility Shim 2: fairseq + omegaconf (Google Colab / Modern Runtimes)
+# Compatibility Shim 2: Python 3.11+ dataclass mutable default bypass
+# ============================================================================
+# In Python 3.11+, dataclasses disallow mutable default instances (like CommonConfig()).
+# Fairseq was authored for Python <=3.10 and declares default config instances directly.
+import dataclasses
+
+_orig_dataclass_get_field = dataclasses._get_field
+
+
+def _patched_dataclass_get_field(cls, a_name, a_type, *args, **kwargs):
+    try:
+        return _orig_dataclass_get_field(cls, a_name, a_type, *args, **kwargs)
+    except ValueError as err:
+        if "mutable default" in str(err):
+            val = getattr(cls, a_name, None)
+            if isinstance(val, list):
+                setattr(cls, a_name, dataclasses.field(default_factory=list))
+                return _orig_dataclass_get_field(cls, a_name, a_type, *args, **kwargs)
+            elif isinstance(val, dict):
+                setattr(cls, a_name, dataclasses.field(default_factory=dict))
+                return _orig_dataclass_get_field(cls, a_name, a_type, *args, **kwargs)
+            elif isinstance(val, set):
+                setattr(cls, a_name, dataclasses.field(default_factory=set))
+                return _orig_dataclass_get_field(cls, a_name, a_type, *args, **kwargs)
+
+            # Check if default is or contains an instance of a class whose __hash__ is None
+            target = val.default if isinstance(val, dataclasses.Field) else val
+            if target is not None and hasattr(target, "__class__"):
+                try:
+                    target.__class__.__hash__ = lambda self: id(self)
+                    return _orig_dataclass_get_field(cls, a_name, a_type, *args, **kwargs)
+                except (TypeError, AttributeError):
+                    pass
+        raise err
+
+
+dataclasses._get_field = _patched_dataclass_get_field
+
+
+# ============================================================================
+# Compatibility Shim 3: fairseq + omegaconf (Google Colab / Modern Runtimes)
 # ============================================================================
 # In omegaconf >= 2.1, `omegaconf._utils.is_primitive_type` was deprecated/removed,
 # causing fairseq.checkpoint_utils.load_checkpoint_to_cpu to fail with AttributeError.
@@ -230,6 +270,11 @@ def build_ssl_aasist_model(device: torch.device, fairseq_cp_path: Optional[str] 
             )
     except (ImportError, AttributeError):
         pass
+
+    # Ensure dataclasses mutable default bypass is active
+    import dataclasses
+    if dataclasses._get_field is not _patched_dataclass_get_field:
+        dataclasses._get_field = _patched_dataclass_get_field
 
     try:
         import fairseq
