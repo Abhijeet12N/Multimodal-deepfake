@@ -29,8 +29,8 @@ if not os.path.exists(DATASET_DIR):
 ## 3. Clone This Repository
 
 ```python
-!git clone https://github.com/yagmurtncr/multimodal-deepfake-detection.git
-%cd /content/multimodal-deepfake-detection
+!git clone https://github.com/Abhijeet12N/Multimodal-deepfake.git
+%cd /content/Multimodal-deepfake
 ```
 
 ## 4. Run The v3 Pipeline

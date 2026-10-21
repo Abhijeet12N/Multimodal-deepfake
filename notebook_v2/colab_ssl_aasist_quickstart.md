@@ -36,7 +36,7 @@ SSL-AASIST requires a specific pinned Fairseq version:
 
 ```bash
 # 1. Clone the multimodal deepfake detection repository
-!git clone https://github.com/avipednekar/Multimodal-deepfake.git /content/Multimodal-deepfake
+!git clone https://github.com/Abhijeet12N/Multimodal-deepfake.git /content/Multimodal-deepfake
 %cd /content/Multimodal-deepfake
 
 # 2. Clone the upstream SSL_Anti-spoofing repository
