@@ -36,6 +36,23 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
 from tqdm.auto import tqdm
 
+# ============================================================================
+# Compatibility Shim: fairseq + omegaconf (Google Colab / Modern Runtimes)
+# ============================================================================
+# In omegaconf >= 2.1, `omegaconf._utils.is_primitive_type` was deprecated/removed,
+# causing fairseq.checkpoint_utils.load_checkpoint_to_cpu to fail with AttributeError.
+# This shim dynamically provides the expected primitive validator.
+try:
+    import omegaconf._utils
+    if not hasattr(omegaconf._utils, "is_primitive_type"):
+        omegaconf._utils.is_primitive_type = getattr(
+            omegaconf._utils,
+            "is_primitive_type_val",
+            lambda obj: isinstance(obj, (int, float, bool, str, bytes)),
+        )
+except (ImportError, AttributeError):
+    pass
+
 
 # ============================================================================
 # 1. RawBoost Data Augmentation (Tak et al., 2022)
@@ -140,6 +157,18 @@ class ASVspoofRawDataset(Dataset):
 # ============================================================================
 def build_ssl_aasist_model(device: torch.device, fairseq_cp_path: Optional[str] = None) -> nn.Module:
     """Build SSL-AASIST model with XLSR frontend and AASIST GAT backend."""
+    # Ensure omegaconf._utils compatibility shim is bound
+    try:
+        import omegaconf._utils
+        if not hasattr(omegaconf._utils, "is_primitive_type"):
+            omegaconf._utils.is_primitive_type = getattr(
+                omegaconf._utils,
+                "is_primitive_type_val",
+                lambda obj: isinstance(obj, (int, float, bool, str, bytes)),
+            )
+    except (ImportError, AttributeError):
+        pass
+
     try:
         import fairseq
         from fairseq.checkpoint_utils import load_model_ensemble_and_task
@@ -248,7 +277,15 @@ def main():
     print(f"  SSL-AASIST Google Colab Training Pipeline")
     print(f"=======================================================")
     print(f"  Device:         {device} ({torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'No GPU'})")
-    print(f"  VRAM Available: {torch.cuda.get_device_properties(0).total_memory / 1e9:.2f} GB" if torch.cuda.is_available() else "")
+    if torch.cuda.is_available():
+        print(f"  VRAM Available: {torch.cuda.get_device_properties(0).total_memory / 1e9:.2f} GB")
+    else:
+        print("\n" + "!" * 72)
+        print("  CRITICAL WARNING: CUDA GPU IS NOT DETECTED (RUNNING ON CPU)!")
+        print("  Training XLSR-53 (317M params) on CPU will be extremely slow (~10-15x slower).")
+        print("  In Google Colab, enable GPU acceleration via:")
+        print("    Runtime -> Change runtime type -> Hardware accelerator -> T4 GPU")
+        print("!" * 72 + "\n")
     print(f"  Batch Size:     {args.batch_size}")
     print(f"  Epochs:         {args.epochs}")
     print(f"  RawBoost:       {args.rawboost}")
