@@ -172,7 +172,7 @@ class TestAASISTUpstreamParity:
         detector = AASISTDetector(checkpoint_path=AASIST_CKPT, device="cpu")
         service = StandaloneAudioService(detector, batch_size=2, vad_enabled=True)
 
-        sample_audio = ROOT / "demo_site/samples"
+        sample_audio = ROOT / "ui/samples"
         # Find any audio file
         audio_files = list(ROOT.glob("**/*.mp3")) + list(ROOT.glob("**/*.wav"))
         if not audio_files:
