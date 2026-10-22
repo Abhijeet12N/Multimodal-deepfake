@@ -327,6 +327,6 @@ pytest tests
 ---
 
 ## License & Attribution
-
+“Based on multimodal-deepfake-detection by Nur Yağmur Tuncer (MIT)”.
 - **Dataset**: Research using FakeAVCeleb must cite the original dataset creators. See the [FakeAVCeleb repository](https://github.com/DASH-Lab/FakeAVCeleb) for terms of use.
 - **Pretrained Encoders**: Uses HuggingFace `facebook/wav2vec2-base-960h` and timm `xception`.

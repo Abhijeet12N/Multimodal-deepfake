@@ -173,12 +173,15 @@
                     result.textContent = data.error || 'Audio analysis failed.';
                     return;
                 }
-                result.classList.add(data.result.label === 'fake' ? 'audio-error' : 'audio-ok');
+                const isFake = data.result.label === 'fake';
+                result.classList.add(isFake ? 'audio-error' : 'audio-ok');
                 const strongest = (data.result.top_windows || [])
                     .slice(0, 3)
                     .map((window) => `${window.start_seconds}-${window.end_seconds}s (${(window.fake_score * 100).toFixed(0)}%)`)
                     .join(', ');
-                result.textContent = `${data.filename}: ${data.result.label.toUpperCase()} audio · whole-file fake score ${(data.result.fake_probability * 100).toFixed(1)}% · ${data.result.windows_analyzed} windows across ${data.result.analyzed_seconds}s · strongest windows: ${strongest} · ${data.result.inference_seconds}s`;
+                const labelTag = isFake ? (data.result.is_spliced ? 'FAKE audio (Spliced / Partial Synthetic)' : 'FAKE audio') : 'REAL audio';
+                const peakInfo = data.result.peak_probability ? ` · peak window: ${(data.result.peak_probability * 100).toFixed(1)}%` : '';
+                result.textContent = `${data.filename}: ${labelTag} · whole-file fake score ${(data.result.fake_probability * 100).toFixed(1)}%${peakInfo} · ${data.result.windows_analyzed} windows across ${data.result.analyzed_seconds}s · strongest windows: ${strongest} · ${data.result.inference_seconds}s`;
             } catch (error) {
                 result.classList.add('audio-error');
                 result.textContent = 'Request failed: ' + error.message;

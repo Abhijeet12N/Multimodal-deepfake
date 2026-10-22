@@ -88,6 +88,7 @@ class StandaloneAudioPredictor:
             window_probabilities.extend(float(value) for value in probabilities)
 
         probability = float(np.mean(window_probabilities)) if window_probabilities else 0.0
+        peak_score = float(np.max(window_probabilities)) if window_probabilities else 0.0
 
         top_indices = sorted(
             range(len(window_probabilities)),
@@ -104,12 +105,39 @@ class StandaloneAudioPredictor:
             for index in top_indices
         ]
 
+        # Forensic splicing & partial manipulation detection:
+        # If an audio clip has real speech spliced with synthetic speech, the arithmetic mean
+        # can get diluted below the threshold. We check for localized high-confidence synthetic clusters.
+        fake_windows = [p for p in window_probabilities if p >= self.threshold]
+        strong_fake_windows = [p for p in window_probabilities if p >= 0.85]
+        fake_window_ratio = len(fake_windows) / len(window_probabilities) if window_probabilities else 0.0
+
+        is_spliced = False
+        if probability >= self.threshold:
+            label = "fake"
+            verdict_detail = "Full-recording average exceeds synthetic threshold."
+        elif len(strong_fake_windows) >= 2 or (len(fake_windows) >= 2 and fake_window_ratio >= 0.20) or (len(window_probabilities) <= 2 and peak_score >= self.threshold):
+            label = "fake"
+            is_spliced = True
+            verdict_detail = f"Spliced / partial manipulation detected across {len(fake_windows)} window(s) (peak: {round(peak_score * 100, 1)}%)."
+        elif peak_score >= 0.90:
+            label = "fake"
+            is_spliced = True
+            verdict_detail = f"High-confidence synthetic audio segment detected (peak: {round(peak_score * 100, 1)}%)."
+        else:
+            label = "real"
+            verdict_detail = "All analyzed audio windows are consistent with authentic human speech."
+
         return {
             "fake_probability": probability,
-            "label": "fake" if probability >= self.threshold else "real",
+            "peak_probability": peak_score,
+            "label": label,
+            "is_spliced": is_spliced,
+            "verdict_detail": verdict_detail,
             "threshold": self.threshold,
             "analyzed_seconds": round(decoded_seconds, 2),
             "windows_analyzed": len(window_probabilities),
+            "fake_windows_count": len(fake_windows),
             "top_windows": top_windows,
             "inference_seconds": round(time.time() - start, 2),
         }
