@@ -68,9 +68,35 @@ class DeepfakePredictor:
             "audio": float(torch.sigmoid(preds["audio"]).item()),
             "any": float(torch.sigmoid(preds["any"]).item()),
         }
+
+        # Encode small thumbnails for inspection gallery
+        try:
+            import base64
+            import cv2
+            face_crops = []
+            for face in data.get("faces", []):
+                thumb = cv2.resize(face, (96, 96), interpolation=cv2.INTER_AREA)
+                thumb_bgr = cv2.cvtColor(thumb, cv2.COLOR_RGB2BGR)
+                ok, buf = cv2.imencode(".jpg", thumb_bgr, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
+                if ok:
+                    face_crops.append("data:image/jpeg;base64," + base64.b64encode(buf).decode("utf-8"))
+            info["face_crops"] = face_crops
+
+            lip_crops = []
+            for lip in data.get("lips", []):
+                thumb = cv2.resize(lip, (64, 64), interpolation=cv2.INTER_AREA)
+                thumb_bgr = cv2.cvtColor(thumb, cv2.COLOR_RGB2BGR)
+                ok, buf = cv2.imencode(".jpg", thumb_bgr, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
+                if ok:
+                    lip_crops.append("data:image/jpeg;base64," + base64.b64encode(buf).decode("utf-8"))
+            info["lip_crops"] = lip_crops
+        except Exception:
+            pass
+
         info["inference_s"] = round(time.time() - t1, 2)
         info["total_s"] = round(time.time() - t0, 2)
         return scores, info
+
 
 
 def interpret(scores: dict[str, float], threshold: float = 0.5) -> dict[str, str]:

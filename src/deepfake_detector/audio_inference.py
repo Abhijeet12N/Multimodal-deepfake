@@ -128,6 +128,15 @@ class StandaloneAudioPredictor:
             label = "real"
             verdict_detail = "All analyzed audio windows are consistent with authentic human speech."
 
+        all_windows = [
+            {
+                "start": round(starts[index] / self.sample_rate, 2),
+                "end": round(min(starts[index] / self.sample_rate + self.audio_seconds, decoded_seconds), 2),
+                "fake_score": round(window_probabilities[index], 4),
+            }
+            for index in range(len(window_probabilities))
+        ]
+
         return {
             "fake_probability": probability,
             "peak_probability": peak_score,
@@ -139,6 +148,8 @@ class StandaloneAudioPredictor:
             "windows_analyzed": len(window_probabilities),
             "fake_windows_count": len(fake_windows),
             "top_windows": top_windows,
+            "all_windows": all_windows,
             "inference_seconds": round(time.time() - start, 2),
         }
+
 
