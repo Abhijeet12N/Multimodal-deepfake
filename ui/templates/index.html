@@ -1,264 +1,743 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Deepfake Detection Studio · Local Demo</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deepfake Detection Studio · Multimodal AI Forensics</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.ico">
+  <!-- Modern Typography: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
+<body class="dark-theme">
 
-<header class="topbar">
-  <div class="container topbar-inner">
-    <div class="brand">
-      <span class="brand-tag">PERSONAL PROJECT</span>
-      <h1>Deepfake Detection Studio</h1>
-      <p class="brand-sub">Xception · Wav2Vec 2.0 · Multi-task Late Fusion</p>
+  <!-- Top Cyber-Forensic Navigation Bar -->
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <div class="brand">
+        <div class="brand-badge">
+          <span class="radar-dot"></span>
+          <span>NEURAL FORENSIC SUITE</span>
+        </div>
+        <h1 class="brand-title">Deepfake Detection Studio</h1>
+        <p class="brand-subtitle">Multimodal Late Fusion · Xception · Wav2Vec 2.0 · 3D/2D SyncStream</p>
+      </div>
+
+      <!-- Live Hardware & Model Telemetry Status -->
+      <div class="telemetry-bar" id="telemetry-bar">
+        <div class="telemetry-pill">
+          <span class="telemetry-label">DEVICE</span>
+          <code class="telemetry-val" id="telemetry-device">{{ model_device }}</code>
+        </div>
+        <div class="telemetry-pill">
+          <span class="telemetry-label">VIDEO MODEL</span>
+          <span class="status-indicator {% if model_ready %}status-ready{% else %}status-error{% endif %}" id="telemetry-video-status">
+            {{ 'READY' if model_ready else 'OFFLINE' }}
+          </span>
+        </div>
+        <div class="telemetry-pill">
+          <span class="telemetry-label">AUDIO MODEL</span>
+          <span class="status-indicator {% if audio_model_ready %}status-ready{% else %}status-error{% endif %}" id="telemetry-audio-status">
+            {{ 'READY' if audio_model_ready else 'OFFLINE' }}
+          </span>
+        </div>
+      </div>
     </div>
-    <div class="brand-meta">
-      <span class="badge badge-accent">LOCAL DEMO</span>
-      <span class="device">Device: <code>{{ model_device }}</code></span>
-      <span class="device">Video model: <code>{{ model_path or 'not configured' }}</code></span>
+  </header>
+
+  <!-- Workspace Navigation Tabs -->
+  <div class="tabs-wrapper">
+    <div class="container">
+      <nav class="nav-tabs" role="tablist" aria-label="Studio Modes">
+        <button class="tab-btn active" id="tab-video" role="tab" aria-selected="true" aria-controls="panel-video" data-tab="video">
+          <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="23 7 16 12 23 17 23 7"></polygon>
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+          </svg>
+          <span>Multimodal Video Studio</span>
+        </button>
+        <button class="tab-btn" id="tab-audio" role="tab" aria-selected="false" aria-controls="panel-audio" data-tab="audio">
+          <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+            <line x1="12" y1="19" x2="12" y2="23"></line>
+            <line x1="8" y1="23" x2="16" y2="23"></line>
+          </svg>
+          <span>Audio Forensic Scanner</span>
+        </button>
+        <button class="tab-btn" id="tab-benchmarks" role="tab" aria-selected="false" aria-controls="panel-benchmarks" data-tab="benchmarks">
+          <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 20V10"></path>
+            <path d="M12 20V4"></path>
+            <path d="M6 20v-6"></path>
+          </svg>
+          <span>Benchmarks & Architecture</span>
+        </button>
+      </nav>
     </div>
   </div>
-</header>
 
-<main class="container">
-  {% if not model_ready %}
-    <section class="status-banner status-warning">
-      <strong>Video model not loaded.</strong>
-      <span>{{ model_error }}</span>
-      <code>Place best_model.pt in the project's models/ folder, or set MODEL_PATH.</code>
-    </section>
-  {% endif %}
+  <main class="container main-content">
 
-  <!-- Aggregate test results bar -->
-  <section class="stats-bar">
-    <div class="stat-card">
-      <div class="stat-label">MULTIMODAL TEST · video AUC</div>
-      <div class="stat-value">{{ '%.4f' | format(aggregate.video_auc) }}</div>
-      <div class="stat-sub">F1 {{ '%.4f' | format(aggregate.video_f1) }}</div>
+    <!-- Global Notice Banner if Model Missing -->
+    {% if not model_ready %}
+    <div class="system-alert alert-warning">
+      <div class="alert-icon">⚠️</div>
+      <div class="alert-content">
+        <strong>Multimodal Video Checkpoint Not Loaded:</strong> {{ model_error }}
+        <p class="muted">Ensure <code>best_model.pt</code> is placed inside <code>models/</code> or set <code>MODEL_PATH</code> in your <code>.env</code> file.</p>
+      </div>
     </div>
-    <div class="stat-card">
-      <div class="stat-label">MULTIMODAL TEST · audio AUC</div>
-      <div class="stat-value">{{ '%.4f' | format(aggregate.audio_auc) }}</div>
-      <div class="stat-sub">F1 {{ '%.4f' | format(aggregate.audio_f1) }}</div>
-    </div>
-    <div class="stat-card stat-card-hl">
-      <div class="stat-label">MULTIMODAL TEST · combined AUC</div>
-      <div class="stat-value">{{ '%.4f' | format(aggregate.any_auc) }}</div>
-      <div class="stat-sub">F1 {{ '%.4f' | format(aggregate.any_f1) }}</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">MULTIMODAL TEST SET</div>
-      <div class="stat-value">{{ aggregate.test_n }}</div>
-      <div class="stat-sub">videos · 75 identities</div>
-    </div>
-  </section>
+    {% endif %}
 
-  <!-- Sample picker -->
-  <section class="card">
-    <div class="card-head">
-      <h2>1 · Choose a sample video</h2>
-      <p class="muted">Select a video from the samples/ folder. Its category is inferred from its path.</p>
-    </div>
-    <div class="card-body">
-      {% if samples %}
-        <div class="sample-grid">
-          {% for s in samples %}
-            <button class="sample-card" data-sample="{{ s.rel }}" data-category="{{ s.category }}" {% if not model_ready %}disabled{% endif %}>
-              <div class="sample-thumb">
-                <span class="sample-icon">🎬</span>
-                <video muted preload="metadata" src="/samples/{{ s.rel }}"></video>
+    <!-- ======================================================== -->
+    <!-- TAB PANEL 1: MULTIMODAL VIDEO STUDIO                      -->
+    <!-- ======================================================== -->
+    <section class="tab-panel active" id="panel-video" role="tabpanel" aria-labelledby="tab-video">
+      <div class="workspace-grid">
+
+        <!-- Left Column: Media Input & Samples -->
+        <div class="workspace-col col-input">
+
+          <!-- Drag and Drop Video Dropzone Card -->
+          <div class="card glass-card">
+            <div class="card-header">
+              <div class="card-title-wrap">
+                <span class="step-num">01</span>
+                <h2>Input Video Stream</h2>
               </div>
-              <div class="sample-meta">
-                <div class="sample-name">{{ s.name }}</div>
-                <div class="sample-cat">
-                  {% if s.category %}
-                    <span class="cat-pill cat-{{ s.category|lower }}">{{ s.category }}</span>
-                  {% else %}
-                    <span class="cat-pill cat-unknown">?</span>
-                  {% endif %}
+              <span class="badge-tag">MP4 · MOV · AVI · MKV</span>
+            </div>
+            <div class="card-body">
+              <form id="upload-form" enctype="multipart/form-data">
+                <div class="dropzone" id="video-dropzone">
+                  <input type="file" id="file-input" name="file" accept="video/mp4,video/quicktime,video/x-msvideo,video/x-matroska" class="dropzone-input" {% if not model_ready %}disabled{% endif %}>
+                  <div class="dropzone-content" id="dropzone-content-default">
+                    <div class="drop-icon-wrap">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                      </svg>
+                    </div>
+                    <p class="drop-primary">Drag & drop video clip here</p>
+                    <p class="drop-sub">or <span class="browse-link">browse files</span> from your device</p>
+                    <span class="drop-limit">Maximum upload limit: 200 MB</span>
+                  </div>
+
+                  <!-- Instant Local Preview State -->
+                  <div class="dropzone-preview hidden" id="video-preview-wrap">
+                    <video id="video-preview" muted playsinline></video>
+                    <div class="preview-overlay">
+                      <div class="preview-info">
+                        <span class="preview-filename" id="preview-filename">sample.mp4</span>
+                        <span class="preview-filesize" id="preview-filesize">0 MB</span>
+                      </div>
+                      <button type="button" class="btn btn-sm btn-ghost" id="btn-clear-video">Change Video</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-actions">
+                  <button type="submit" class="btn btn-primary btn-glow" id="btn-submit-video" {% if not model_ready %}disabled{% endif %}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polygon points="10 8 16 12 10 16 10 8"></polygon>
+                    </svg>
+                    <span>Run Multimodal Inspection</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Benchmark Sample Clips Gallery -->
+          <div class="card glass-card">
+            <div class="card-header">
+              <div class="card-title-wrap">
+                <span class="step-num">02</span>
+                <h2>Curated Evaluation Samples</h2>
+              </div>
+              <span class="badge-tag">Ground Truth Verified</span>
+            </div>
+            <div class="card-body">
+              {% set video_samples = samples | selectattr('media_type', 'defined') | selectattr('media_type', 'equalto', 'video') | list if samples else [] %}
+              {% if not video_samples and samples %}
+                {# fallback if media_type wasn't tagged on all #}
+                {% set video_samples = samples %}
+              {% endif %}
+
+              {% if video_samples %}
+                <div class="sample-grid">
+                  {% for s in video_samples %}
+                    <button type="button" class="sample-btn" data-sample="{{ s.rel }}" data-category="{{ s.category }}" {% if not model_ready %}disabled{% endif %}>
+                      <div class="sample-thumb">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                          <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                        <video muted preload="metadata" src="/samples/{{ s.rel }}"></video>
+                      </div>
+                      <div class="sample-details">
+                        <span class="sample-title" title="{{ s.name }}">{{ s.name }}</span>
+                        <div class="sample-tags">
+                          {% if s.category %}
+                            <span class="cat-badge cat-{{ s.category|lower }}">{{ s.category }}</span>
+                          {% else %}
+                            <span class="cat-badge cat-unknown">TEST</span>
+                          {% endif %}
+                          <span class="sample-action-hint">Analyze →</span>
+                        </div>
+                      </div>
+                    </button>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <div class="empty-state">
+                  <p>No video samples found in <code>ui/samples/</code>.</p>
+                  <p class="muted">Upload your own clip above, or drop benchmark <code>.mp4</code> clips into the samples folder.</p>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right Column: Pipeline Stepper & Inspection Results -->
+        <div class="workspace-col col-results">
+
+          <!-- Processing Stepper Animation (Shown during inference) -->
+          <div class="card glass-card hidden" id="pipeline-stepper-card">
+            <div class="card-header">
+              <h2>Neural Pipeline Execution</h2>
+              <span class="pulse-indicator">ANALYZING</span>
+            </div>
+            <div class="card-body">
+              <div class="pipeline-stepper">
+                <div class="pipeline-step step-active" id="pstep-1">
+                  <div class="step-icon">
+                    <span class="spinner-sm"></span>
+                  </div>
+                  <div class="step-text">
+                    <strong>1. Frame Sampling</strong>
+                    <span>Extracting 8 uniform video frames</span>
+                  </div>
+                </div>
+                <div class="pipeline-step" id="pstep-2">
+                  <div class="step-icon">○</div>
+                  <div class="step-text">
+                    <strong>2. MTCNN Facial Alignment</strong>
+                    <span>Cropping 8 aligned faces & lip ROIs</span>
+                  </div>
+                </div>
+                <div class="pipeline-step" id="pstep-3">
+                  <div class="step-icon">○</div>
+                  <div class="step-text">
+                    <strong>3. Wav2Vec 2.0 & SyncStream</strong>
+                    <span>Generating audio & audiovisual synchrony embeddings</span>
+                  </div>
+                </div>
+                <div class="pipeline-step" id="pstep-4">
+                  <div class="step-icon">○</div>
+                  <div class="step-text">
+                    <strong>4. Late Fusion Multi-Task MLP</strong>
+                    <span>Computing visual, speech, and fusion verdicts</span>
+                  </div>
                 </div>
               </div>
-            </button>
-          {% endfor %}
-        </div>
-      {% else %}
-        <div class="empty">
-          <p>No samples yet. Add an <code>.mp4</code> file to <code>ui/samples/</code>.</p>
-          <p class="muted">
-            For automatic ground-truth labels, include one of these in the filename: <code>RealVideo-RealAudio</code>,
-            <code>FakeVideo-RealAudio</code>, <code>RealVideo-FakeAudio</code>, or
-            <code>FakeVideo-FakeAudio</code>. The category will then be inferred automatically.
-          </p>
-        </div>
-      {% endif %}
-    </div>
-  </section>
-
-  <!-- Upload -->
-  <section class="card">
-    <div class="card-head">
-      <h2>2 · Or upload a video</h2>
-      <p class="muted">Choose a video from your device (maximum 200 MB).</p>
-    </div>
-    <div class="card-body">
-      <form id="upload-form" enctype="multipart/form-data" class="upload-form">
-        <input type="file" id="file-input" name="file" accept="video/mp4,video/quicktime,video/x-msvideo,video/x-matroska" {% if not model_ready %}disabled{% endif %}>
-        <button type="submit" class="btn btn-primary" {% if not model_ready %}disabled{% endif %}>Upload and analyze</button>
-      </form>
-    </div>
-  </section>
-
-  <!-- Standalone audio checker: separate checkpoint and route from video analysis -->
-  <section class="card">
-    <div class="card-head">
-      <h2>Audio only · Separate checker</h2>
-      <p class="muted">This uploads audio to the audio-only model. It does not use the video detector.</p>
-    </div>
-    <div class="card-body">
-      {% if not audio_model_ready %}
-        <div class="status-banner status-warning audio-model-warning">
-          <strong>Audio model not loaded.</strong>
-          <span>{{ audio_model_error }}</span>
-          <code>Put audio_model.pt in the project's models/ folder, or set AUDIO_MODEL_PATH.</code>
-        </div>
-      {% else %}
-        <p class="muted audio-model-path">Audio checkpoint: <code>{{ audio_model_path }}</code></p>
-      {% endif %}
-      <p class="muted audio-note">Supported: WAV, MP3, M4A, FLAC, OGG, AAC. The full recording is checked in overlapping 3-second windows.</p>
-      <form id="audio-upload-form" enctype="multipart/form-data" class="upload-form">
-        <input type="file" id="audio-file-input" name="file" accept="audio/wav,audio/mpeg,audio/mp4,audio/flac,audio/ogg,audio/aac,.m4a" {% if not audio_model_ready %}disabled{% endif %}>
-        <button type="submit" class="btn btn-primary" {% if not audio_model_ready %}disabled{% endif %}>Analyze audio</button>
-      </form>
-      <div id="audio-result" class="audio-result hidden" aria-live="polite"></div>
-    </div>
-  </section>
-
-  <!-- Results -->
-  <section id="result-section" class="card result-hidden">
-    <div class="card-head">
-      <h2>3 · Analysis results</h2>
-      <p class="muted">Scores from the three model heads and the combined decision.</p>
-    </div>
-    <div class="card-body">
-
-      <div id="loader" class="loader-row">
-        <div class="spinner"></div>
-        <span>Processing video (MTCNN → 8 frames → Wav2Vec → 3 heads)…</span>
-      </div>
-
-      <div id="result-body" class="result-body hidden">
-        <div class="result-top">
-          <video id="result-video" controls></video>
-          <div class="decision-box" id="decision-box">
-            <div class="decision-label" id="decision-label">—</div>
-            <div class="decision-sub"   id="decision-sub">—</div>
-            <div class="decision-meta"  id="decision-meta">—</div>
-          </div>
-        </div>
-
-        <div class="heads-grid">
-          <div class="head-card">
-            <div class="head-label">VIDEO HEAD</div>
-            <div class="head-question">“Is the video fake?”</div>
-            <div class="bar-wrap"><div class="bar" id="bar-video"></div></div>
-            <div class="head-score" id="score-video">0.000</div>
-            <div class="head-truth" id="truth-video"></div>
-          </div>
-          <div class="head-card">
-            <div class="head-label">AUDIO HEAD</div>
-            <div class="head-question">“Is the audio fake?”</div>
-            <div class="bar-wrap"><div class="bar" id="bar-audio"></div></div>
-            <div class="head-score" id="score-audio">0.000</div>
-            <div class="head-truth" id="truth-audio"></div>
-          </div>
-          <div class="head-card head-card-hl">
-            <div class="head-label">ANY HEAD</div>
-            <div class="head-question">“Is either modality fake?”</div>
-            <div class="bar-wrap"><div class="bar" id="bar-any"></div></div>
-            <div class="head-score" id="score-any">0.000</div>
-            <div class="head-truth" id="truth-any"></div>
-          </div>
-        </div>
-
-        <div class="info-row">
-          <div class="info-cell">
-            <span class="info-key">Face detection confidence</span>
-            <span class="info-val" id="info-face">—</span>
-          </div>
-          <div class="info-cell">
-            <span class="info-key">Audio RMS</span>
-            <span class="info-val" id="info-rms">—</span>
-          </div>
-          <div class="info-cell">
-            <span class="info-key">Preprocess</span>
-            <span class="info-val" id="info-pre">—</span>
-          </div>
-          <div class="info-cell">
-            <span class="info-key">Inference</span>
-            <span class="info-val" id="info-inf">—</span>
-          </div>
-          <div class="info-cell">
-            <span class="info-key">Total time</span>
-            <span class="info-val" id="info-total">—</span>
-          </div>
-        </div>
-
-        <div class="report-box">
-          <div class="report-head">
-            <div>
-              <div class="head-label">ANALYSIS REPORT</div>
-              <h3 id="report-summary">—</h3>
             </div>
-            <button type="button" class="btn btn-secondary" id="download-report">Download JSON</button>
           </div>
-          <ul id="report-findings" class="report-findings"></ul>
+
+          <!-- Default Idle Placeholder -->
+          <div class="card glass-card idle-card" id="video-idle-card">
+            <div class="idle-content">
+              <div class="idle-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="16" x2="12" y2="12"></line>
+                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+              </div>
+              <h3>Awaiting Video Input</h3>
+              <p class="muted">Upload an MP4/MOV clip on the left or select a sample to generate a multi-stream forensic breakdown.</p>
+            </div>
+          </div>
+
+          <!-- Error Alert Card -->
+          <div class="system-alert alert-error hidden" id="video-error-box">
+            <div class="alert-icon">⚠️</div>
+            <div class="alert-content">
+              <strong id="video-error-title">Inspection Failed</strong>
+              <p id="video-error-msg">—</p>
+            </div>
+          </div>
+
+          <!-- Video Inspection Results Dashboard -->
+          <div class="card glass-card results-card hidden" id="video-results-container">
+            <div class="card-header">
+              <div class="card-title-wrap">
+                <span class="step-num">03</span>
+                <h2>Multimodal Inspection Results</h2>
+              </div>
+              <button type="button" class="btn btn-sm btn-secondary" id="btn-download-report">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                <span>Export Report (JSON)</span>
+              </button>
+            </div>
+            <div class="card-body">
+
+              <!-- Primary Verdict Banner -->
+              <div class="verdict-banner" id="verdict-banner">
+                <div class="verdict-header">
+                  <div class="verdict-badge-wrap">
+                    <span class="verdict-badge" id="verdict-badge">AUTHENTIC</span>
+                    <span class="risk-badge" id="risk-badge">LOW RISK</span>
+                  </div>
+                  <div class="verdict-meta" id="verdict-ground-truth">Ground Truth: Unknown</div>
+                </div>
+                <h3 class="verdict-title" id="verdict-title">Consistent with authentic media</h3>
+                <p class="verdict-desc" id="verdict-desc">Visual features, speech representations, and lip synchronization all align with genuine footage.</p>
+              </div>
+
+              <!-- Modality Confidence Semi-Radial Gauges -->
+              <div class="gauges-grid">
+                <!-- Visual Stream Gauge -->
+                <div class="gauge-card" id="gauge-card-video">
+                  <div class="gauge-head">
+                    <span class="gauge-label">VISUAL STREAM</span>
+                    <span class="gauge-model-tag">Xception Temporal</span>
+                  </div>
+                  <div class="gauge-wrap">
+                    <svg class="gauge-svg" viewBox="0 0 120 70">
+                      <path class="gauge-bg" d="M 15 65 A 45 45 0 0 1 105 65" />
+                      <path class="gauge-meter" id="gauge-meter-video" d="M 15 65 A 45 45 0 0 1 105 65" stroke-dashoffset="141.37" />
+                    </svg>
+                    <div class="gauge-value" id="gauge-val-video">0.0%</div>
+                  </div>
+                  <div class="gauge-meta">
+                    <span>Face Manipulation Probability</span>
+                    <strong class="gauge-score" id="score-video">0.0000</strong>
+                  </div>
+                </div>
+
+                <!-- Audio Stream Gauge -->
+                <div class="gauge-card" id="gauge-card-audio">
+                  <div class="gauge-head">
+                    <span class="gauge-label">SPEECH STREAM</span>
+                    <span class="gauge-model-tag">Wav2Vec 2.0</span>
+                  </div>
+                  <div class="gauge-wrap">
+                    <svg class="gauge-svg" viewBox="0 0 120 70">
+                      <path class="gauge-bg" d="M 15 65 A 45 45 0 0 1 105 65" />
+                      <path class="gauge-meter" id="gauge-meter-audio" d="M 15 65 A 45 45 0 0 1 105 65" stroke-dashoffset="141.37" />
+                    </svg>
+                    <div class="gauge-value" id="gauge-val-audio">0.0%</div>
+                  </div>
+                  <div class="gauge-meta">
+                    <span>Voice Synthesis Probability</span>
+                    <strong class="gauge-score" id="score-audio">0.0000</strong>
+                  </div>
+                </div>
+
+                <!-- Multimodal Fusion Gauge (Highlighted) -->
+                <div class="gauge-card gauge-card-highlight" id="gauge-card-any">
+                  <div class="gauge-head">
+                    <span class="gauge-label">MULTIMODAL FUSION</span>
+                    <span class="gauge-model-tag">Late Fusion MLP</span>
+                  </div>
+                  <div class="gauge-wrap">
+                    <svg class="gauge-svg" viewBox="0 0 120 70">
+                      <path class="gauge-bg" d="M 15 65 A 45 45 0 0 1 105 65" />
+                      <path class="gauge-meter meter-glow" id="gauge-meter-any" d="M 15 65 A 45 45 0 0 1 105 65" stroke-dashoffset="141.37" />
+                    </svg>
+                    <div class="gauge-value gauge-value-lg" id="gauge-val-any">0.0%</div>
+                  </div>
+                  <div class="gauge-meta">
+                    <span>Combined Manipulation Score</span>
+                    <strong class="gauge-score" id="score-any">0.0000</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Media Player & Telemetry Grid -->
+              <div class="media-telemetry-row">
+                <div class="media-player-wrap">
+                  <video id="result-video" controls playsinline></video>
+                </div>
+                <div class="telemetry-table-card">
+                  <h4 class="telemetry-title">Inspection Metrics</h4>
+                  <div class="metrics-grid">
+                    <div class="metric-cell">
+                      <span class="metric-label">FACE CONFIDENCE</span>
+                      <strong class="metric-num" id="info-face">—</strong>
+                    </div>
+                    <div class="metric-cell">
+                      <span class="metric-label">AUDIO RMS</span>
+                      <strong class="metric-num" id="info-rms">—</strong>
+                    </div>
+                    <div class="metric-cell">
+                      <span class="metric-label">PREPROCESSING</span>
+                      <strong class="metric-num" id="info-pre">—</strong>
+                    </div>
+                    <div class="metric-cell">
+                      <span class="metric-label">INFERENCE TIME</span>
+                      <strong class="metric-num" id="info-inf">—</strong>
+                    </div>
+                    <div class="metric-cell metric-cell-full">
+                      <span class="metric-label">TOTAL TIME</span>
+                      <strong class="metric-num" id="info-total">—</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Face & Lip Crop Inspection Gallery -->
+              <div class="inspection-gallery-wrap" id="crops-gallery-wrap">
+                <div class="gallery-header">
+                  <div>
+                    <h4 class="gallery-title">Sampled Frame & ROI Inspection</h4>
+                    <p class="muted">MTCNN-detected face bounding boxes and lip regions extracted for SyncStream classification.</p>
+                  </div>
+                  <div class="gallery-switch">
+                    <button type="button" class="gallery-tab active" data-view="faces" id="btn-view-faces">Face Crops (8)</button>
+                    <button type="button" class="gallery-tab" data-view="lips" id="btn-view-lips">Lip ROIs (8)</button>
+                  </div>
+                </div>
+
+                <div class="gallery-strip" id="gallery-faces-strip"></div>
+                <div class="gallery-strip hidden" id="gallery-lips-strip"></div>
+              </div>
+
+              <!-- Detailed Findings Bullet Points -->
+              <div class="findings-box">
+                <h4 class="findings-title">Automated Forensic Findings</h4>
+                <ul class="findings-list" id="report-findings"></ul>
+              </div>
+
+            </div>
+          </div>
+
         </div>
+
       </div>
+    </section>
 
-      <div id="result-error" class="error-box hidden"></div>
-    </div>
-  </section>
+    <!-- ======================================================== -->
+    <!-- TAB PANEL 2: AUDIO FORENSIC SCANNER                       -->
+    <!-- ======================================================== -->
+    <section class="tab-panel hidden" id="panel-audio" role="tabpanel" aria-labelledby="tab-audio">
+      <div class="audio-scanner-layout">
 
-  <!-- Per-category context -->
-  <section class="card">
-    <div class="card-head">
-      <h2>Test recall by category (reference)</h2>
-      <p class="muted">Historical results across 3,276 test videos.</p>
-    </div>
-    <div class="card-body">
-      <table class="cat-table">
-        <thead>
-          <tr><th>Category</th><th>Description</th><th>n</th><th>Combined recall</th></tr>
-        </thead>
-        <tbody>
-          {% for k, c in aggregate.per_category.items() %}
-            <tr>
-              <td><span class="cat-pill cat-{{ k|lower }}">{{ k }}</span></td>
-              <td>{{ c.label }}</td>
-              <td>{{ c.n }}</td>
-              <td>
-                {% if c.any_recall is not none %}
-                  <strong>{{ '%.4f' | format(c.any_recall) }}</strong>
-                {% else %}
-                  <span class="muted">control</span>
-                {% endif %}
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </section>
+        <!-- Top Input & Upload Card -->
+        <div class="card glass-card">
+          <div class="card-header">
+            <div class="card-title-wrap">
+              <span class="step-num">🎙️</span>
+              <h2>Sliding-Window Audio Verification</h2>
+            </div>
+            <span class="badge-tag">WAV · MP3 · M4A · FLAC · OGG · AAC</span>
+          </div>
+          <div class="card-body">
+            <p class="section-lead">
+              Scans full-duration audio in overlapping <strong>3.0-second sliding windows (1.5s hops)</strong> using Wav2Vec 2.0 embeddings to pinpoint spliced or partially synthesized voice segments.
+            </p>
 
+            <form id="audio-upload-form" enctype="multipart/form-data">
+              <div class="dropzone" id="audio-dropzone">
+                <input type="file" id="audio-file-input" name="file" accept="audio/wav,audio/mpeg,audio/mp4,audio/flac,audio/ogg,audio/aac,.m4a" class="dropzone-input" {% if not audio_model_ready %}disabled{% endif %}>
+                <div class="dropzone-content" id="audio-dropzone-content">
+                  <div class="drop-icon-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M9 18V5l12-2v13"></path>
+                      <circle cx="6" cy="18" r="3"></circle>
+                      <circle cx="18" cy="16" r="3"></circle>
+                    </svg>
+                  </div>
+                  <p class="drop-primary">Drag & drop audio recording here</p>
+                  <p class="drop-sub">or <span class="browse-link">browse files</span> from your device</p>
+                  <span class="drop-limit">Supports voice clips, podcast excerpts, and phone calls</span>
+                </div>
+
+                <!-- Instant Audio Preview State -->
+                <div class="dropzone-preview hidden" id="audio-preview-wrap">
+                  <div class="audio-preview-header">
+                    <span class="preview-filename" id="audio-preview-filename">recording.wav</span>
+                    <button type="button" class="btn btn-sm btn-ghost" id="btn-clear-audio">Change Audio</button>
+                  </div>
+                  <audio id="audio-preview" controls class="custom-audio-player"></audio>
+                </div>
+              </div>
+
+              <!-- Quick Audio Benchmark Samples -->
+              <div class="audio-samples-bar">
+                <span class="samples-label">Quick Test Samples:</span>
+                <button type="button" class="btn btn-xs btn-sample" data-audio-sample="RealAudio_human_speech_demo.wav">
+                  ✓ Human Speech (Authentic)
+                </button>
+                <button type="button" class="btn btn-xs btn-sample btn-sample-alert" data-audio-sample="FakeAudio_synthetic_clone_demo.wav">
+                  ⚠️ Voice Clone (Synthetic)
+                </button>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-glow" id="btn-submit-audio" {% if not audio_model_ready %}disabled{% endif %}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                  </svg>
+                  <span>Run Sliding-Window Audio Forensics</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Audio Processing Indicator -->
+        <div class="card glass-card hidden" id="audio-loading-card">
+          <div class="card-body loader-flex">
+            <div class="spinner"></div>
+            <div>
+              <strong>Extracting Sliding Windows…</strong>
+              <p class="muted">Generating Wav2Vec 2.0 transformer projections across 3.0-second sliding windows.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Audio Error Box -->
+        <div class="system-alert alert-error hidden" id="audio-error-box">
+          <div class="alert-icon">⚠️</div>
+          <div class="alert-content">
+            <strong id="audio-error-title">Audio Analysis Failed</strong>
+            <p id="audio-error-msg">—</p>
+          </div>
+        </div>
+
+        <!-- Audio Results Dashboard -->
+        <div class="card glass-card results-card hidden" id="audio-results-wrap">
+          <div class="card-header">
+            <div class="card-title-wrap">
+              <h2>Sliding-Window Forensic Timeline</h2>
+            </div>
+            <span class="badge-tag" id="audio-duration-tag">0.0s Analyzed</span>
+          </div>
+          <div class="card-body">
+
+            <!-- Audio Verdict Banner -->
+            <div class="verdict-banner" id="audio-verdict-banner">
+              <div class="verdict-header">
+                <div class="verdict-badge-wrap">
+                  <span class="verdict-badge" id="audio-verdict-badge">AUTHENTIC SPEECH</span>
+                  <span class="risk-badge" id="audio-spliced-badge">HOMOGENEOUS</span>
+                </div>
+                <div class="verdict-meta" id="audio-filename-meta">recording.wav</div>
+              </div>
+              <h3 class="verdict-title" id="audio-verdict-title">All speech windows authentic</h3>
+              <p class="verdict-desc" id="audio-verdict-desc">—</p>
+            </div>
+
+            <!-- Interactive Timeline Chart Canvas Container -->
+            <div class="timeline-chart-section">
+              <div class="chart-header">
+                <div>
+                  <h4 class="chart-title">Window Manipulation Probability (%) vs Time</h4>
+                  <p class="muted">Click any window column to scrub playback directly to that timestamp.</p>
+                </div>
+                <div class="chart-legend">
+                  <span class="legend-item"><span class="legend-dot dot-safe"></span> Authentic (&lt;50%)</span>
+                  <span class="legend-item"><span class="legend-dot dot-warn"></span> Suspicious (50-84%)</span>
+                  <span class="legend-item"><span class="legend-dot dot-danger"></span> High Risk (≥85%)</span>
+                  <span class="legend-item"><span class="legend-line"></span> Threshold (0.50)</span>
+                </div>
+              </div>
+
+              <!-- Interactive Custom Canvas Timeline -->
+              <div class="canvas-wrap">
+                <canvas id="audio-timeline-canvas" height="220"></canvas>
+              </div>
+
+              <!-- Audio Player Linked to Timeline Scrubbing -->
+              <div class="sync-audio-player-wrap">
+                <div class="player-label-wrap">
+                  <span>FORENSIC AUDIO PLAYBACK (Click timeline above or scrub below):</span>
+                  <span class="playback-timer" id="playback-timer">0:00 / 0:00</span>
+                </div>
+                <audio id="result-audio-player" controls class="custom-audio-player"></audio>
+              </div>
+            </div>
+
+            <!-- Top Suspicious Windows Table -->
+            <div class="top-windows-section">
+              <h4 class="table-heading">Analyzed Window Diagnostics</h4>
+              <div class="table-responsive">
+                <table class="diagnostic-table" id="top-windows-table">
+                  <thead>
+                    <tr>
+                      <th>Window Time Range</th>
+                      <th>Fake Probability</th>
+                      <th>Classification</th>
+                      <th>Risk Level</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="top-windows-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- TAB PANEL 3: BENCHMARKS & ARCHITECTURE                    -->
+    <!-- ======================================================== -->
+    <section class="tab-panel hidden" id="panel-benchmarks" role="tabpanel" aria-labelledby="tab-benchmarks">
+      <div class="benchmarks-layout">
+
+        <!-- Historical Benchmark Stats Cards -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-tag">VISUAL STREAM</span>
+            <div class="stat-main">{{ '%.4f' | format(aggregate.video_auc) }}</div>
+            <span class="stat-metric">ROC AUC</span>
+            <div class="stat-sub">F1 Score: {{ '%.4f' | format(aggregate.video_f1) }}</div>
+          </div>
+
+          <div class="stat-card">
+            <span class="stat-tag">SPEECH STREAM</span>
+            <div class="stat-main">{{ '%.4f' | format(aggregate.audio_auc) }}</div>
+            <span class="stat-metric">ROC AUC</span>
+            <div class="stat-sub">F1 Score: {{ '%.4f' | format(aggregate.audio_f1) }}</div>
+          </div>
+
+          <div class="stat-card stat-card-accent">
+            <span class="stat-tag">MULTIMODAL FUSION</span>
+            <div class="stat-main">{{ '%.4f' | format(aggregate.any_auc) }}</div>
+            <span class="stat-metric">COMBINED ROC AUC</span>
+            <div class="stat-sub">Combined F1: {{ '%.4f' | format(aggregate.any_f1) }}</div>
+          </div>
+
+          <div class="stat-card">
+            <span class="stat-tag">EVALUATION SPLIT</span>
+            <div class="stat-main">{{ aggregate.test_n }}</div>
+            <span class="stat-metric">TEST VIDEOS</span>
+            <div class="stat-sub">75 Subject-Disjoint Identities</div>
+          </div>
+        </div>
+
+        <!-- Evaluation Split Breakdown Table -->
+        <div class="card glass-card">
+          <div class="card-header">
+            <h2>FakeAVCeleb v1.2 Category Evaluation Breakdown</h2>
+            <span class="badge-tag">Subject-Disjoint Test Set</span>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="diagnostic-table">
+                <thead>
+                  <tr>
+                    <th>Category Code</th>
+                    <th>Modality Configuration</th>
+                    <th>Sample Count (N)</th>
+                    <th>Combined Model Recall</th>
+                    <th>Forensic Severity</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for k, c in aggregate.per_category.items() %}
+                  <tr>
+                    <td><span class="cat-badge cat-{{ k|lower }}">{{ k }}</span></td>
+                    <td><strong>{{ c.label }}</strong></td>
+                    <td><code>{{ c.n }}</code></td>
+                    <td>
+                      {% if c.any_recall is not none %}
+                        <span class="metric-highlight">{{ '%.2f' | format(c.any_recall * 100) }}%</span>
+                      {% else %}
+                        <span class="muted">Control (Authentic)</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      {% if k == 'R-R' %}
+                        <span class="tag-status tag-safe">Authentic Control</span>
+                      {% elif k == 'F-R' %}
+                        <span class="tag-status tag-warn">Wav2Lip / FaceSwap</span>
+                      {% elif k == 'R-F' %}
+                        <span class="tag-status tag-warn">Voice Clone / TTS</span>
+                      {% else %}
+                        <span class="tag-status tag-danger">Dual Modality Fake</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Architecture Flowcard -->
+        <div class="card glass-card">
+          <div class="card-header">
+            <h2>Deep Neural Network Architecture Blueprint</h2>
+            <span class="badge-tag">Multi-Task Late Fusion Trunk</span>
+          </div>
+          <div class="card-body">
+            <div class="arch-diagram-grid">
+              <div class="arch-stream-card">
+                <div class="arch-stream-icon">👁️</div>
+                <h4>Visual Stream</h4>
+                <p><strong>Xception Backbone</strong> with temporal mean & standard deviation pooling over 8 MTCNN-cropped facial bounding boxes.</p>
+                <code>Output: 512-dim embedding</code>
+              </div>
+
+              <div class="arch-stream-card">
+                <div class="arch-stream-icon">🎙️</div>
+                <h4>Audio Stream</h4>
+                <p><strong>Wav2Vec 2.0 Base</strong> frozen transformer representations with projection layer over 16 kHz mono waveform.</p>
+                <code>Output: 512-dim embedding</code>
+              </div>
+
+              <div class="arch-stream-card">
+                <div class="arch-stream-icon">👄</div>
+                <h4>Sync Stream</h4>
+                <p><strong>Joint 3D/2D CNN</strong> cross-referencing lip ROIs (112×112) against 64-band Log-Mel Spectrograms for audiovisual synchrony.</p>
+                <code>Output: 512-dim embedding</code>
+              </div>
+
+              <div class="arch-stream-card arch-stream-fusion">
+                <div class="arch-stream-icon">⚡</div>
+                <h4>Late Fusion Trunk</h4>
+                <p><strong>Concatenated 1536-dim MLP</strong> routing to 3 dedicated sigmoid heads: Visual Manipulation, Audio Manipulation, and Overall Risk.</p>
+                <code>Heads: P_video · P_audio · P_any</code>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modern Studio Footer -->
   <footer class="footer">
-    <p>Personal research project</p>
-    <p class="muted">Research reference: FakeAVCeleb v1.2 · subject-disjoint split · A100 80 GB</p>
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <strong>Deepfake Detection Studio</strong> · Neural Media Forensics
+      </div>
+      <div class="footer-info">
+        Research baseline: FakeAVCeleb v1.2 · Subject-Disjoint Benchmark · PyTorch 2.x
+      </div>
+    </div>
   </footer>
 
-</main>
-
-<script src="{{ url_for('static', filename='app.js') }}"></script>
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>
