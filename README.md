@@ -10,7 +10,7 @@ A deep learning system for detecting multimodal deepfakes across video, speech, 
 
 > **Disclaimer**: This is a research demonstration project and not an infallible forensic verification service. Deepfake detection models can produce false positives or false negatives, especially when tested on out-of-distribution media formats, extreme compression, or unfamiliar audio conditions.
 
----
+
 
 ## Architecture Overview
 
