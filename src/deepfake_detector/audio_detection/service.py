@@ -114,6 +114,13 @@ class StandaloneAudioService:
                     "start_seconds": win.start_seconds,
                     "end_seconds": win.end_seconds,
                     "fake_score": round(fake_score, 4),
+                    # A display-only two-class softmax score. This is not a
+                    # calibrated probability and does not drive the verdict.
+                    "display_fake_score": round(
+                        fake_score if orientation == "higher_is_fake"
+                        else float(1.0 / (1.0 + np.exp(-np.clip(fake_score, -60.0, 60.0)))),
+                        4,
+                    ),
                     "is_fake": is_flagged,
                     "rms_energy": win.rms_energy,
                     "is_speech": win.is_speech,

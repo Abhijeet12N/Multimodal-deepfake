@@ -14,6 +14,20 @@
   let lastVideoReport = null;
   let activeAudioData = null;
   let pipelineTimer = null;
+  let audioRequestInFlight = false;
+
+  function setAudioSubmissionState(isBusy) {
+    audioRequestInFlight = isBusy;
+    const submit = $('btn-submit-audio');
+    if (submit) {
+      submit.disabled = isBusy;
+      submit.setAttribute('aria-busy', String(isBusy));
+    }
+    $$('.btn-sample').forEach((button) => {
+      button.disabled = isBusy;
+      button.setAttribute('aria-busy', String(isBusy));
+    });
+  }
 
   // ========================================================
   // 1. Tab Navigation
@@ -613,6 +627,29 @@
     wrap.classList.remove('hidden');
 
     const result = data.result;
+    if (result.verdict) {
+      const scoreForDisplay = (windowResult) =>
+        windowResult.display_fake_score ?? windowResult.fake_score ?? 0;
+      result.label = result.verdict;
+      result.is_spliced = false;
+      result.analyzed_seconds = result.duration_seconds ?? 0;
+      result.windows_analyzed = result.evaluated_windows ?? 0;
+      result.peak_probability = Math.max(0, ...(result.windows || []).map(scoreForDisplay));
+      result.all_windows = (result.windows || []).map((win) => ({
+        start: win.start_seconds,
+        end: win.end_seconds,
+        fake_score: scoreForDisplay(win),
+      }));
+      result.top_windows = (result.top_windows || []).map((win) => ({
+        ...win,
+        fake_score: scoreForDisplay(win),
+      }));
+      result.fake_probability = result.calibrated_fake_probability ??
+        (result.raw_recording_score == null ? 0 : 1 / (1 + Math.exp(result.raw_recording_score)));
+      result.verdict_detail = result.score_orientation === 'higher_is_bonafide'
+        ? `AASIST verdict from ${result.evaluated_windows} windows. Display scores are uncalibrated.`
+        : `Verdict from ${result.evaluated_windows} windows.`;
+    }
     activeAudioData = result;
 
     const isFake = result.label === 'fake';
@@ -624,7 +661,9 @@
 
     banner.className = 'verdict-banner ' + (isFake ? 'verdict-danger' : 'verdict-safe');
     badge.textContent = isFake ? (result.is_spliced ? 'SPLICED / PARTIAL SYNTHETIC' : 'SYNTHETIC VOICE CLONE') : 'AUTHENTIC HUMAN SPEECH';
-    title.textContent = isFake ? `Detected Voice Manipulation (${(result.fake_probability * 100).toFixed(1)}%)` : 'All Audio Windows Verified Authentic';
+    title.textContent = isFake
+      ? `Detected Spoofed Audio (${(result.fake_probability * 100).toFixed(1)}% display score)`
+      : 'Audio Classified as Bona Fide';
     desc.textContent = result.verdict_detail;
 
     splicedBadge.textContent = result.is_spliced ? 'SPLICING DETECTED' : 'CONSISTENT';
@@ -694,6 +733,7 @@
   // Audio Upload Form
   $('audio-upload-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
+    if (audioRequestInFlight) return;
     const input = $('audio-file-input');
     if (!input.files.length) {
       showAudioError('Please drag & drop or select an audio recording first.');
@@ -702,6 +742,7 @@
     $('audio-loading-card')?.classList.remove('hidden');
     $('audio-results-wrap')?.classList.add('hidden');
     $('audio-error-box')?.classList.add('hidden');
+    setAudioSubmissionState(true);
 
     const fd = new FormData();
     fd.append('file', input.files[0]);
@@ -716,18 +757,22 @@
       showAudioResults(data);
     } catch (err) {
       showAudioError('Network or server error: ' + err.message);
+    } finally {
+      setAudioSubmissionState(false);
     }
   });
 
   // Audio Benchmark Sample Buttons
   $$('.btn-sample').forEach((btn) => {
     btn.addEventListener('click', async () => {
+      if (audioRequestInFlight) return;
       const sample = btn.dataset.audioSample;
       if (!sample) return;
 
       $('audio-loading-card')?.classList.remove('hidden');
       $('audio-results-wrap')?.classList.add('hidden');
       $('audio-error-box')?.classList.add('hidden');
+      setAudioSubmissionState(true);
 
       const fd = new FormData();
       fd.append('mode', 'sample');
@@ -743,6 +788,8 @@
         showAudioResults(data);
       } catch (err) {
         showAudioError('Network error: ' + err.message);
+      } finally {
+        setAudioSubmissionState(false);
       }
     });
   });

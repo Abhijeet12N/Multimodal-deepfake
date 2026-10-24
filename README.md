@@ -152,20 +152,23 @@ pip install -r requirements.txt
 
 ### 2. Model Checkpoints
 
-Download or place your trained checkpoints inside the `models/` folder:
+Place the multimodal video checkpoint inside `models/`. The standalone audio UI defaults to the official AASIST checkpoint, which is kept in the sibling `aasist` repository:
 
 ```text
 models/
-├── best_model.pt     # Multimodal video detector weights
-└── audio_model.pt    # Standalone audio detector weights
+└── best_model.pt     # Multimodal video detector weights
+../aasist/models/weights/AASIST.pth  # Standalone audio detector
 ```
 
 You can also specify custom checkpoint paths using environment variables:
 
 ```powershell
 $env:MODEL_PATH = "D:\checkpoints\best_model.pt"
-$env:AUDIO_MODEL_PATH = "D:\checkpoints\audio_model.pt"
+$env:AUDIO_DETECTOR = "aasist"
+$env:AASIST_CHECKPOINT_PATH = "D:\checkpoints\AASIST.pth"
 ```
+
+The older Wav2Vec + MLP audio detector remains available with `AUDIO_DETECTOR=legacy_wav2vec_mlp` and `AUDIO_MODEL_PATH` pointing to its compatible checkpoint. SSL-AASIST training is currently deferred; the UI does not select it by default.
 
 ---
 
@@ -185,7 +188,7 @@ Open `http://127.0.0.1:5000` in your web browser.
 
 ### Key UI Features:
 - **Multimodal Video Analysis**: Upload an MP4/MOV/AVI video or select a sample clip to inspect visual artifacts, audio authenticity, and lip-sync synchronization.
-- **Standalone Audio Scanner**: Upload WAV, MP3, M4A, FLAC, OGG, or AAC recordings. The detector scans full-duration audio in overlapping 3.0-second sliding windows and highlights suspicious time segments.
+- **Standalone Audio Scanner**: Upload WAV, MP3, M4A, FLAC, OGG, or AAC recordings. The default AASIST detector scans full-duration audio in overlapping, model-sized windows and highlights suspicious time segments. Window scores are uncalibrated display scores; the recording verdict follows the AASIST bonafide-logit threshold.
 - **Detailed Forensic Reports**: View confidence percentages, timing breakdowns, and download a machine-readable JSON report.
 - **Graceful Fault Tolerance**: If a model checkpoint is missing, the interface remains operational and clearly displays which model needs to be supplied.
 

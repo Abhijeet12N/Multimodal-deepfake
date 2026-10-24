@@ -151,5 +151,3 @@ class StandaloneAudioPredictor:
             "all_windows": all_windows,
             "inference_seconds": round(time.time() - start, 2),
         }
-
-

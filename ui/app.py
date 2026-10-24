@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import os
 import sys
+import threading
 import time
 import uuid
 from pathlib import Path
@@ -47,11 +48,11 @@ from deepfake_detector import (
     ALLOWED_AUDIO_EXTENSIONS,
     ALLOWED_VIDEO_EXTENSIONS,
     DeepfakePredictor,
-    StandaloneAudioPredictor,
     build_report,
     category_from_path,
     interpret,
 )
+from deepfake_detector.audio_detection import StandaloneAudioService, get_detector
 
 
 def resolve_model_path(env_key: str, default_rel: str) -> str:
@@ -71,7 +72,19 @@ def resolve_model_path(env_key: str, default_rel: str) -> str:
 
 # Configuration from environment or defaults
 MODEL_PATH = resolve_model_path("MODEL_PATH", "models/best_model.pt")
-AUDIO_MODEL_PATH = resolve_model_path("AUDIO_MODEL_PATH", "models/audio_model.pt")
+AUDIO_DETECTOR = os.environ.get("AUDIO_DETECTOR", "aasist").strip().lower()
+_audio_default = (
+    str(PROJECT_ROOT.parent / "aasist" / "models" / "weights" / "AASIST.pth")
+    if AUDIO_DETECTOR in {"aasist", "aasist_l"}
+    else "models/audio_model.pt"
+)
+if AUDIO_DETECTOR in {"aasist", "aasist_l"}:
+    aasist_override = os.environ.get("AASIST_CHECKPOINT_PATH", "").strip().strip("\"'")
+    AUDIO_MODEL_PATH = aasist_override or _audio_default
+    if not Path(AUDIO_MODEL_PATH).expanduser().exists():
+        print(f"[app] AASIST checkpoint '{AUDIO_MODEL_PATH}' not found on disk.")
+else:
+    AUDIO_MODEL_PATH = resolve_model_path("AUDIO_MODEL_PATH", _audio_default)
 SAMPLES_DIR = HERE / "samples"
 UPLOADS_DIR = HERE / "uploads"
 UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
@@ -103,8 +116,11 @@ app.config["MAX_CONTENT_LENGTH"] = 200 * 1024 * 1024  # 200 MB upload limit
 
 predictor: DeepfakePredictor | None = None
 predictor_error: str | None = None
-audio_predictor: StandaloneAudioPredictor | None = None
+audio_predictor: StandaloneAudioService | None = None
 audio_predictor_error: str | None = None
+predictor_load_lock = threading.Lock()
+audio_predictor_load_lock = threading.Lock()
+audio_inference_lock = threading.Lock()
 
 
 def prune_old_uploads(max_age_seconds: int = 7200, max_files: int = 40) -> None:
@@ -151,51 +167,66 @@ def load_predictor(force_retry: bool = False) -> DeepfakePredictor | None:
     if predictor is not None and not force_retry:
         return predictor
 
-    model_file = Path(MODEL_PATH).expanduser()
-    if not model_file.exists():
-        fallback = PROJECT_ROOT / "models" / "best_model.pt"
-        if fallback.exists():
-            model_file = fallback
+    # The index page and status endpoint can arrive together. Serializing
+    # initialization prevents duplicate 476 MB model loads on CPU.
+    with predictor_load_lock:
+        if predictor is not None and not force_retry:
+            return predictor
 
-    if not model_file.exists():
-        predictor_error = f"Model checkpoint not found: {model_file}"
-        return None
+        model_file = Path(MODEL_PATH).expanduser()
+        if not model_file.exists():
+            fallback = PROJECT_ROOT / "models" / "best_model.pt"
+            if fallback.exists():
+                model_file = fallback
 
-    try:
-        print("[app] Loading multimodal detector checkpoint (~10-15s)...")
-        predictor = DeepfakePredictor(str(model_file))
-        predictor_error = None
-        print("[app] Multimodal detector ready.")
-    except Exception as exc:
-        predictor_error = f"Model load failed: {exc}"
-        print(f"[app] {predictor_error}")
+        if not model_file.exists():
+            predictor_error = f"Model checkpoint not found: {model_file}"
+            return None
+
+        try:
+            print("[app] Loading multimodal detector checkpoint (~10-15s)...")
+            predictor = DeepfakePredictor(str(model_file))
+            predictor_error = None
+            print("[app] Multimodal detector ready.")
+        except Exception as exc:
+            predictor_error = f"Model load failed: {exc}"
+            print(f"[app] {predictor_error}")
     return predictor
 
 
-def load_audio_predictor(force_retry: bool = False) -> StandaloneAudioPredictor | None:
+def load_audio_predictor(force_retry: bool = False) -> StandaloneAudioService | None:
     """Lazy-load the standalone audio predictor singleton with graceful retry."""
     global audio_predictor, audio_predictor_error
     if audio_predictor is not None and not force_retry:
         return audio_predictor
 
-    model_file = Path(AUDIO_MODEL_PATH).expanduser()
-    if not model_file.exists():
-        fallback = PROJECT_ROOT / "models" / "audio_model.pt"
-        if fallback.exists():
-            model_file = fallback
+    with audio_predictor_load_lock:
+        if audio_predictor is not None and not force_retry:
+            return audio_predictor
 
-    if not model_file.exists():
-        audio_predictor_error = f"Audio checkpoint not found: {model_file}"
-        return None
+        model_file = Path(AUDIO_MODEL_PATH).expanduser()
+        if not model_file.exists() and AUDIO_DETECTOR not in {"aasist", "aasist_l"}:
+            fallback = PROJECT_ROOT / "models" / "audio_model.pt"
+            if fallback.exists():
+                model_file = fallback
 
-    try:
-        print("[app] Loading standalone audio checkpoint...")
-        audio_predictor = StandaloneAudioPredictor(str(model_file))
-        audio_predictor_error = None
-        print("[app] Standalone audio detector ready.")
-    except Exception as exc:
-        audio_predictor_error = f"Audio model load failed: {exc}"
-        print(f"[app] {audio_predictor_error}")
+        if not model_file.exists():
+            audio_predictor_error = f"Audio checkpoint not found: {model_file}"
+            return None
+
+        try:
+            print(f"[app] Loading {AUDIO_DETECTOR} audio detector checkpoint...")
+            detector = get_detector(
+                AUDIO_DETECTOR,
+                checkpoint_path=str(model_file),
+                device=os.environ.get("AUDIO_DEVICE", "cpu"),
+            )
+            audio_predictor = StandaloneAudioService(detector)
+            audio_predictor_error = None
+            print("[app] Standalone audio detector ready.")
+        except Exception as exc:
+            audio_predictor_error = f"Audio model load failed: {exc}"
+            print(f"[app] {audio_predictor_error}")
     return audio_predictor
 
 
@@ -256,6 +287,7 @@ def index():
         audio_model_ready=audio_pred is not None,
         audio_model_error=audio_predictor_error,
         audio_model_path=AUDIO_MODEL_PATH,
+        audio_model_id=AUDIO_DETECTOR,
         model_device=str(pred.device) if pred else "not loaded",
     )
 
@@ -276,6 +308,7 @@ def status():
         "audio_model": {
             "loaded": audio_pred is not None,
             "path": AUDIO_MODEL_PATH,
+            "model_id": AUDIO_DETECTOR,
             "error": audio_predictor_error,
         },
     })
@@ -429,10 +462,20 @@ def analyze_audio():
     if pred is None:
         return jsonify({"ok": False, "error": audio_predictor_error or "Audio model is not available"}), 503
 
+    # Wav2Vec 2.0 CPU inference is memory intensive. Reject concurrent work
+    # explicitly instead of making every browser tab appear to hang.
+    if not audio_inference_lock.acquire(blocking=False):
+        return jsonify({
+            "ok": False,
+            "error": "An audio analysis is already running. Please wait for it to finish before starting another one.",
+        }), 429
+
     try:
         result = pred.predict(str(audio_path))
     except Exception as exc:
         return jsonify({"ok": False, "error": f"Audio analysis failed: {exc}"}), 422
+    finally:
+        audio_inference_lock.release()
 
     return jsonify({
         "ok": True,
