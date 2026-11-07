@@ -30,24 +30,39 @@ import torch.nn.functional as F
 
 from ..interfaces import AudioDetector
 
-# Ensure upstream aasist directory is importable
-AASIST_UPSTREAM_DIR = Path(__file__).resolve().parents[4] / "aasist"
-if AASIST_UPSTREAM_DIR.is_dir() and str(AASIST_UPSTREAM_DIR) not in sys.path:
-    sys.path.insert(0, str(AASIST_UPSTREAM_DIR))
+# Find the upstream checkout independently of the process working directory.
+# In the standard workspace layout it is a sibling of this project:
+# Mega Project/aasist and Mega Project/Multimodal-deepfake.
+_MODULE_PATH = Path(__file__).resolve()
+_PROJECT_ROOT = _MODULE_PATH.parents[4]
+_AASIST_CANDIDATES = (
+    _PROJECT_ROOT.parent / "aasist",
+    _PROJECT_ROOT / "aasist",
+    Path.cwd().parent / "aasist",
+    Path.cwd().parent.parent / "aasist",
+)
+AASIST_UPSTREAM_DIR = next((path.resolve() for path in _AASIST_CANDIDATES if path.is_dir()), None)
+if AASIST_UPSTREAM_DIR is not None:
+    upstream_path = str(AASIST_UPSTREAM_DIR)
+    if upstream_path in sys.path:
+        sys.path.remove(upstream_path)
+    sys.path.insert(0, upstream_path)
 
 
 def _load_upstream_aasist_model(config: dict[str, Any], device: torch.device) -> nn.Module:
     """Import and instantiate the official AASIST Model class."""
+    if AASIST_UPSTREAM_DIR is None:
+        searched = ", ".join(str(path) for path in _AASIST_CANDIDATES)
+        raise FileNotFoundError(f"AASIST upstream repository not found. Searched: {searched}")
+
     try:
         from models.AASIST import Model
-        return Model(config).to(device)
-    except ImportError:
-        # If aasist repo is moved, find it relative to current working directory
-        cwd_aasist = Path.cwd().parent / "aasist"
-        if cwd_aasist.is_dir() and str(cwd_aasist) not in sys.path:
-            sys.path.insert(0, str(cwd_aasist))
-        from models.AASIST import Model
-        return Model(config).to(device)
+    except ImportError as exc:
+        raise ImportError(
+            f"Could not import AASIST from {AASIST_UPSTREAM_DIR}. "
+            "Check that its upstream models package is present."
+        ) from exc
+    return Model(config).to(device)
 
 
 class AASISTDetector(AudioDetector):
