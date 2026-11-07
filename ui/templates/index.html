@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='20261103') }}">
 </head>
 <body class="dark-theme">
 
@@ -444,12 +444,24 @@
           </div>
           <div class="card-body">
             <p class="section-lead">
-              Scans full-duration audio in overlapping <strong>3.0-second sliding windows (1.5s hops)</strong> using Wav2Vec 2.0 embeddings to pinpoint spliced or partially synthesized voice segments.
+              Choose an audio detector, then scan the recording in overlapping windows. Results show a recording verdict and separate window diagnostics; window lengths depend on the model.
             </p>
+
+            <div class="audio-detector-control">
+              <label for="audio-detector-select">Audio detector</label>
+              <select id="audio-detector-select" name="detector">
+                {% for detector in audio_detector_options %}
+                <option value="{{ detector.id }}" {% if detector.id == audio_model_id %}selected{% endif %} {% if not detector.available %}disabled{% endif %}>
+                  {{ detector.label }}{% if not detector.available %} (checkpoint missing){% endif %}
+                </option>
+                {% endfor %}
+              </select>
+              <span class="muted">Choose which audio model analyzes the next clip.</span>
+            </div>
 
             <form id="audio-upload-form" enctype="multipart/form-data">
               <div class="dropzone" id="audio-dropzone">
-                <input type="file" id="audio-file-input" name="file" accept="audio/wav,audio/mpeg,audio/mp4,audio/flac,audio/ogg,audio/aac,.m4a" class="dropzone-input" {% if not audio_model_ready %}disabled{% endif %}>
+                <input type="file" id="audio-file-input" name="file" accept="audio/wav,audio/mpeg,audio/mp4,audio/flac,audio/ogg,audio/aac,.m4a" class="dropzone-input">
                 <div class="dropzone-content" id="audio-dropzone-content">
                   <div class="drop-icon-wrap">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -485,7 +497,7 @@
               </div>
 
               <div class="form-actions">
-                <button type="submit" class="btn btn-primary btn-glow" id="btn-submit-audio" {% if not audio_model_ready %}disabled{% endif %}>
+                <button type="submit" class="btn btn-primary btn-glow" id="btn-submit-audio">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
                     <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
@@ -503,7 +515,7 @@
             <div class="spinner"></div>
             <div>
               <strong>Extracting Sliding Windows…</strong>
-              <p class="muted">Generating Wav2Vec 2.0 transformer projections across 3.0-second sliding windows.</p>
+              <p class="muted">Analyzing audio windows with the selected detector.</p>
             </div>
           </div>
         </div>
@@ -531,12 +543,12 @@
             <div class="verdict-banner" id="audio-verdict-banner">
               <div class="verdict-header">
                 <div class="verdict-badge-wrap">
-                  <span class="verdict-badge" id="audio-verdict-badge">AUTHENTIC SPEECH</span>
-                  <span class="risk-badge" id="audio-spliced-badge">HOMOGENEOUS</span>
+                  <span class="verdict-badge" id="audio-verdict-badge">AWAITING RESULT</span>
+                  <span class="risk-badge" id="audio-spliced-badge"></span>
                 </div>
                 <div class="verdict-meta" id="audio-filename-meta">recording.wav</div>
               </div>
-              <h3 class="verdict-title" id="audio-verdict-title">All speech windows authentic</h3>
+              <h3 class="verdict-title" id="audio-verdict-title">Recording verdict</h3>
               <p class="verdict-desc" id="audio-verdict-desc">—</p>
             </div>
 
@@ -544,14 +556,13 @@
             <div class="timeline-chart-section">
               <div class="chart-header">
                 <div>
-                  <h4 class="chart-title">Window Manipulation Probability (%) vs Time</h4>
-                  <p class="muted">Click any window column to scrub playback directly to that timestamp.</p>
+                  <h4 class="chart-title" id="audio-chart-title">Window scores vs time</h4>
+                  <p class="muted" id="audio-chart-note">Window diagnostics are separate from the recording verdict.</p>
                 </div>
                 <div class="chart-legend">
-                  <span class="legend-item"><span class="legend-dot dot-safe"></span> Authentic (&lt;50%)</span>
-                  <span class="legend-item"><span class="legend-dot dot-warn"></span> Suspicious (50-84%)</span>
-                  <span class="legend-item"><span class="legend-dot dot-danger"></span> High Risk (≥85%)</span>
-                  <span class="legend-item"><span class="legend-line"></span> Threshold (0.50)</span>
+                  <span class="legend-item"><span class="legend-dot dot-safe"></span> Not flagged</span>
+                  <span class="legend-item"><span class="legend-dot dot-warn"></span> Flagged window</span>
+                  <span class="legend-item"><span class="legend-line"></span> <span id="audio-threshold-legend">Window threshold</span></span>
                 </div>
               </div>
 
@@ -572,15 +583,15 @@
 
             <!-- Top Suspicious Windows Table -->
             <div class="top-windows-section">
-              <h4 class="table-heading">Analyzed Window Diagnostics</h4>
+              <h4 class="table-heading">Top 5 Windows by Raw Suspicion Score</h4>
               <div class="table-responsive">
                 <table class="diagnostic-table" id="top-windows-table">
                   <thead>
                     <tr>
                       <th>Window Time Range</th>
-                      <th>Fake Probability</th>
-                      <th>Classification</th>
-                      <th>Risk Level</th>
+                      <th id="audio-score-heading">Model score</th>
+                      <th>Score type</th>
+                      <th>Window flag</th>
                       <th>Action</th>
                     </tr>
                   </thead>
@@ -738,6 +749,7 @@
     </div>
   </footer>
 
-  <script src="{{ url_for('static', filename='app.js') }}"></script>
+  <script src="{{ url_for('static', filename='audio-presentation.js', v='20261103') }}"></script>
+  <script src="{{ url_for('static', filename='app.js', v='20261103') }}"></script>
 </body>
 </html>

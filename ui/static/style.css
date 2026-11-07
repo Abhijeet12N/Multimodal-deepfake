@@ -784,6 +784,9 @@ code {
 
 .verdict-safe .verdict-badge { background: var(--emerald); color: black; }
 .verdict-danger .verdict-badge { background: var(--crimson); color: white; }
+.verdict-banner.verdict-uncertain { background: var(--amber-dim); border-color: var(--amber); }
+.verdict-uncertain .verdict-badge { background: var(--amber); color: black; }
+#audio-results-wrap .legend-line { border-color: var(--amber); background-color: var(--amber); }
 
 .risk-badge {
   font-size: 11px;
@@ -1418,4 +1421,32 @@ code {
   color: var(--text-muted);
   flex-wrap: wrap;
   gap: 10px;
+}
+
+.audio-detector-control {
+  display: grid;
+  grid-template-columns: max-content minmax(220px, 360px) 1fr;
+  align-items: center;
+  gap: 10px 14px;
+  margin: 0 0 18px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.audio-detector-control select {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 10px 12px;
+  color: var(--text-primary);
+  background: #111827;
+  font: inherit;
+}
+
+@media (max-width: 700px) {
+  .audio-detector-control {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
 }

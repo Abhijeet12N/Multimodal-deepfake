@@ -152,23 +152,25 @@ pip install -r requirements.txt
 
 ### 2. Model Checkpoints
 
-Place the multimodal video checkpoint inside `models/`. The standalone audio UI defaults to the official AASIST checkpoint, which is kept in the sibling `aasist` repository:
+Place the multimodal video and currently used standalone audio checkpoints inside `models/`. The official AASIST checkpoint is kept in the sibling `aasist` repository and can be selected for testing:
 
 ```text
 models/
-└── best_model.pt     # Multimodal video detector weights
-../aasist/models/weights/AASIST.pth  # Standalone audio detector
+├── best_model.pt     # Multimodal video detector weights
+└── audio_model.pt    # Existing standalone Wav2Vec + MLP detector
+../aasist/models/weights/AASIST.pth  # Optional AASIST checkpoint
 ```
 
 You can also specify custom checkpoint paths using environment variables:
 
 ```powershell
 $env:MODEL_PATH = "D:\checkpoints\best_model.pt"
-$env:AUDIO_DETECTOR = "aasist"
+$env:AUDIO_MODEL_PATH = "D:\checkpoints\audio_model.pt"
+$env:LEGACY_AUDIO_CHECKPOINT_PATH = "D:\checkpoints\wav2vec_best.pt"
 $env:AASIST_CHECKPOINT_PATH = "D:\checkpoints\AASIST.pth"
 ```
 
-The older Wav2Vec + MLP audio detector remains available with `AUDIO_DETECTOR=legacy_wav2vec_mlp` and `AUDIO_MODEL_PATH` pointing to its compatible checkpoint. SSL-AASIST training is currently deferred; the UI does not select it by default.
+Choose the audio detector in the **Audio Forensic Scanner** dropdown. The available choices are the Studio Wav2Vec + MLP model, the Phase 1 Wav2Vec + MLP model, AASIST, and AASIST-L. `AUDIO_MODEL_PATH`, `LEGACY_AUDIO_CHECKPOINT_PATH`, and `AASIST_CHECKPOINT_PATH` configure checkpoint locations only. AASIST remains experimental until it has been calibrated on a representative development set. SSL-AASIST training is deferred.
 
 ---
 
@@ -188,7 +190,7 @@ Open `http://127.0.0.1:5000` in your web browser.
 
 ### Key UI Features:
 - **Multimodal Video Analysis**: Upload an MP4/MOV/AVI video or select a sample clip to inspect visual artifacts, audio authenticity, and lip-sync synchronization.
-- **Standalone Audio Scanner**: Upload WAV, MP3, M4A, FLAC, OGG, or AAC recordings. The default AASIST detector scans full-duration audio in overlapping, model-sized windows and highlights suspicious time segments. Window scores are uncalibrated display scores; the recording verdict follows the AASIST bonafide-logit threshold.
+- **Standalone Audio Scanner**: Select an audio detector, then upload WAV, MP3, M4A, FLAC, OGG, or AAC recordings. The chosen model scans the full recording in sliding windows and highlights suspicious time segments.
 - **Detailed Forensic Reports**: View confidence percentages, timing breakdowns, and download a machine-readable JSON report.
 - **Graceful Fault Tolerance**: If a model checkpoint is missing, the interface remains operational and clearly displays which model needs to be supplied.
 

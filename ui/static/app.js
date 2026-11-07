@@ -452,8 +452,9 @@
 
     const windows = result.all_windows || [];
     const totalSec = result.analyzed_seconds || 1.0;
+    const scoreY = (score) => padT + plotH * (1 - (score - result.min) / (result.max - result.min));
 
-    // Draw Grid & Y-Axis labels (0%, 25%, 50%, 75%, 100%)
+    // Draw score-axis ticks (including negative logits for AASIST).
     ctx.fillStyle = '#64748b';
     ctx.font = '10px JetBrains Mono, monospace';
     ctx.textAlign = 'right';
@@ -461,45 +462,35 @@
 
     [0, 0.25, 0.50, 0.75, 1.0].forEach((ratio) => {
       const y = padT + plotH * (1 - ratio);
-      ctx.fillText(Math.round(ratio * 100) + '%', padL - 8, y);
+      const tick = result.min + ratio * (result.max - result.min);
+      ctx.fillText(tick.toFixed(1), padL - 8, y);
 
       ctx.beginPath();
-      ctx.strokeStyle = ratio === 0.5 ? 'rgba(244, 63, 94, 0.4)' : 'rgba(255, 255, 255, 0.05)';
-      ctx.lineWidth = ratio === 0.5 ? 1.5 : 1;
-      if (ratio === 0.5) ctx.setLineDash([4, 4]);
-      else ctx.setLineDash([]);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([]);
       ctx.moveTo(padL, y);
       ctx.lineTo(width - padR, y);
       ctx.stroke();
     });
     ctx.setLineDash([]);
 
-    // 50% Threshold tag
-    ctx.fillStyle = '#f43f5e';
-    ctx.font = '10px Inter, sans-serif';
-    ctx.textAlign = 'left';
-    ctx.fillText('Threshold (0.50)', padL + 6, padT + plotH * 0.5 - 6);
-
     if (windows.length === 0) return;
 
     // Draw Sliding Windows as Segment Bars
-    const barWidth = Math.max(3, plotW / windows.length - 2);
-
     windows.forEach((win, idx) => {
       const x = padL + (win.start / totalSec) * plotW;
       const xEnd = padL + (win.end / totalSec) * plotW;
       const w = Math.max(4, xEnd - x);
-      const score = Math.max(0, Math.min(1, win.fake_score));
-      const barH = score * plotH;
-      const y = padT + plotH - barH;
+      const score = win.fake_score;
+      const baseline = scoreY(0);
+      const valueY = scoreY(score);
+      const barH = Math.max(1, Math.abs(valueY - baseline));
+      const y = Math.min(valueY, baseline);
 
       // Color based on risk
-      let color = 'rgba(16, 185, 129, 0.75)'; // Emerald
-      if (score >= 0.85) {
-        color = 'rgba(244, 63, 94, 0.85)'; // Crimson
-      } else if (score >= 0.50) {
-        color = 'rgba(245, 158, 11, 0.85)'; // Amber
-      }
+      let color = win.is_fake === true ? 'rgba(245, 158, 11, 0.85)'
+        : win.is_fake === false ? 'rgba(16, 185, 129, 0.75)' : '#64748b';
 
       if (idx === hoveredWindowIndex) {
         color = '#00e5ff'; // Highlighted
@@ -511,14 +502,23 @@
       ctx.roundRect(x, y, w, barH, [3, 3, 0, 0]);
       ctx.fill();
 
-      // Peak Indicator
-      if (score === result.peak_probability && score >= 0.5) {
-        ctx.fillStyle = '#f43f5e';
-        ctx.beginPath();
-        ctx.arc(x + w / 2, y - 6, 3.5, 0, Math.PI * 2);
-        ctx.fill();
-      }
     });
+
+    // The window threshold belongs to the score plotted, not the recording calibration.
+    if (result.threshold !== null) {
+      const thresholdY = scoreY(result.threshold);
+      ctx.beginPath();
+      ctx.strokeStyle = '#f59e0b';
+      ctx.setLineDash([4, 4]);
+      ctx.moveTo(padL, thresholdY);
+      ctx.lineTo(width - padR, thresholdY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#f59e0b';
+      ctx.font = '10px Inter, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(`Window threshold (${result.formatScore(result.threshold)})`, padL + 6, thresholdY - 6);
+    }
 
     // Draw Playback Scrubber Line if Audio Playing
     const audioPlayer = $('result-audio-player');
@@ -626,48 +626,38 @@
     if (!wrap) return;
     wrap.classList.remove('hidden');
 
-    const result = data.result;
-    if (result.verdict) {
-      const scoreForDisplay = (windowResult) =>
-        windowResult.display_fake_score ?? windowResult.fake_score ?? 0;
-      result.label = result.verdict;
-      result.is_spliced = false;
-      result.analyzed_seconds = result.duration_seconds ?? 0;
-      result.windows_analyzed = result.evaluated_windows ?? 0;
-      result.peak_probability = Math.max(0, ...(result.windows || []).map(scoreForDisplay));
-      result.all_windows = (result.windows || []).map((win) => ({
-        start: win.start_seconds,
-        end: win.end_seconds,
-        fake_score: scoreForDisplay(win),
-      }));
-      result.top_windows = (result.top_windows || []).map((win) => ({
-        ...win,
-        fake_score: scoreForDisplay(win),
-      }));
-      result.fake_probability = result.calibrated_fake_probability ??
-        (result.raw_recording_score == null ? 0 : 1 / (1 + Math.exp(result.raw_recording_score)));
-      result.verdict_detail = result.score_orientation === 'higher_is_bonafide'
-        ? `AASIST verdict from ${result.evaluated_windows} windows. Display scores are uncalibrated.`
-        : `Verdict from ${result.evaluated_windows} windows.`;
+    let result;
+    try {
+      result = window.AudioPresentation.prepare(data.result);
+    } catch (err) {
+      wrap.classList.add('hidden');
+      showAudioError(err.message);
+      return;
     }
     activeAudioData = result;
+    hoveredWindowIndex = -1;
 
     const isFake = result.label === 'fake';
+    const isUncertain = result.label === 'uncertain';
     const banner = $('audio-verdict-banner');
     const badge = $('audio-verdict-badge');
     const title = $('audio-verdict-title');
     const desc = $('audio-verdict-desc');
     const splicedBadge = $('audio-spliced-badge');
 
-    banner.className = 'verdict-banner ' + (isFake ? 'verdict-danger' : 'verdict-safe');
-    badge.textContent = isFake ? (result.is_spliced ? 'SPLICED / PARTIAL SYNTHETIC' : 'SYNTHETIC VOICE CLONE') : 'AUTHENTIC HUMAN SPEECH';
-    title.textContent = isFake
-      ? `Detected Spoofed Audio (${(result.fake_probability * 100).toFixed(1)}% display score)`
-      : 'Audio Classified as Bona Fide';
+    banner.className = 'verdict-banner ' + (isUncertain ? 'verdict-uncertain' : isFake ? 'verdict-danger' : 'verdict-safe');
+    badge.textContent = isUncertain ? 'UNCERTAIN' : isFake ? 'CLASSIFIED AS SPOOF' : 'CLASSIFIED AS BONA FIDE';
+    title.textContent = isUncertain ? 'Audio Result Is Inconclusive'
+      : isFake ? 'Recording Classified as Spoof' : 'Recording Classified as Bona Fide';
     desc.textContent = result.verdict_detail;
 
-    splicedBadge.textContent = result.is_spliced ? 'SPLICING DETECTED' : 'CONSISTENT';
-    splicedBadge.className = 'risk-badge ' + (result.is_spliced ? 'risk-high' : 'risk-low');
+    splicedBadge.textContent = `${result.flagged}/${result.windows_analyzed} WINDOWS FLAGGED`;
+    splicedBadge.className = 'risk-badge ' + (result.flagged ? 'risk-medium' : 'risk-low');
+    $('audio-chart-title').textContent = result.chart_title;
+    $('audio-chart-note').textContent = result.chart_note;
+    $('audio-score-heading').textContent = result.score_label;
+    $('audio-threshold-legend').textContent = result.threshold === null
+      ? 'No window threshold available' : `Window threshold: ${result.formatScore(result.threshold)}`;
 
     $('audio-duration-tag').textContent = `${result.analyzed_seconds}s (${result.windows_analyzed} windows)`;
     $('audio-filename-meta').textContent = data.filename;
@@ -688,17 +678,16 @@
       tbody.innerHTML = '';
       (result.top_windows || []).forEach((win) => {
         const tr = document.createElement('tr');
-        const isWinFake = win.fake_score >= 0.50;
-        const tagClass = win.fake_score >= 0.85 ? 'tag-danger' : isWinFake ? 'tag-warn' : 'tag-safe';
-        const tagLabel = win.fake_score >= 0.85 ? 'High Confidence Fake' : isWinFake ? 'Suspicious' : 'Authentic';
+        const tagClass = win.is_fake === false ? 'tag-safe' : 'tag-warn';
+        const tagLabel = win.is_fake === null ? 'Unavailable' : win.is_fake ? 'Flagged' : 'Not flagged';
 
         tr.innerHTML = `
-          <td><strong>${win.start_seconds}s – ${win.end_seconds}s</strong></td>
-          <td><code class="metric-num">${(win.fake_score * 100).toFixed(1)}%</code></td>
-          <td>${isWinFake ? 'Manipulated Speech' : 'Genuine Acoustic Profile'}</td>
+          <td><strong>${win.start}s – ${win.end}s</strong></td>
+          <td><code class="metric-num">${result.formatScore(win.fake_score)}</code></td>
+          <td>${result.raw ? 'Uncalibrated window score' : 'Window model score'}</td>
           <td><span class="tag-status ${tagClass}">${tagLabel}</span></td>
           <td>
-            <button type="button" class="btn btn-xs btn-secondary btn-jump" data-start="${win.start_seconds}">
+            <button type="button" class="btn btn-xs btn-secondary btn-jump" data-start="${win.start}">
               Play Segment ▶
             </button>
           </td>
@@ -746,6 +735,7 @@
 
     const fd = new FormData();
     fd.append('file', input.files[0]);
+    fd.append('detector', $('audio-detector-select')?.value || 'legacy_standalone');
 
     try {
       const res = await fetch('/api/analyze-audio', { method: 'POST', body: fd });
@@ -777,6 +767,7 @@
       const fd = new FormData();
       fd.append('mode', 'sample');
       fd.append('sample', sample);
+      fd.append('detector', $('audio-detector-select')?.value || 'legacy_standalone');
 
       try {
         const res = await fetch('/api/analyze-audio', { method: 'POST', body: fd });

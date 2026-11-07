@@ -48,6 +48,7 @@ from deepfake_detector import (
     ALLOWED_AUDIO_EXTENSIONS,
     ALLOWED_VIDEO_EXTENSIONS,
     DeepfakePredictor,
+    StandaloneAudioPredictor,
     build_report,
     category_from_path,
     interpret,
@@ -72,19 +73,21 @@ def resolve_model_path(env_key: str, default_rel: str) -> str:
 
 # Configuration from environment or defaults
 MODEL_PATH = resolve_model_path("MODEL_PATH", "models/best_model.pt")
-AUDIO_DETECTOR = os.environ.get("AUDIO_DETECTOR", "aasist").strip().lower()
-_audio_default = (
-    str(PROJECT_ROOT.parent / "aasist" / "models" / "weights" / "AASIST.pth")
-    if AUDIO_DETECTOR in {"aasist", "aasist_l"}
-    else "models/audio_model.pt"
-)
-if AUDIO_DETECTOR in {"aasist", "aasist_l"}:
-    aasist_override = os.environ.get("AASIST_CHECKPOINT_PATH", "").strip().strip("\"'")
-    AUDIO_MODEL_PATH = aasist_override or _audio_default
-    if not Path(AUDIO_MODEL_PATH).expanduser().exists():
-        print(f"[app] AASIST checkpoint '{AUDIO_MODEL_PATH}' not found on disk.")
+DEFAULT_AUDIO_DETECTOR = "legacy_standalone"
+AUDIO_MODEL_PATH = resolve_model_path("AUDIO_MODEL_PATH", "models/audio_model.pt")
+LEGACY_WAV2VEC_PATH = os.environ.get("LEGACY_AUDIO_CHECKPOINT_PATH", "").strip().strip("'\"")
+if LEGACY_WAV2VEC_PATH:
+    _legacy_path = Path(LEGACY_WAV2VEC_PATH).expanduser()
+    LEGACY_WAV2VEC_PATH = str(_legacy_path if _legacy_path.is_absolute() else PROJECT_ROOT / _legacy_path)
 else:
-    AUDIO_MODEL_PATH = resolve_model_path("AUDIO_MODEL_PATH", _audio_default)
+    LEGACY_WAV2VEC_PATH = str(
+        PROJECT_ROOT.parent / "initial setup" / "deepfake_phase1" / "checkpoints" / "wav2vec_best.pt"
+    )
+AASIST_PATHS = {}
+for _model_id, _filename in (("aasist", "AASIST.pth"), ("aasist_l", "AASIST-L.pth")):
+    _override = os.environ.get("AASIST_CHECKPOINT_PATH", "").strip().strip("'\"") if _model_id == "aasist" else ""
+    _path = Path(_override).expanduser() if _override else PROJECT_ROOT.parent / "aasist" / "models" / "weights" / _filename
+    AASIST_PATHS[_model_id] = str(_path if _path.is_absolute() else PROJECT_ROOT / _path)
 SAMPLES_DIR = HERE / "samples"
 UPLOADS_DIR = HERE / "uploads"
 UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
@@ -116,8 +119,9 @@ app.config["MAX_CONTENT_LENGTH"] = 200 * 1024 * 1024  # 200 MB upload limit
 
 predictor: DeepfakePredictor | None = None
 predictor_error: str | None = None
-audio_predictor: StandaloneAudioService | None = None
+audio_predictor: StandaloneAudioService | StandaloneAudioPredictor | None = None
 audio_predictor_error: str | None = None
+audio_predictor_id: str | None = None
 predictor_load_lock = threading.Lock()
 audio_predictor_load_lock = threading.Lock()
 audio_inference_lock = threading.Lock()
@@ -194,40 +198,98 @@ def load_predictor(force_retry: bool = False) -> DeepfakePredictor | None:
     return predictor
 
 
-def load_audio_predictor(force_retry: bool = False) -> StandaloneAudioService | None:
-    """Lazy-load the standalone audio predictor singleton with graceful retry."""
-    global audio_predictor, audio_predictor_error
-    if audio_predictor is not None and not force_retry:
+def audio_detector_options() -> list[dict[str, str | bool]]:
+    """Return UI detector choices and whether their checkpoint files are present."""
+    choices = [
+        ("legacy_standalone", "Wav2Vec 2.0 + MLP (Studio)", AUDIO_MODEL_PATH),
+        ("legacy_wav2vec_mlp", "Wav2Vec 2.0 + MLP (Phase 1)", LEGACY_WAV2VEC_PATH),
+        ("aasist", "AASIST", AASIST_PATHS["aasist"]),
+        ("aasist_l", "AASIST-L", AASIST_PATHS["aasist_l"]),
+    ]
+    return [
+        {"id": model_id, "label": label, "available": Path(path).expanduser().is_file()}
+        for model_id, label, path in choices
+    ]
+
+
+def load_audio_predictor(
+    detector_id: str = DEFAULT_AUDIO_DETECTOR,
+    force_retry: bool = False,
+) -> StandaloneAudioService | StandaloneAudioPredictor | None:
+    """Load the selected allowlisted audio detector, replacing the active model if needed."""
+    global audio_predictor, audio_predictor_error, audio_predictor_id
+    if detector_id not in {"legacy_standalone", "legacy_wav2vec_mlp", "aasist", "aasist_l"}:
+        audio_predictor_error = f"Unknown audio detector: {detector_id}"
+        return None
+    if audio_predictor is not None and audio_predictor_id == detector_id and not force_retry:
         return audio_predictor
 
     with audio_predictor_load_lock:
-        if audio_predictor is not None and not force_retry:
+        if audio_predictor is not None and audio_predictor_id == detector_id and not force_retry:
             return audio_predictor
 
-        model_file = Path(AUDIO_MODEL_PATH).expanduser()
-        if not model_file.exists() and AUDIO_DETECTOR not in {"aasist", "aasist_l"}:
-            fallback = PROJECT_ROOT / "models" / "audio_model.pt"
-            if fallback.exists():
-                model_file = fallback
+        audio_predictor = None
+        audio_predictor_id = None
+        audio_predictor_error = None
+        model_path = {
+            "legacy_standalone": AUDIO_MODEL_PATH,
+            "legacy_wav2vec_mlp": LEGACY_WAV2VEC_PATH,
+            "aasist": AASIST_PATHS["aasist"],
+            "aasist_l": AASIST_PATHS["aasist_l"],
+        }[detector_id]
+        model_file = Path(model_path).expanduser()
 
         if not model_file.exists():
             audio_predictor_error = f"Audio checkpoint not found: {model_file}"
             return None
 
         try:
-            print(f"[app] Loading {AUDIO_DETECTOR} audio detector checkpoint...")
-            detector = get_detector(
-                AUDIO_DETECTOR,
-                checkpoint_path=str(model_file),
-                device=os.environ.get("AUDIO_DEVICE", "cpu"),
-            )
-            audio_predictor = StandaloneAudioService(detector)
+            print(f"[app] Loading {detector_id} audio detector checkpoint...")
+            if detector_id == "legacy_standalone":
+                audio_predictor = StandaloneAudioPredictor(str(model_file))
+            else:
+                detector = get_detector(
+                    detector_id,
+                    checkpoint_path=str(model_file),
+                    device=os.environ.get("AUDIO_DEVICE", "cpu"),
+                )
+                cal_path = PROJECT_ROOT / "configs" / "calibration" / f"{detector_id}_platt.json"
+                calibrator = None
+                if cal_path.is_file():
+                    try:
+                        from deepfake_detector.audio_detection.calibration import ScoreCalibrator
+                        candidate = ScoreCalibrator.load(cal_path)
+                        provenance = candidate.fit_data
+                        sample_count = int(provenance.get("sample_count", 0))
+                        if (
+                            provenance.get("split") not in {"dev", "val"}
+                            or sample_count < 1000
+                            or candidate.model_id != detector.metadata().get("model_id")
+                        ):
+                            print(
+                                f"[app] Ignoring calibration artifact without matching dev/val provenance "
+                                f"and >=1000 samples: {cal_path}"
+                            )
+                        else:
+                            calibrator = candidate
+                            print(
+                                f"[app] Loaded {provenance.get('split')} calibration "
+                                f"({sample_count} samples) from {cal_path}"
+                            )
+                    except Exception as cal_exc:
+                        print(f"[app] Warning: Could not load calibration artifact: {cal_exc}")
+                audio_predictor = StandaloneAudioService(
+                    detector,
+                    calibrator=calibrator,
+                    uncertain_band=(0.40, 0.60) if calibrator else None,
+                )
+            audio_predictor_id = detector_id
             audio_predictor_error = None
             print("[app] Standalone audio detector ready.")
         except Exception as exc:
             audio_predictor_error = f"Audio model load failed: {exc}"
             print(f"[app] {audio_predictor_error}")
-    return audio_predictor
+    return audio_predictor if audio_predictor_id == detector_id else None
 
 
 def list_samples() -> list[dict]:
@@ -276,7 +338,7 @@ def favicon():
 def index():
     """Main dashboard page."""
     pred = load_predictor()
-    audio_pred = load_audio_predictor()
+    audio_pred = load_audio_predictor(DEFAULT_AUDIO_DETECTOR)
     return render_template(
         "index.html",
         samples=list_samples(),
@@ -287,7 +349,8 @@ def index():
         audio_model_ready=audio_pred is not None,
         audio_model_error=audio_predictor_error,
         audio_model_path=AUDIO_MODEL_PATH,
-        audio_model_id=AUDIO_DETECTOR,
+        audio_model_id=audio_predictor_id or DEFAULT_AUDIO_DETECTOR,
+        audio_detector_options=audio_detector_options(),
         model_device=str(pred.device) if pred else "not loaded",
     )
 
@@ -296,7 +359,10 @@ def index():
 def status():
     """System and model status API endpoint."""
     pred = load_predictor()
-    audio_pred = load_audio_predictor()
+    requested_detector = request.args.get("audio_detector", DEFAULT_AUDIO_DETECTOR)
+    if requested_detector not in {"legacy_standalone", "legacy_wav2vec_mlp", "aasist", "aasist_l"}:
+        requested_detector = DEFAULT_AUDIO_DETECTOR
+    audio_pred = load_audio_predictor(requested_detector)
     return jsonify({
         "status": "online",
         "multimodal_model": {
@@ -308,7 +374,7 @@ def status():
         "audio_model": {
             "loaded": audio_pred is not None,
             "path": AUDIO_MODEL_PATH,
-            "model_id": AUDIO_DETECTOR,
+            "model_id": audio_predictor_id or requested_detector,
             "error": audio_predictor_error,
         },
     })
@@ -458,10 +524,9 @@ def analyze_audio():
         audio_url = f"/uploads/{saved_name}"
         prune_old_uploads()
 
-    pred = load_audio_predictor()
-    if pred is None:
-        return jsonify({"ok": False, "error": audio_predictor_error or "Audio model is not available"}), 503
-
+    detector_id = request.form.get("detector", DEFAULT_AUDIO_DETECTOR).strip().lower()
+    if detector_id not in {"legacy_standalone", "legacy_wav2vec_mlp", "aasist", "aasist_l"}:
+        return jsonify({"ok": False, "error": "Unknown audio detector selection"}), 400
     # Wav2Vec 2.0 CPU inference is memory intensive. Reject concurrent work
     # explicitly instead of making every browser tab appear to hang.
     if not audio_inference_lock.acquire(blocking=False):
@@ -471,7 +536,11 @@ def analyze_audio():
         }), 429
 
     try:
+        pred = load_audio_predictor(detector_id)
+        if pred is None:
+            return jsonify({"ok": False, "error": audio_predictor_error or "Audio model is not available"}), 503
         result = pred.predict(str(audio_path))
+        result.setdefault("model_id", detector_id)
     except Exception as exc:
         return jsonify({"ok": False, "error": f"Audio analysis failed: {exc}"}), 422
     finally:
