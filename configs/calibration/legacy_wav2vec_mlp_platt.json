@@ -1,0 +1,47 @@
+{
+  "format_version": "1.0",
+  "model_id": "legacy_wav2vec_mlp",
+  "version": "1.0.0",
+  "method": "platt",
+  "score_orientation": "higher_is_fake",
+  "operating_threshold": 0.5,
+  "uncertain_band": [
+    0.4,
+    0.6
+  ],
+  "fitted": true,
+  "params": {
+    "a": 7.964953448856039,
+    "b": -3.4902708645112854
+  },
+  "metrics": {
+    "ece": 0.00488,
+    "brier_score": 0.01856,
+    "log_loss": 0.07988,
+    "accuracy": 0.9787,
+    "sample_count": 24844
+  },
+  "fit_data": {
+    "source_file": "reports\\calibration_fit_wav2vec_dev\\manifest_asvspoof2019_dev_per_recording_predictions.csv",
+    "dataset": [
+      "asvspoof2019_la"
+    ],
+    "split": "dev",
+    "sample_count": 24844
+  },
+  "held_out_evaluation": {
+    "source_file": "reports\\manifest_asvspoof2019_eval_per_recording_predictions.csv",
+    "dataset": [
+      "asvspoof2019_la"
+    ],
+    "split": "eval",
+    "metrics": {
+      "ece": 0.05868,
+      "brier_score": 0.05713,
+      "log_loss": 0.20185,
+      "accuracy": 0.9304,
+      "sample_count": 71237
+    }
+  },
+  "created_at": "2026-11-03T12:50:08.210553+00:00"
+}

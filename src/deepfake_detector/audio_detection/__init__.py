@@ -15,6 +15,7 @@ from .detectors import (
 from .preprocessing import load_audio
 from .windowing import AudioWindow, AudioWindowGenerator
 from .aggregation import RecordingScoreAggregator, merge_suspicious_intervals
+from .calibration import ScoreCalibrator, compute_ece, compute_reliability_curve
 from .service import StandaloneAudioService
 
 __all__ = [
@@ -32,5 +33,8 @@ __all__ = [
     "AudioWindowGenerator",
     "RecordingScoreAggregator",
     "merge_suspicious_intervals",
+    "ScoreCalibrator",
+    "compute_ece",
+    "compute_reliability_curve",
     "StandaloneAudioService",
 ]
