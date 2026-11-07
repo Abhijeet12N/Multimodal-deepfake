@@ -105,9 +105,10 @@ class StandaloneAudioPredictor:
             for index in top_indices
         ]
 
-        # Forensic splicing & partial manipulation detection:
-        # If an audio clip has real speech spliced with synthetic speech, the arithmetic mean
-        # can get diluted below the threshold. We check for localized high-confidence synthetic clusters.
+        # Local window spikes are useful review signals, but this model has not
+        # been validated to convert them into a recording-level spoof verdict.
+        # Keep the recording threshold authoritative and report localized spikes
+        # as inconclusive when the full-recording mean stays below it.
         fake_windows = [p for p in window_probabilities if p >= self.threshold]
         strong_fake_windows = [p for p in window_probabilities if p >= 0.85]
         fake_window_ratio = len(fake_windows) / len(window_probabilities) if window_probabilities else 0.0
@@ -116,14 +117,14 @@ class StandaloneAudioPredictor:
         if probability >= self.threshold:
             label = "fake"
             verdict_detail = "Full-recording average exceeds synthetic threshold."
-        elif len(strong_fake_windows) >= 2 or (len(fake_windows) >= 2 and fake_window_ratio >= 0.20) or (len(window_probabilities) <= 2 and peak_score >= self.threshold):
-            label = "fake"
+        elif len(strong_fake_windows) >= 2 or (len(fake_windows) >= 2 and fake_window_ratio >= 0.20) or (len(window_probabilities) <= 2 and peak_score >= self.threshold) or peak_score >= 0.90:
+            label = "uncertain"
             is_spliced = True
-            verdict_detail = f"Spliced / partial manipulation detected across {len(fake_windows)} window(s) (peak: {round(peak_score * 100, 1)}%)."
-        elif peak_score >= 0.90:
-            label = "fake"
-            is_spliced = True
-            verdict_detail = f"High-confidence synthetic audio segment detected (peak: {round(peak_score * 100, 1)}%)."
+            verdict_detail = (
+                f"Inconclusive: {len(fake_windows)} of {len(window_probabilities)} windows crossed the "
+                f"window threshold (peak: {round(peak_score * 100, 1)}%), but the full-recording average "
+                "did not. Review the highlighted segments; localized scores alone do not confirm a fake."
+            )
         else:
             label = "real"
             verdict_detail = "All analyzed audio windows are consistent with authentic human speech."
