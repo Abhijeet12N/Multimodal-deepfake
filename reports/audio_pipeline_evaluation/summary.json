@@ -1,0 +1,79 @@
+{
+  "protocol": "studio_sliding_window",
+  "split": "eval",
+  "fit_on_clips": false,
+  "threads": 2,
+  "torch_version": "2.14.1+cpu",
+  "cuda_available": false,
+  "models": {
+    "aasist": {
+      "completed": 8,
+      "errors": 0,
+      "correct": 3,
+      "uncertain": 0,
+      "accuracy_including_abstentions": 0.375,
+      "real_false_positive_rate": 1.0,
+      "fake_recall": 0.75,
+      "balanced_accuracy_including_abstentions": 0.375,
+      "true_positives": 3,
+      "true_negatives": 0,
+      "false_positives": 4,
+      "false_negatives": 1,
+      "total_analysis_seconds": 65.69273770001018,
+      "load_seconds": 0.049704300006851554
+    },
+    "aasist_l": {
+      "completed": 8,
+      "errors": 0,
+      "correct": 4,
+      "uncertain": 0,
+      "accuracy_including_abstentions": 0.5,
+      "real_false_positive_rate": 1.0,
+      "fake_recall": 1.0,
+      "balanced_accuracy_including_abstentions": 0.5,
+      "true_positives": 4,
+      "true_negatives": 0,
+      "false_positives": 4,
+      "false_negatives": 0,
+      "total_analysis_seconds": 54.729937300027814,
+      "load_seconds": 0.05113929999060929
+    },
+    "legacy_wav2vec_mlp": {
+      "completed": 8,
+      "errors": 0,
+      "correct": 3,
+      "uncertain": 0,
+      "accuracy_including_abstentions": 0.375,
+      "real_false_positive_rate": 0.75,
+      "fake_recall": 0.5,
+      "balanced_accuracy_including_abstentions": 0.375,
+      "true_positives": 2,
+      "true_negatives": 1,
+      "false_positives": 3,
+      "false_negatives": 2,
+      "total_analysis_seconds": 28.97409729991341,
+      "load_seconds": 0.42102609999710694
+    },
+    "legacy_standalone": {
+      "completed": 8,
+      "errors": 0,
+      "correct": 2,
+      "uncertain": 4,
+      "accuracy_including_abstentions": 0.25,
+      "real_false_positive_rate": 0.0,
+      "fake_recall": 0.5,
+      "balanced_accuracy_including_abstentions": 0.25,
+      "true_positives": 2,
+      "true_negatives": 0,
+      "false_positives": 0,
+      "false_negatives": 2,
+      "total_analysis_seconds": 77.07617150014266,
+      "load_seconds": 0.2534816999686882
+    }
+  },
+  "limitations": [
+    "Labels are supplied by folder names; source authenticity has not been independently verified.",
+    "Eight clips are a smoke evaluation, not an estimate of general accuracy.",
+    "EER and AUC need a larger independent test set for reliable comparison."
+  ]
+}

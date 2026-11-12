@@ -1,5 +1,7 @@
 # Audio model comparison and calibration
 
+> Historical comparison before preprocessing parity fixes. See the [fresh four-model evaluation](audio_pipeline_evaluation/report.md) and [execution guide](../docs/audio_upgrade_execution.md) for current results. The native ASVspoof calibration below is not used for studio recording verdicts.
+
 ## Local clips reserved for evaluation
 
 The eight files in `initial setup/deepfake_phase1/Audios/{Real,Fake}` were treated as evaluation data. None of these files was used to fit the calibrator or select its threshold.
@@ -32,6 +34,6 @@ The fit artifact is `configs/calibration/legacy_wav2vec_mlp_platt.json`. Dev fit
 ## Current UI behavior and limitations
 
 - The UI only loads calibration when the artifact identifies the matching model and has dev/val provenance with at least 1,000 fit examples. The earlier AASIST artifact has only six eval examples and is ignored.
-- To select this calibrated model, set `AUDIO_DETECTOR=legacy_wav2vec_mlp`. The Phase 1 checkpoint is resolved independently of the older generic `AUDIO_MODEL_PATH`; `LEGACY_AUDIO_CHECKPOINT_PATH` can override it.
+- Detector selection is now in the studio dropdown. The Phase 1 checkpoint is resolved independently of the older generic `AUDIO_MODEL_PATH`; `LEGACY_AUDIO_CHECKPOINT_PATH` can override it. The native-input calibration artifact is retained for benchmark provenance and does not calibrate recording verdicts.
 - AASIST remains uncalibrated. The available dev cache contains Wav2Vec features, not raw waveforms, so it cannot be used to calibrate AASIST.
-- The eight local clips have not been re-scored with the new calibrator: the Wav2Vec frontend is not cached in the current runtime, and network access to download it is blocked. Their comparison above is the prior, uncalibrated evaluation. Re-scoring them with the fitted artifact remains a follow-up evaluation step, with no refitting or threshold changes based on those results.
+- The comparison above is historical. All eight clips have now been evaluated on the corrected pipeline using the cached frontends, with no fitting or threshold selection on the clips; see the fresh evaluation linked above.
