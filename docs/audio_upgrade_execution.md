@@ -1,5 +1,21 @@
 # Audio upgrade execution
 
+## Fine-tuned exports installed on 12 November 2026
+
+Two Colab AASIST exports have now been supplied and inspected locally. Run
+`20261108_060713`, epoch 4, was selected using its recomputed validation AUC
+(0.999649 versus 0.999331 for the other export), before reserved-clip testing.
+Its checkpoint is installed at `models/aasist_finetuned.pth` and is the Studio's
+default **AASIST (fine-tuned)** option on this machine.
+
+The exports contain checkpoints, training histories and validation scores, but no
+separate development calibration or final evaluation outputs. The installed model
+therefore remains uncalibrated. It detects 3/4 fake clips but misclassifies 4/4 real
+clips in the reserved test. See the [installation and evaluation report](../reports/finetuned_audio_evaluation/report.md)
+for hashes, model-selection evidence, per-clip results and limitations. The sections
+below describe the original workflow; their earlier local execution limitations
+do not imply that the newly supplied training checkpoints are absent.
+
 ## Completed locally
 
 - Restored Phase 1 Wav2Vec preprocessing: pad/truncate to 32,000 samples, apply its processor, extract CNN features and mean-pool. Regression checks compare the exact tensors against the training processor output.
@@ -11,6 +27,12 @@
 The fixes improve correctness and execution. They do not establish a reliable detector for arbitrary uploaded audio. Current checkpoints still have large false-positive/missed-fake counts on the local clips.
 
 ## Continue in Colab
+
+Initialize the source dependency with `git submodule update --init --recursive`,
+then run `python scripts/build_audio_colab_bundle.py`. The pinned source, official
+starting checkpoints, and upstream license/notice are packaged from
+`third_party/aasist` into the same relative path inside the Colab project. No
+sibling repository is required. Older bundle layouts remain readable by the loader.
 
 Open [AASIST_Colab_Upgrade.ipynb](../notebooks/AASIST_Colab_Upgrade.ipynb) in a Colab GPU runtime and upload the local `artifacts/audio_colab_bundle.zip` when prompted. Run the cells in order. The notebook downloads the raw dataset directly onto Colab; neither a local dataset nor a dataset on Drive is needed.
 

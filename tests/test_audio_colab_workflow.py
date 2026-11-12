@@ -23,7 +23,7 @@ def test_generated_download_to_training_workflow_uses_local_storage(tmp_path):
     project = tmp_path / "project"
     project.mkdir()
     for name in ("AASIST.pth", "AASIST-L.pth"):
-        weights = tmp_path / "aasist" / "models" / "weights" / name
+        weights = project / "third_party" / "aasist" / "models" / "weights" / name
         weights.parent.mkdir(parents=True, exist_ok=True)
         weights.write_bytes(b"synthetic checkpoint for workflow test")
 

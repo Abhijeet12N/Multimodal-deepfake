@@ -3,8 +3,11 @@ from pathlib import Path
 import json
 import hashlib
 import zipfile
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+from deepfake_detector.upstream import find_aasist_source
 
 
 def cell(kind, source):
@@ -18,7 +21,13 @@ def cell(kind, source):
 def main():
     archive = ROOT / "artifacts" / "audio_colab_bundle.zip"
     archive.parent.mkdir(parents=True, exist_ok=True)
-    upstream = ROOT.parent / "aasist"
+    upstream = find_aasist_source(ROOT)
+    if upstream is None:
+        raise FileNotFoundError("Run 'git submodule update --init --recursive' before building the Colab bundle.")
+    required = ("models/AASIST.py", "models/weights/AASIST.pth", "models/weights/AASIST-L.pth", "LICENSE", "NOTICE")
+    for name in required:
+        if not (upstream / name).is_file():
+            raise FileNotFoundError(f"Required AASIST dependency file is missing: {upstream / name}")
     paths = list((ROOT / "src").rglob("*.py")) + [
         ROOT / "training" / "finetune_aasist.py", ROOT / "scripts" / "fit_calibration.py",
         ROOT / "scripts" / "download_asvspoof2019.py",
@@ -28,10 +37,10 @@ def main():
         for path in paths:
             if "__pycache__" not in path.parts:
                 out.write(path, "Multimodal-deepfake/" + path.relative_to(ROOT).as_posix())
-        for name in ("models/AASIST.py", "models/weights/AASIST.pth", "models/weights/AASIST-L.pth", "LICENSE", "NOTICE"):
+        for name in required:
             path = upstream / name
             if path.is_file():
-                out.write(path, "aasist/" + name)
+                out.write(path, "Multimodal-deepfake/third_party/aasist/" + name)
     cells = [
         cell("markdown", """# AASIST audio upgrade in Colab
 
@@ -177,7 +186,7 @@ Colab runtime. Optional Drive backups do not store the dataset.
     checkpoint_name = 'AASIST-L.pth' if model_id=='aasist_l' else 'AASIST.pth'
     command = [sys.executable, '-u', str(project/'training/finetune_aasist.py'),
                '--model', model_id, '--manifest', str(manifest),
-               '--checkpoint', str(workspace/'aasist/models/weights'/checkpoint_name),
+               '--checkpoint', str(project/'third_party/aasist/models/weights'/checkpoint_name),
                '--reserved-hashes', str(project/'reports/audio_development_readiness.json'),
                '--output', str(OUTPUT_ROOT/model_id), '--epochs', str(EPOCHS),
                '--batch-size', str(BATCH_SIZE)]
