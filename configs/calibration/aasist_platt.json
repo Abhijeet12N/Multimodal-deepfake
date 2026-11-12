@@ -1,0 +1,25 @@
+{
+  "format_version": "1.0",
+  "model_id": "aasist",
+  "version": "1.0.0",
+  "method": "platt",
+  "score_orientation": "higher_is_bonafide",
+  "operating_threshold": 0.5,
+  "uncertain_band": [
+    0.4,
+    0.6
+  ],
+  "fitted": true,
+  "params": {
+    "a": -3.4934818867533597,
+    "b": -9.42840337757848
+  },
+  "metrics": {
+    "ece": 0.01089,
+    "brier_score": 0.12132,
+    "log_loss": 0.34635,
+    "accuracy": 0.8333,
+    "sample_count": 6
+  },
+  "created_at": "2026-11-02T14:42:57.119992+00:00"
+}
