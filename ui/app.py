@@ -85,7 +85,8 @@ else:
     )
 AASIST_PATHS = {}
 for _model_id, _filename in (("aasist", "AASIST.pth"), ("aasist_l", "AASIST-L.pth")):
-    _override = os.environ.get("AASIST_CHECKPOINT_PATH", "").strip().strip("'\"") if _model_id == "aasist" else ""
+    _key = "AASIST_CHECKPOINT_PATH" if _model_id == "aasist" else "AASIST_L_CHECKPOINT_PATH"
+    _override = os.environ.get(_key, "").strip().strip("'\"")
     _path = Path(_override).expanduser() if _override else PROJECT_ROOT.parent / "aasist" / "models" / "weights" / _filename
     AASIST_PATHS[_model_id] = str(_path if _path.is_absolute() else PROJECT_ROOT / _path)
 SAMPLES_DIR = HERE / "samples"
@@ -254,6 +255,7 @@ def load_audio_predictor(
                     device=os.environ.get("AUDIO_DEVICE", "cpu"),
                 )
                 cal_path = PROJECT_ROOT / "configs" / "calibration" / f"{detector_id}_platt.json"
+                service = StandaloneAudioService(detector)
                 calibrator = None
                 if cal_path.is_file():
                     try:
@@ -261,14 +263,10 @@ def load_audio_predictor(
                         candidate = ScoreCalibrator.load(cal_path)
                         provenance = candidate.fit_data
                         sample_count = int(provenance.get("sample_count", 0))
-                        if (
-                            provenance.get("split") not in {"dev", "val"}
-                            or sample_count < 1000
-                            or candidate.model_id != detector.metadata().get("model_id")
-                        ):
+                        if not service.accepts_calibrator(candidate):
                             print(
-                                f"[app] Ignoring calibration artifact without matching dev/val provenance "
-                                f"and >=1000 samples: {cal_path}"
+                                f"[app] Ignoring calibration artifact: requires >=1000 dev/val recording scores "
+                                f"from the matching studio pipeline: {cal_path}"
                             )
                         else:
                             calibrator = candidate

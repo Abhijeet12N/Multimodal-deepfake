@@ -591,16 +591,13 @@
       }
     });
 
-    // Real-time audio playback scrubber animation
+    // Metadata may arrive before playback starts; initialize the timer then too.
     if (audioPlayer) {
-      audioPlayer.addEventListener('timeupdate', () => {
-        const timer = $('playback-timer');
-        if (timer) {
-          const cur = formatTime(audioPlayer.currentTime);
-          const dur = formatTime(audioPlayer.duration || activeAudioData?.analyzed_seconds || 0);
-          timer.textContent = `${cur} / ${dur}`;
-        }
-        if (activeAudioData) renderAudioTimeline(activeAudioData);
+      ['loadedmetadata', 'durationchange', 'timeupdate', 'seeked', 'emptied'].forEach((eventName) => {
+        audioPlayer.addEventListener(eventName, () => {
+          updateAudioPlaybackTimer();
+          if (activeAudioData) renderAudioTimeline(activeAudioData);
+        });
       });
     }
 
@@ -609,8 +606,17 @@
     });
   }
 
+  function updateAudioPlaybackTimer(reset = false) {
+    const timer = $('playback-timer');
+    const player = $('result-audio-player');
+    if (!timer || !player) return;
+    const duration = !reset && Number.isFinite(player.duration) && player.duration > 0
+      ? player.duration : activeAudioData?.analyzed_seconds || 0;
+    timer.textContent = `${formatTime(reset ? 0 : player.currentTime)} / ${formatTime(duration)}`;
+  }
+
   function formatTime(sec) {
-    if (isNaN(sec)) return '0:00';
+    if (!Number.isFinite(sec) || sec < 0) return '0:00';
     const m = Math.floor(sec / 60);
     const s = Math.floor(sec % 60);
     return `${m}:${s < 10 ? '0' : ''}${s}`;
@@ -646,10 +652,24 @@
     const splicedBadge = $('audio-spliced-badge');
 
     banner.className = 'verdict-banner ' + (isUncertain ? 'verdict-uncertain' : isFake ? 'verdict-danger' : 'verdict-safe');
-    badge.textContent = isUncertain ? 'UNCERTAIN' : isFake ? 'CLASSIFIED AS SPOOF' : 'CLASSIFIED AS BONA FIDE';
-    title.textContent = isUncertain ? 'Audio Result Is Inconclusive'
-      : isFake ? 'Recording Classified as Spoof' : 'Recording Classified as Bona Fide';
+    badge.textContent = isUncertain ? 'MODEL PREDICTION: UNCERTAIN'
+      : isFake ? 'MODEL PREDICTION: SPOOF' : 'MODEL PREDICTION: BONA FIDE';
+    title.textContent = isUncertain ? 'Model Prediction Is Inconclusive'
+      : isFake ? 'Model Predicts: Spoof' : 'Model Predicts: Bona Fide';
     desc.textContent = result.verdict_detail;
+    $('audio-prediction-note').textContent = result.prediction_note;
+    const metrics = $('audio-recording-metrics');
+    metrics.innerHTML = '';
+    result.recording_metrics.forEach((metric) => {
+      const item = document.createElement('div');
+      const label = document.createElement('dt');
+      const value = document.createElement('dd');
+      label.textContent = metric.label;
+      value.textContent = metric.value;
+      item.appendChild(label);
+      item.appendChild(value);
+      metrics.appendChild(item);
+    });
 
     splicedBadge.textContent = `${result.flagged}/${result.windows_analyzed} WINDOWS FLAGGED`;
     splicedBadge.className = 'risk-badge ' + (result.flagged ? 'risk-medium' : 'risk-low');
@@ -668,6 +688,7 @@
       player.src = data.audio_url;
       player.load();
     }
+    updateAudioPlaybackTimer(true);
 
     // Render Timeline Chart
     renderAudioTimeline(result);

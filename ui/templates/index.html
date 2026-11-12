@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='20261103') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='20261108') }}">
 </head>
 <body class="dark-theme">
 
@@ -549,6 +549,8 @@
                 <div class="verdict-meta" id="audio-filename-meta">recording.wav</div>
               </div>
               <h3 class="verdict-title" id="audio-verdict-title">Recording verdict</h3>
+              <p class="audio-prediction-note" id="audio-prediction-note"></p>
+              <dl class="audio-recording-metrics" id="audio-recording-metrics" aria-label="Recording decision scores"></dl>
               <p class="verdict-desc" id="audio-verdict-desc">—</p>
             </div>
 
@@ -749,7 +751,7 @@
     </div>
   </footer>
 
-  <script src="{{ url_for('static', filename='audio-presentation.js', v='20261103') }}"></script>
-  <script src="{{ url_for('static', filename='app.js', v='20261103') }}"></script>
+  <script src="{{ url_for('static', filename='audio-presentation.js', v='20261108') }}"></script>
+  <script src="{{ url_for('static', filename='app.js', v='20261108') }}"></script>
 </body>
 </html>

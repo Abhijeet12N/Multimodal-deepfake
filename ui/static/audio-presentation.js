@@ -10,12 +10,11 @@
     const service = Boolean(result.verdict);
     const raw = result.score_orientation === 'higher_is_bonafide';
     const calibrated = Boolean(result.calibration_version);
-    const threshold = Number.isFinite(result.threshold) ? result.threshold : null;
+    const windowThreshold = result.window_threshold ?? result.threshold;
+    const threshold = Number.isFinite(windowThreshold) ? windowThreshold : null;
     const source = service ? result.windows : result.all_windows;
     const windows = (source || []).map((win) => {
-      const score = raw ? win.bonafide_score
-        : calibrated && Number.isFinite(win.calibrated_fake_probability)
-          ? win.calibrated_fake_probability : win.fake_score;
+      const score = raw ? win.bonafide_score : win.fake_score;
       if (!Number.isFinite(score)) throw new Error('Audio window score is missing or invalid.');
       return {
         start: win.start_seconds ?? win.start,
@@ -40,15 +39,29 @@
       max += pad;
     }
     const formatScore = (score) => raw ? score.toFixed(3) : score.toFixed(4);
+    const recordingScore = service ? result.raw_recording_score : result.fake_probability;
+    const decisionScore = calibrated ? result.calibrated_fake_probability : recordingScore;
+    const decisionThreshold = result.threshold;
+    const recordingMetrics = [
+      { label: 'Recording score (average)', value: Number.isFinite(recordingScore) ? formatScore(recordingScore) : 'Unavailable' },
+    ];
+    if (calibrated) {
+      recordingMetrics.push({ label: 'Calibrated spoof score', value: Number.isFinite(decisionScore) ? decisionScore.toFixed(4) : 'Unavailable' });
+    }
+    recordingMetrics.push({ label: 'Decision threshold', value: Number.isFinite(decisionThreshold)
+      ? calibrated ? decisionThreshold.toFixed(4) : formatScore(decisionThreshold) : 'Unavailable' });
     let detail = service
       ? `${result.model_id || 'Audio detector'}: ${windows.length} evaluated windows.`
-      : `Wav2Vec 2.0: ${windows.length} evaluated windows. ${result.verdict_detail || ''}`;
-    if (service && result.calibration_version) {
-      detail += ' Window scores and the recording verdict use the development-set calibrator.';
-    } else if (service) {
-      detail += ' Recording verdict uses the aggregate score and model threshold.';
+      : `Wav2Vec 2.0: ${windows.length} evaluated windows.`;
+    if (calibrated) {
+      detail += ' Recording verdict uses calibration of the aggregate score; window flags use the raw window threshold.';
+    } else {
+      detail += ' Recording verdict uses the average window score and decision threshold.';
+      if (!service && label === 'uncertain') {
+        detail += ' The average is below the threshold, but localized window flags make this result inconclusive.';
+      }
     }
-    detail += ` ${flagged} of ${windows.length} windows flagged. Window flags are diagnostics, not proof of manipulation.`;
+    detail += ` ${flagged} of ${windows.length} windows crossed the diagnostic window threshold. The flagged count is not a majority vote or a percentage of fake audio. Window flags are diagnostics, not proof of manipulation.`;
     if (result.analysis_window_seconds != null) {
       detail += ` Window: ${result.analysis_window_seconds}s; hop: ${result.hop_seconds}s.`;
     }
@@ -60,13 +73,16 @@
       all_windows: windows,
       top_windows: ranked.slice(0, 5),
       raw, threshold, min, max, formatScore, flagged,
+      recording_metrics: recordingMetrics,
+      prediction_note: calibrated
+        ? 'Calibrated model prediction. This recording\'s authenticity has not been independently verified.'
+        : 'Uncalibrated model prediction. This recording\'s authenticity has not been independently verified.',
       verdict_detail: detail,
       chart_title: raw ? 'Raw bonafide score vs time (higher = more bona fide)'
-      : calibrated ? 'Calibrated fake probability vs time' : 'Window model score vs time (higher = more spoof-like)',
-      score_label: raw ? 'Raw bonafide score' : calibrated ? 'Calibrated fake probability' : 'Model score (0 to 1)',
+      : 'Window model score vs time (higher = more spoof-like)',
+      score_label: raw ? 'Raw bonafide score' : 'Model score (0 to 1)',
       chart_note: raw
         ? 'Raw scores are not probabilities. Amber marks backend window flags; these can differ from the recording verdict. Click a bar to play that segment.'
-        : calibrated ? 'Probabilities were calibrated on a separate development split. Click a bar to play that segment.'
         : 'Model scores are not validated window confidence percentages. Amber marks window flags. Click a bar to play that segment.',
     };
   }
