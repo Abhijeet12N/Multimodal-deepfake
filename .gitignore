@@ -53,6 +53,7 @@ desktop.ini
 *.log
 *.tmp
 .pytest_cache/
+artifacts/audio_colab_bundle.zip
 
 # ===== Generated presentation files =====
 slides/*.pdf

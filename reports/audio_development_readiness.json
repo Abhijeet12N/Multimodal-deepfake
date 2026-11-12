@@ -1,0 +1,89 @@
+{
+  "ready_for_waveform_training": false,
+  "source_manifests": [
+    "C:\\Users\\avina\\Documents\\Mega Project\\Multimodal-deepfake\\data\\manifests\\manifest_asvspoof2019_train.csv",
+    "C:\\Users\\avina\\Documents\\Mega Project\\Multimodal-deepfake\\data\\manifests\\manifest_asvspoof2019_dev.csv",
+    "C:\\Users\\avina\\Documents\\Mega Project\\Multimodal-deepfake\\data\\manifests\\manifest_asvspoof2019_eval.csv"
+  ],
+  "manifest_rows_by_split": {
+    "train": 25380,
+    "dev": 24844,
+    "eval": 71237
+  },
+  "usable_waveforms_by_split_and_label": {
+    "train": {},
+    "val": {},
+    "dev": {},
+    "eval": {}
+  },
+  "problems": {
+    "feature_cache_instead_of_waveform": 121461,
+    "train_needs_both_classes_of_raw_audio": 1,
+    "val_needs_both_classes_of_raw_audio": 1,
+    "dev_needs_both_classes_of_raw_audio": 1,
+    "eval_needs_both_classes_of_raw_audio": 1
+  },
+  "missing_examples": [],
+  "reserved_eval_clips": [
+    {
+      "path": "C:\\Users\\avina\\Documents\\Mega Project\\initial setup\\deepfake_phase1\\Audios\\Real\\Real Podcast Bill Gates.mp3",
+      "label": 0,
+      "split": "eval",
+      "sha256": "28fb1c6ae339730704e64e3f73eb2c9bee80e3a2376c24a7ebb1b95d4fd84195",
+      "reserved": true
+    },
+    {
+      "path": "C:\\Users\\avina\\Documents\\Mega Project\\initial setup\\deepfake_phase1\\Audios\\Real\\Real Podcast Elon Musk.mp3",
+      "label": 0,
+      "split": "eval",
+      "sha256": "3e86f73353047125e408d3480acb46169ecf4a302b7545d281c92c3df1c7cb1e",
+      "reserved": true
+    },
+    {
+      "path": "C:\\Users\\avina\\Documents\\Mega Project\\initial setup\\deepfake_phase1\\Audios\\Real\\Such a great quote \ud83d\udd25 #shorts - Jay Shetty.mp3",
+      "label": 0,
+      "split": "eval",
+      "sha256": "f762b6541d372cd8b882a79fd83d2b061c178b1fae0b11f80a568192f6ad66aa",
+      "reserved": true
+    },
+    {
+      "path": "C:\\Users\\avina\\Documents\\Mega Project\\initial setup\\deepfake_phase1\\Audios\\Real\\What is the best advice Alia Bhatt has ever received #jayshetty #podcast #aliabhatt - Jay Shetty Podcast.mp3",
+      "label": 0,
+      "split": "eval",
+      "sha256": "121fc077b8b1ac7102f06d39808df3461b42822e8fc7422a5bd9bb9261553d16",
+      "reserved": true
+    },
+    {
+      "path": "C:\\Users\\avina\\Documents\\Mega Project\\initial setup\\deepfake_phase1\\Audios\\Fake\\Deepfake video of Volodymyr Zelensky surrendering surfaces on social media - The Telegraph.mp3",
+      "label": 1,
+      "split": "eval",
+      "sha256": "c2dcd1ca5879b50b534cf88605c8165e3af65d5cb5eead52ee020ed0e0693ce2",
+      "reserved": true
+    },
+    {
+      "path": "C:\\Users\\avina\\Documents\\Mega Project\\initial setup\\deepfake_phase1\\Audios\\Fake\\Fake audio.mp3",
+      "label": 1,
+      "split": "eval",
+      "sha256": "b560922368fe2111761bd35efcafc430b06f897ebd03f7248b1abcaa6b5078e3",
+      "reserved": true
+    },
+    {
+      "path": "C:\\Users\\avina\\Documents\\Mega Project\\initial setup\\deepfake_phase1\\Audios\\Fake\\Fake clip.mp3",
+      "label": 1,
+      "split": "eval",
+      "sha256": "220af7be035c4bfae4bc1e601b9ec699dae2027f71d626304da453151c7f4ea1",
+      "reserved": true
+    },
+    {
+      "path": "C:\\Users\\avina\\Documents\\Mega Project\\initial setup\\deepfake_phase1\\Audios\\Fake\\Fake donald trump.mp3",
+      "label": 1,
+      "split": "eval",
+      "sha256": "8c7e9b3aa8e4521d7aad727c218786a3b135146ea1f8cd96cb0d5620e537f60c",
+      "reserved": true
+    }
+  ],
+  "notes": [
+    "Authenticity labels require verified source provenance; filename/folder labels are provisional.",
+    "Hashes catch exact duplicates. Speaker and source IDs must also cover re-encodes, crops and augmentations."
+  ]
+}

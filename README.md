@@ -172,6 +172,8 @@ $env:AASIST_CHECKPOINT_PATH = "D:\checkpoints\AASIST.pth"
 
 Choose the audio detector in the **Audio Forensic Scanner** dropdown. The available choices are the Studio Wav2Vec + MLP model, the Phase 1 Wav2Vec + MLP model, AASIST, and AASIST-L. `AUDIO_MODEL_PATH`, `LEGACY_AUDIO_CHECKPOINT_PATH`, and `AASIST_CHECKPOINT_PATH` configure checkpoint locations only. AASIST remains experimental until it has been calibrated on a representative development set. SSL-AASIST training is deferred.
 
+For the fresh eight-clip results and the Colab fine-tuning/calibration workflow, see the [audio upgrade execution guide](docs/audio_upgrade_execution.md). The raw dataset can stay in Colab/Drive; the notebook exports checkpoints and calibration for the local studio.
+
 ---
 
 ## Running the Web User Interface
