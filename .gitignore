@@ -18,6 +18,8 @@ env/
 *.onnx
 *.h5
 *.safetensors
+models/*.zip
+models/finetuned/
 
 # ===== Web UI runtime files =====
 # User uploads are created at runtime and are not versioned.

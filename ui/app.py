@@ -54,6 +54,7 @@ from deepfake_detector import (
     interpret,
 )
 from deepfake_detector.audio_detection import StandaloneAudioService, get_detector
+from deepfake_detector.upstream import default_aasist_checkpoint
 
 
 def resolve_model_path(env_key: str, default_rel: str) -> str:
@@ -83,12 +84,22 @@ else:
     LEGACY_WAV2VEC_PATH = str(
         PROJECT_ROOT.parent / "initial setup" / "deepfake_phase1" / "checkpoints" / "wav2vec_best.pt"
     )
+def resolve_aasist_path(project_root: Path, model_id: str, override: str = "") -> Path:
+    """Prefer an installed fine-tuned checkpoint while retaining explicit overrides."""
+    if override:
+        path = Path(override).expanduser()
+        return path if path.is_absolute() else project_root / path
+    return default_aasist_checkpoint(project_root, model_id)
+
+
 AASIST_PATHS = {}
 for _model_id, _filename in (("aasist", "AASIST.pth"), ("aasist_l", "AASIST-L.pth")):
     _key = "AASIST_CHECKPOINT_PATH" if _model_id == "aasist" else "AASIST_L_CHECKPOINT_PATH"
     _override = os.environ.get(_key, "").strip().strip("'\"")
-    _path = Path(_override).expanduser() if _override else PROJECT_ROOT.parent / "aasist" / "models" / "weights" / _filename
-    AASIST_PATHS[_model_id] = str(_path if _path.is_absolute() else PROJECT_ROOT / _path)
+    AASIST_PATHS[_model_id] = str(resolve_aasist_path(PROJECT_ROOT, _model_id, _override))
+if (Path(AASIST_PATHS["aasist"]).is_file()
+        and Path(AASIST_PATHS["aasist"]).stem.endswith("_finetuned")):
+    DEFAULT_AUDIO_DETECTOR = "aasist"
 SAMPLES_DIR = HERE / "samples"
 UPLOADS_DIR = HERE / "uploads"
 UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
@@ -204,13 +215,22 @@ def audio_detector_options() -> list[dict[str, str | bool]]:
     choices = [
         ("legacy_standalone", "Wav2Vec 2.0 + MLP (Studio)", AUDIO_MODEL_PATH),
         ("legacy_wav2vec_mlp", "Wav2Vec 2.0 + MLP (Phase 1)", LEGACY_WAV2VEC_PATH),
-        ("aasist", "AASIST", AASIST_PATHS["aasist"]),
-        ("aasist_l", "AASIST-L", AASIST_PATHS["aasist_l"]),
+        ("aasist", "AASIST" + (" (fine-tuned)" if Path(AASIST_PATHS["aasist"]).stem.endswith("_finetuned") else ""), AASIST_PATHS["aasist"]),
+        ("aasist_l", "AASIST-L" + (" (fine-tuned)" if Path(AASIST_PATHS["aasist_l"]).stem.endswith("_finetuned") else ""), AASIST_PATHS["aasist_l"]),
     ]
     return [
         {"id": model_id, "label": label, "available": Path(path).expanduser().is_file()}
         for model_id, label, path in choices
     ]
+
+
+def audio_checkpoint_path(detector_id: str) -> str:
+    return {
+        "legacy_standalone": AUDIO_MODEL_PATH,
+        "legacy_wav2vec_mlp": LEGACY_WAV2VEC_PATH,
+        "aasist": AASIST_PATHS["aasist"],
+        "aasist_l": AASIST_PATHS["aasist_l"],
+    }[detector_id]
 
 
 def load_audio_predictor(
@@ -232,12 +252,7 @@ def load_audio_predictor(
         audio_predictor = None
         audio_predictor_id = None
         audio_predictor_error = None
-        model_path = {
-            "legacy_standalone": AUDIO_MODEL_PATH,
-            "legacy_wav2vec_mlp": LEGACY_WAV2VEC_PATH,
-            "aasist": AASIST_PATHS["aasist"],
-            "aasist_l": AASIST_PATHS["aasist_l"],
-        }[detector_id]
+        model_path = audio_checkpoint_path(detector_id)
         model_file = Path(model_path).expanduser()
 
         if not model_file.exists():
@@ -346,7 +361,7 @@ def index():
         model_path=MODEL_PATH,
         audio_model_ready=audio_pred is not None,
         audio_model_error=audio_predictor_error,
-        audio_model_path=AUDIO_MODEL_PATH,
+        audio_model_path=audio_checkpoint_path(DEFAULT_AUDIO_DETECTOR),
         audio_model_id=audio_predictor_id or DEFAULT_AUDIO_DETECTOR,
         audio_detector_options=audio_detector_options(),
         model_device=str(pred.device) if pred else "not loaded",
@@ -371,7 +386,7 @@ def status():
         },
         "audio_model": {
             "loaded": audio_pred is not None,
-            "path": AUDIO_MODEL_PATH,
+            "path": audio_checkpoint_path(requested_detector),
             "model_id": audio_predictor_id or requested_detector,
             "error": audio_predictor_error,
         },
