@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import subprocess
 import sys
+import shutil
 
 import numpy as np
 import pytest
@@ -62,23 +63,37 @@ def test_importing_audio_package_does_not_import_video_dependencies():
     subprocess.run([sys.executable, "-c", code], cwd=root, check=True, timeout=60)
 
 
-def test_aasist_inference_with_huggingface_imports_blocked():
+def test_aasist_inference_with_huggingface_imports_blocked(tmp_path):
     root = Path(__file__).resolve().parents[1]
-    checkpoint = root.parent / "aasist" / "models" / "weights" / "AASIST.pth"
+    source = root / "third_party" / "aasist"
+    checkpoint = source / "models" / "weights" / "AASIST.pth"
     if not checkpoint.is_file():
         pytest.skip("Local official AASIST checkpoint is not installed")
+    # Reproduce an isolated clone/bundle: no sibling repository is available.
+    runtime = tmp_path / "project"
+    shutil.copytree(root / "src", runtime / "src", ignore=shutil.ignore_patterns("__pycache__"))
+    isolated_source = runtime / "third_party" / "aasist" / "models"
+    isolated_source.mkdir(parents=True)
+    shutil.copy2(source / "models" / "AASIST.py", isolated_source / "AASIST.py")
+    isolated_checkpoint = isolated_source / "AASIST.pth"
+    shutil.copy2(checkpoint, isolated_checkpoint)
     code = '''
-import sys, importlib.abc
+import sys, importlib.abc, types
+from pathlib import Path
 class BlockHF(importlib.abc.MetaPathFinder):
     def find_spec(self, fullname, path=None, target=None):
         if fullname.split('.')[0] in {'transformers', 'huggingface_hub', 'tokenizers'}:
             raise ImportError('Hugging Face imports intentionally unavailable: ' + fullname)
 sys.meta_path.insert(0, BlockHF())
 sys.path.insert(0, 'src')
+# The old top-level models import would collide with this unrelated package.
+sys.modules['models'] = types.ModuleType('models')
 import torch
 import numpy as np
 torch.set_num_threads(2)
 from deepfake_detector.audio_detection import get_detector
+from deepfake_detector.audio_detection.detectors.aasist import AASIST_UPSTREAM_DIR
+assert AASIST_UPSTREAM_DIR == (Path.cwd() / 'third_party' / 'aasist').resolve()
 detector = get_detector('aasist', checkpoint_path=sys.argv[1], device='cpu')
 wave = np.random.default_rng(42).normal(0, .05, (1, 64600)).astype(np.float32)
 result = detector.predict_batch(wave)
@@ -86,4 +101,4 @@ assert result['raw_scores'].shape == (1, 2)
 assert np.isfinite(result['bonafide_scores']).all()
 assert 'transformers' not in sys.modules and 'huggingface_hub' not in sys.modules
 '''
-    subprocess.run([sys.executable, "-c", code, str(checkpoint)], cwd=root, check=True, timeout=60)
+    subprocess.run([sys.executable, "-c", code, str(isolated_checkpoint)], cwd=runtime, check=True, timeout=60)

@@ -42,7 +42,7 @@ class TestScoreDirection(unittest.TestCase):
         self.assertEqual(reqs["padding_mode"], "zero")
 
     def test_aasist_prediction_score_direction_on_noise(self):
-        ckpt_path = Path(__file__).resolve().parents[2] / "aasist" / "models" / "weights" / "AASIST.pth"
+        ckpt_path = ROOT / "third_party" / "aasist" / "models" / "weights" / "AASIST.pth"
         if not ckpt_path.exists():
             self.skipTest("AASIST.pth checkpoint not available.")
 
@@ -59,7 +59,7 @@ class TestScoreDirection(unittest.TestCase):
             self.assertGreater(res["fake_scores"][i], 0.0)
 
     def test_raw_scores_are_not_restricted_to_probabilities(self):
-        ckpt_path = Path(__file__).resolve().parents[2] / "aasist" / "models" / "weights" / "AASIST.pth"
+        ckpt_path = ROOT / "third_party" / "aasist" / "models" / "weights" / "AASIST.pth"
         if not ckpt_path.exists():
             self.skipTest("AASIST.pth checkpoint not available.")
 

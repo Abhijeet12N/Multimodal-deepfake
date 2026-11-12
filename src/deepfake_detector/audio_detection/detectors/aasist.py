@@ -16,10 +16,10 @@ Architecture:
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
 import math
 import os
-import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -29,40 +29,32 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from ..interfaces import AudioDetector
+from ...upstream import AASIST_REVISION, aasist_source_candidates, find_aasist_source
 
-# Find the upstream checkout independently of the process working directory.
-# In the standard workspace layout it is a sibling of this project:
-# Mega Project/aasist and Mega Project/Multimodal-deepfake.
+# Prefer the pinned submodule independently of the process working directory.
 _MODULE_PATH = Path(__file__).resolve()
 _PROJECT_ROOT = _MODULE_PATH.parents[4]
-_AASIST_CANDIDATES = (
-    _PROJECT_ROOT.parent / "aasist",
-    _PROJECT_ROOT / "aasist",
-    Path.cwd().parent / "aasist",
-    Path.cwd().parent.parent / "aasist",
-)
-AASIST_UPSTREAM_DIR = next((path.resolve() for path in _AASIST_CANDIDATES if path.is_dir()), None)
-if AASIST_UPSTREAM_DIR is not None:
-    upstream_path = str(AASIST_UPSTREAM_DIR)
-    if upstream_path in sys.path:
-        sys.path.remove(upstream_path)
-    sys.path.insert(0, upstream_path)
+_AASIST_CANDIDATES = aasist_source_candidates(_PROJECT_ROOT)
+AASIST_UPSTREAM_DIR = find_aasist_source(_PROJECT_ROOT)
 
 
 def _load_upstream_aasist_model(config: dict[str, Any], device: torch.device) -> nn.Module:
     """Import and instantiate the official AASIST Model class."""
     if AASIST_UPSTREAM_DIR is None:
         searched = ", ".join(str(path) for path in _AASIST_CANDIDATES)
-        raise FileNotFoundError(f"AASIST upstream repository not found. Searched: {searched}")
+        raise FileNotFoundError(
+            "AASIST source is missing. Run 'git submodule update --init --recursive' "
+            f"from the project root. Searched: {searched}"
+        )
 
-    try:
-        from models.AASIST import Model
-    except ImportError as exc:
-        raise ImportError(
-            f"Could not import AASIST from {AASIST_UPSTREAM_DIR}. "
-            "Check that its upstream models package is present."
-        ) from exc
-    return Model(config).to(device)
+    # Import this exact source file; avoid collisions with other 'models' packages.
+    source = AASIST_UPSTREAM_DIR / "models" / "AASIST.py"
+    spec = importlib.util.spec_from_file_location("_deepfake_aasist_upstream", source)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Could not load AASIST source from {source}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.Model(config).to(device)
 
 
 class AASISTDetector(AudioDetector):
@@ -100,6 +92,7 @@ class AASISTDetector(AudioDetector):
         self.checkpoint_path: str = ""
         self.checkpoint_sha256: str = ""
         self.threshold: float = 0.0  # Logit threshold for bonafide decision
+        self.training_metadata: dict[str, Any] = {}
 
         if checkpoint_path is not None:
             self.load(str(checkpoint_path), device=device)
@@ -120,8 +113,14 @@ class AASISTDetector(AudioDetector):
         cfg = self.AASIST_L_CONFIG if self.is_lightweight else self.DEFAULT_CONFIG
         self.model = _load_upstream_aasist_model(cfg, self.device)
 
-        state_dict = torch.load(str(path), map_location=self.device, weights_only=False)
+        state_dict = torch.load(str(path), map_location=self.device, weights_only=True)
+        self.training_metadata = {}
         if "model_state_dict" in state_dict:
+            self.training_metadata = {
+                key: state_dict[key] for key in (
+                    "epoch", "val_auc", "parent_checkpoint_sha256", "manifest_sha256"
+                ) if key in state_dict
+            }
             state_dict = state_dict["model_state_dict"]
 
         try:
@@ -209,9 +208,11 @@ class AASISTDetector(AudioDetector):
         name = "AASIST-L" if self.is_lightweight else "AASIST"
         return {
             "model_id": "aasist_l" if self.is_lightweight else "aasist",
-            "display_name": f"Official {name} Anti-Spoofing Baseline",
+            "display_name": (f"Fine-tuned {name} Anti-Spoofing Detector" if self.training_metadata
+                             else f"Official {name} Anti-Spoofing Baseline"),
+            "training_metadata": self.training_metadata,
             "upstream_repo": "https://github.com/clovaai/aasist",
-            "upstream_commit": "official-main",
+            "upstream_commit": AASIST_REVISION,
             "license": "MIT (NAVER Corp.)",
             "uses_ssl_frontend": False,
             "checkpoint_path": self.checkpoint_path,

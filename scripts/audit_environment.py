@@ -25,6 +25,8 @@ if sys.stdout and hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(REPO_ROOT / "src"))
+from deepfake_detector.upstream import default_aasist_checkpoint
 
 
 def get_sha256(path: Path) -> str:
@@ -110,8 +112,8 @@ def audit_system() -> Dict[str, Any]:
         "legacy_wav2vec_best": REPO_ROOT.parent / "initial setup" / "deepfake_phase1" / "checkpoints" / "wav2vec_best.pt",
         "legacy_audio": REPO_ROOT / "models" / "weights" / "audio_model.pt",
         "multimodal": REPO_ROOT / "models" / "weights" / "best_model.pt",
-        "aasist": REPO_ROOT.parent / "aasist" / "models" / "weights" / "AASIST.pth",
-        "aasist_l": REPO_ROOT.parent / "aasist" / "models" / "weights" / "AASIST-L.pth",
+        "aasist": default_aasist_checkpoint(REPO_ROOT, "aasist"),
+        "aasist_l": default_aasist_checkpoint(REPO_ROOT, "aasist_l"),
         "ssl_aasist_la": REPO_ROOT / "models" / "weights" / "LA_model.pth",
         "ssl_aasist_df": REPO_ROOT / "models" / "weights" / "DF_model.pth",
     }

@@ -1,0 +1,3 @@
+[submodule "aasist"]
+	path = third_party/aasist
+	url = https://github.com/clovaai/aasist.git

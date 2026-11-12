@@ -54,6 +54,7 @@ from deepfake_detector.audio_detection import (
     StandaloneAudioService,
     get_detector,
 )
+from deepfake_detector.upstream import aasist_checkpoint_candidates
 
 
 def compute_eer(
@@ -370,14 +371,8 @@ def main():
                 ROOT.parent / "initial setup/deepfake_phase1/checkpoints/wav2vec_best.pt",
                 ROOT / "models/audio_model.pt",
             ],
-            "aasist": [
-                ROOT / "aasist/models/weights/AASIST.pth",
-                ROOT.parent / "aasist/models/weights/AASIST.pth",
-            ],
-            "aasist_l": [
-                ROOT / "aasist/models/weights/AASIST-L.pth",
-                ROOT.parent / "aasist/models/weights/AASIST-L.pth",
-            ],
+            "aasist": aasist_checkpoint_candidates(ROOT, "aasist"),
+            "aasist_l": aasist_checkpoint_candidates(ROOT, "aasist_l"),
         }
         for cand in default_candidates.get(args.model, []):
             if Path(cand).is_file():

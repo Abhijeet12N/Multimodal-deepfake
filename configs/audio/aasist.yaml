@@ -4,7 +4,7 @@ model:
   model_class: "AASISTDetector"
   architecture: "AASIST"
   is_lightweight: false
-  checkpoint_path: "aasist/models/weights/AASIST.pth"
+  checkpoint_path: "third_party/aasist/models/weights/AASIST.pth"
   checkpoint_sha256: "51d2d9cf0738172f61e2a384ec50a54a55363240f67c971ed55a92435bc1a1c0"
   upstream_repo: "https://github.com/clovaai/aasist"
   license: "MIT"
