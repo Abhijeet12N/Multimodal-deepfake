@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AEGIS // NEURAL FORENSICS LAB - Benchmarks &amp; Neural Architecture Blueprint</title>
+<!-- Google Fonts: Inter & JetBrains Mono -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "secondary-fixed": "#e1e0ff",
+            "surface-container-lowest": "#0a0e16",
+            "primary-container": "#00e5ff",
+            "tertiary-fixed": "#6ffbbe",
+            "outline": "#849396",
+            "primary-fixed-dim": "#00daf3",
+            "on-tertiary": "#003824",
+            "tertiary-container": "#5be9ad",
+            "surface-bright": "#353942",
+            "surface-dim": "#0f131c",
+            "error-container": "#93000a",
+            "on-surface": "#dfe2ee",
+            "surface": "#0f131c",
+            "primary": "#c3f5ff",
+            "tertiary": "#a8ffd2",
+            "surface-tint": "#00daf3",
+            "on-secondary-fixed-variant": "#2f2ebe",
+            "on-error": "#690005",
+            "background": "#0f131c",
+            "secondary": "#c0c1ff",
+            "outline-variant": "#3b494c",
+            "on-secondary-container": "#b0b2ff",
+            "inverse-surface": "#dfe2ee",
+            "tertiary-fixed-dim": "#4edea3",
+            "on-surface-variant": "#bac9cc",
+            "inverse-primary": "#006875",
+            "surface-container-high": "#262a33",
+            "secondary-fixed-dim": "#c0c1ff",
+            "inverse-on-surface": "#2c3039",
+            "on-primary-fixed": "#001f24",
+            "surface-variant": "#31353e",
+            "on-secondary": "#1000a9",
+            "on-primary": "#00363d",
+            "on-tertiary-container": "#006645",
+            "surface-container-low": "#181c24",
+            "on-primary-fixed-variant": "#004f58",
+            "on-error-container": "#ffdad6",
+            "on-primary-container": "#00626e",
+            "error": "#ffb4ab",
+            "surface-container-highest": "#31353e",
+            "on-background": "#dfe2ee",
+            "surface-container": "#1c2028",
+            "on-tertiary-fixed-variant": "#005236",
+            "on-secondary-fixed": "#07006c",
+            "primary-fixed": "#9cf0ff",
+            "on-tertiary-fixed": "#002113",
+            "secondary-container": "#3131c0"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "space-lg": "1.5rem",
+            "space-sm": "0.5rem",
+            "margin-lg": "2rem",
+            "gutter-lg": "1.5rem",
+            "space-xl": "2.25rem",
+            "space-md": "1rem",
+            "gutter": "1rem",
+            "space-xs": "0.25rem",
+            "margin": "1.25rem"
+          },
+          "fontFamily": {
+            "label-code": ["JetBrains Mono"],
+            "body-lg": ["Inter"],
+            "data-lg": ["JetBrains Mono"],
+            "body-sm": ["Inter"],
+            "body-md": ["Inter"],
+            "data-md": ["JetBrains Mono"],
+            "title-md": ["Inter"],
+            "headline-sm": ["Inter"],
+            "headline-lg-mobile": ["Inter"],
+            "headline-xl-mobile": ["Inter"],
+            "title-sm": ["Inter"],
+            "headline-lg": ["Inter"],
+            "data-sm": ["JetBrains Mono"],
+            "headline-md": ["Inter"],
+            "headline-xl": ["Inter"]
+          },
+          "fontSize": {
+            "label-code": ["10px", { "lineHeight": "14px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+            "body-lg": ["15px", { "lineHeight": "24px", "fontWeight": "400" }],
+            "data-lg": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "body-sm": ["12px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "body-md": ["13px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "data-md": ["13px", { "lineHeight": "18px", "letterSpacing": "-0.005em", "fontWeight": "500" }],
+            "title-md": ["16px", { "lineHeight": "22px", "fontWeight": "500" }],
+            "headline-sm": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.005em", "fontWeight": "600" }],
+            "headline-lg-mobile": ["24px", { "lineHeight": "30px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-xl-mobile": ["28px", { "lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+            "title-sm": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+            "headline-lg": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "data-sm": ["11px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "400" }],
+            "headline-md": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-xl": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 18px;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+      -webkit-font-smoothing: antialiased;
+    }
+    /* Subtle Cyber HUD Coordinate Matrix Background */
+    .cyber-grid {
+      background-size: 32px 32px;
+      background-image:
+        linear-gradient(to right, rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+    }
+    .obsidian-card {
+      background: rgba(13, 20, 36, 0.72);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(59, 73, 76, 0.6);
+    }
+    .hud-bracket {
+      position: relative;
+    }
+    .hud-bracket::before {
+      content: '';
+      position: absolute;
+      top: -1px;
+      left: -1px;
+      width: 8px;
+      height: 8px;
+      border-top: 2px solid #00e5ff;
+      border-left: 2px solid #00e5ff;
+      pointer-events: none;
+    }
+    .hud-bracket::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      right: -1px;
+      width: 8px;
+      height: 8px;
+      border-bottom: 2px solid #00e5ff;
+      border-right: 2px solid #00e5ff;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md antialiased min-h-screen flex flex-col selection:bg-primary-container selection:text-on-primary-fixed cyber-grid">
+<!-- ========================================================================= -->
+<!-- 1. TOP FORENSIC NAVIGATION BAR (Derived from Shared Components JSON)      -->
+<!-- ========================================================================= -->
+<header class="bg-surface-container-low border-b border-outline-variant docked full-width top-0 sticky z-50">
+<div class="flex justify-between items-center w-full px-margin-lg h-14 max-w-full">
+<!-- Brand & Product Identifier -->
+<div class="flex items-center space-x-3">
+<div class="w-7 h-7 rounded border border-primary-container/40 bg-surface-container flex items-center justify-center shadow-[0_0_12px_rgba(0,229,255,0.25)]">
+<span class="material-symbols-outlined text-primary-container text-[18px]">csv</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center space-x-2">
+<span class="font-label-code text-title-md font-bold tracking-wider text-primary">AEGIS // NEURAL FORENSICS LAB</span>
+<span class="font-label-code text-[10px] px-1.5 py-0.5 rounded bg-surface-container-high border border-outline-variant text-on-surface-variant font-medium">v8.9.4-PROD</span>
+</div>
+<span class="font-label-code text-[10px] text-outline tracking-tight uppercase">DEEPFAKE DETECTION STUDIO // NODE 04</span>
+</div>
+</div>
+<!-- Navigation Links Cluster -->
+<nav class="hidden md:flex items-center space-x-6 h-full pt-1">
+<a class="text-on-surface-variant hover:text-primary transition-colors pb-1 flex items-center space-x-1.5 font-label-code text-body-sm" href="#video-studio">
+<span class="material-symbols-outlined text-[16px]">videocam</span>
+<span>Multimodal Video Studio</span>
+</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors pb-1 flex items-center space-x-1.5 font-label-code text-body-sm" href="#audio-scanner">
+<span class="material-symbols-outlined text-[16px]">graphic_eq</span>
+<span>Audio Forensic Scanner</span>
+</a>
+<a class="border-b-2 border-primary-container text-primary-container font-semibold pb-1 flex items-center space-x-1.5 font-label-code text-body-sm shadow-[0_4px_12px_-2px_rgba(0,229,255,0.3)]" href="#benchmarks">
+<span class="material-symbols-outlined text-[16px]">insights</span>
+<span>Benchmarks &amp; Architecture</span>
+</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors pb-1 flex items-center space-x-1.5 font-label-code text-body-sm" href="#audit-dossier">
+<span class="material-symbols-outlined text-[16px]">history</span>
+<span>Audit History</span>
+</a>
+</nav>
+<!-- Hardware Telemetry & Quick Action Badges -->
+<div class="flex items-center space-x-3">
+<!-- GPU Node State -->
+<div class="hidden xl:flex items-center space-x-2.5 px-2.5 py-1 rounded bg-surface-container border border-outline-variant">
+<span class="material-symbols-outlined text-primary text-[15px]">memory</span>
+<span class="font-label-code text-label-code text-primary font-bold">RTX 4090 [CUDA-0]</span>
+<div class="w-16 h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+<div class="bg-primary-container h-full w-[17.5%]"></div>
+</div>
+<span class="font-label-code text-[9px] text-outline">4.2 / 24 GB</span>
+</div>
+<!-- Real-time Engine States -->
+<div class="hidden lg:flex items-center space-x-2 px-2 py-1 rounded bg-surface-container border border-outline-variant font-label-code text-[10px]">
+<span class="inline-block w-1.5 h-1.5 rounded-full bg-tertiary-container shadow-[0_0_6px_#5be9ad] animate-pulse"></span>
+<span class="text-on-surface-variant">AUDIO: <strong class="text-tertiary">READY</strong></span>
+<span class="text-outline-variant">|</span>
+<span class="inline-block w-1.5 h-1.5 rounded-full bg-tertiary-container shadow-[0_0_6px_#5be9ad] animate-pulse"></span>
+<span class="text-on-surface-variant">VIDEO: <strong class="text-tertiary">READY</strong></span>
+</div>
+<!-- Trailing Icon Actions from JSON -->
+<div class="flex items-center space-x-1 pl-1">
+<button class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors" title="Radar Sensor Telemetry">
+<span class="material-symbols-outlined text-[18px]">radar</span>
+</button>
+<button class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors relative" title="Alert Notifications">
+<span class="material-symbols-outlined text-[18px]">notifications_active</span>
+<span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+</button>
+<button class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors" title="Settings">
+<span class="material-symbols-outlined text-[18px]">settings</span>
+</button>
+</div>
+<!-- Profile Avatar Indicator -->
+<div class="flex items-center pl-2 border-l border-outline-variant space-x-2">
+<div class="w-7 h-7 rounded bg-surface-container-high border border-outline-variant flex items-center justify-center font-label-code text-[11px] font-bold text-primary" title="Lead Forensic Officer Avatar">
+            FS-09
+          </div>
+</div>
+</div>
+</div>
+</header>
+<!-- ========================================================================= -->
+<!-- MAIN WORKSPACE CONTAINER (1440px Desktop Command Center)                 -->
+<!-- ========================================================================= -->
+<main class="flex-1 w-full max-w-[1440px] mx-auto px-margin-lg py-6 space-y-6">
+<!-- 2. BENCHMARK OVERVIEW HEADER -->
+<section class="obsidian-card hud-bracket rounded-lg p-space-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+<div class="space-y-1.5 max-w-3xl">
+<div class="flex items-center space-x-2">
+<span class="px-2 py-0.5 rounded bg-primary-container/10 border border-primary-container/30 text-primary-container font-label-code text-label-code font-bold tracking-wider uppercase">
+            EMPIRICAL VALIDATION ARCHIVE
+          </span>
+<span class="font-label-code text-label-code text-outline">// REVISION: DISJOINT-EVAL-V1.2</span>
+</div>
+<h1 class="font-headline-md text-headline-md text-primary font-bold tracking-tight">
+          Empirical Benchmarking &amp; Deep Neural Trunk Architecture
+        </h1>
+<p class="font-body-md text-body-md text-on-surface-variant">
+          Rigorous evaluation on the <strong class="text-on-surface font-medium">FakeAVCeleb v1.2</strong> subject-disjoint benchmark dataset (3,276 evaluation videos across 75 unseen identities) and multi-task Late Fusion architecture blueprint.
+        </p>
+<!-- Evaluation Split Filter Pill Buttons -->
+<div class="flex flex-wrap items-center gap-2 pt-2">
+<button class="px-3 py-1 rounded bg-primary-container/15 border border-primary-container text-primary-container font-label-code text-[11px] font-semibold flex items-center space-x-1.5 shadow-[0_0_12px_rgba(0,229,255,0.25)]">
+<span class="material-symbols-outlined text-[13px]">dataset</span>
+<span>All Categories (N=3,276)</span>
+</button>
+<button class="px-3 py-1 rounded bg-surface-container/60 border border-outline-variant hover:border-primary-container/50 text-on-surface-variant hover:text-on-surface font-label-code text-[11px] transition-colors">
+            Wav2Lip Manipulations (N=1,485)
+          </button>
+<button class="px-3 py-1 rounded bg-surface-container/60 border border-outline-variant hover:border-primary-container/50 text-on-surface-variant hover:text-on-surface font-label-code text-[11px] transition-colors">
+            Neural Voice Clones (N=75)
+          </button>
+<button class="px-3 py-1 rounded bg-surface-container/60 border border-outline-variant hover:border-primary-container/50 text-on-surface-variant hover:text-on-surface font-label-code text-[11px] transition-colors">
+            Dual-Stream Fakes (N=1,641)
+          </button>
+<button class="px-3 py-1 rounded bg-surface-container/60 border border-outline-variant hover:border-primary-container/50 text-on-surface-variant hover:text-on-surface font-label-code text-[11px] transition-colors">
+            Authentic Controls (N=75)
+          </button>
+</div>
+</div>
+<!-- Action Cluster -->
+<div class="flex flex-col sm:flex-row md:flex-col lg:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
+<button class="px-3.5 py-2 rounded bg-surface-container-high border border-outline-variant hover:border-primary-container text-on-surface hover:text-primary transition-all duration-150 font-label-code text-body-sm font-semibold flex items-center justify-center space-x-2 active:scale-[0.98]">
+<span class="material-symbols-outlined text-primary text-[18px]">terminal</span>
+<span>Run Automated Regression Benchmark</span>
+</button>
+<button class="px-3.5 py-2 rounded bg-primary-container text-on-primary-fixed hover:bg-primary-fixed-dim transition-all duration-150 font-label-code text-body-sm font-bold flex items-center justify-center space-x-2 shadow-[0_0_16px_rgba(0,229,255,0.4)] active:scale-[0.98]">
+<span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+<span>Export Benchmark PDF Dossier</span>
+</button>
+</div>
+</section>
+<!-- 3. HIGH-IMPACT METRIC SCORECARDS (4 Bento Cards in a Grid) -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter-lg">
+<!-- Card 1: Visual Stream -->
+<div class="obsidian-card rounded-lg p-space-md flex flex-col justify-between border border-outline-variant relative overflow-hidden group hover:border-primary-container/40 transition-colors">
+<div class="space-y-1">
+<div class="flex justify-between items-start">
+<span class="font-label-code text-label-code uppercase tracking-wider text-outline">MOD-01 // VISUAL STREAM</span>
+<span class="px-2 py-0.5 rounded bg-primary-container/10 border border-primary-container/30 text-primary-container font-label-code text-[9px] font-bold">
+              HIGH PRECISION
+            </span>
+</div>
+<div class="font-title-sm text-title-sm font-semibold text-on-surface">Xception Backbone</div>
+</div>
+<div class="my-4">
+<div class="font-label-code text-[11px] text-outline-variant uppercase">Empirical ROC AUC</div>
+<div class="font-data-lg text-[34px] leading-tight font-bold text-primary-container tracking-tight drop-shadow-[0_0_8px_rgba(0,229,255,0.3)]">
+            0.9991
+          </div>
+</div>
+<div class="pt-3 border-t border-outline-variant/50 grid grid-cols-3 gap-2 font-label-code text-[11px]">
+<div>
+<div class="text-outline text-[10px]">F1 SCORE</div>
+<div class="text-on-surface font-semibold">0.9994</div>
+</div>
+<div>
+<div class="text-outline text-[10px]">FPR</div>
+<div class="text-on-surface font-semibold">0.08%</div>
+</div>
+<div>
+<div class="text-outline text-[10px]">EER</div>
+<div class="text-on-surface font-semibold">0.14%</div>
+</div>
+</div>
+</div>
+<!-- Card 2: Speech Stream -->
+<div class="obsidian-card rounded-lg p-space-md flex flex-col justify-between border border-outline-variant relative overflow-hidden group hover:border-[#818cf8]/40 transition-colors">
+<div class="space-y-1">
+<div class="flex justify-between items-start">
+<span class="font-label-code text-label-code uppercase tracking-wider text-outline">MOD-02 // SPEECH STREAM</span>
+<span class="px-2 py-0.5 rounded bg-[#818cf8]/10 border border-[#818cf8]/30 text-[#818cf8] font-label-code text-[9px] font-bold">
+              SYNTHETIC VOCODER SENSITIVE
+            </span>
+</div>
+<div class="font-title-sm text-title-sm font-semibold text-on-surface">Wav2Vec 2.0 Base</div>
+</div>
+<div class="my-4">
+<div class="font-label-code text-[11px] text-outline-variant uppercase">Empirical ROC AUC</div>
+<div class="font-data-lg text-[34px] leading-tight font-bold text-[#818cf8] tracking-tight drop-shadow-[0_0_8px_rgba(129,140,248,0.3)]">
+            0.9982
+          </div>
+</div>
+<div class="pt-3 border-t border-outline-variant/50 grid grid-cols-3 gap-2 font-label-code text-[11px]">
+<div>
+<div class="text-outline text-[10px]">F1 SCORE</div>
+<div class="text-on-surface font-semibold">0.9875</div>
+</div>
+<div>
+<div class="text-outline text-[10px]">FPR</div>
+<div class="text-on-surface font-semibold">1.25%</div>
+</div>
+<div>
+<div class="text-outline text-[10px]">LATENCY</div>
+<div class="text-on-surface font-semibold">42ms</div>
+</div>
+</div>
+</div>
+<!-- Card 3: Multimodal Fusion Trunk (State-of-the-Art highlight) -->
+<div class="obsidian-card rounded-lg p-space-md flex flex-col justify-between border-2 border-primary-container/80 relative overflow-hidden shadow-[0_0_24px_-4px_rgba(0,229,255,0.25)]">
+<div class="absolute -right-12 -top-12 w-28 h-28 bg-primary-container/10 rounded-full blur-2xl pointer-events-none"></div>
+<div class="space-y-1 relative">
+<div class="flex justify-between items-start">
+<span class="font-label-code text-label-code uppercase tracking-wider text-primary font-bold">CORE // FUSION TRUNK</span>
+<span class="px-2 py-0.5 rounded bg-tertiary/10 border border-tertiary/30 text-tertiary font-label-code text-[9px] font-bold flex items-center space-x-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-ping"></span>
+<span>OPTIMAL SOTA</span>
+</span>
+</div>
+<div class="font-title-sm text-title-sm font-semibold text-primary">Late Fusion Cross-Modal</div>
+</div>
+<div class="my-4 relative">
+<div class="font-label-code text-[11px] text-outline uppercase">Combined Multi-Task ROC AUC</div>
+<div class="font-data-lg text-[34px] leading-tight font-bold bg-gradient-to-r from-primary-container via-tertiary to-primary-fixed bg-clip-text text-transparent tracking-tight">
+            0.9994
+          </div>
+</div>
+<div class="pt-3 border-t border-outline-variant/60 grid grid-cols-3 gap-2 font-label-code text-[11px] relative">
+<div>
+<div class="text-outline text-[10px]">COMBINED F1</div>
+<div class="text-primary font-semibold">0.9984</div>
+</div>
+<div>
+<div class="text-outline text-[10px]">DET. RECALL</div>
+<div class="text-primary font-semibold">99.88%</div>
+</div>
+<div>
+<div class="text-outline text-[10px]">OVERALL ACC</div>
+<div class="text-primary font-semibold">99.82%</div>
+</div>
+</div>
+</div>
+<!-- Card 4: Evaluation Split Specifications -->
+<div class="obsidian-card rounded-lg p-space-md flex flex-col justify-between border border-outline-variant relative overflow-hidden group hover:border-tertiary-container/40 transition-colors">
+<div class="space-y-1">
+<div class="flex justify-between items-start">
+<span class="font-label-code text-label-code uppercase tracking-wider text-outline">EVAL // BENCHMARK META</span>
+<span class="px-2 py-0.5 rounded bg-tertiary-container/10 border border-tertiary-container/30 text-tertiary-container font-label-code text-[9px] font-bold">
+              ZERO DATA LEAKAGE
+            </span>
+</div>
+<div class="font-title-sm text-title-sm font-semibold text-on-surface">FakeAVCeleb v1.2 Split</div>
+</div>
+<div class="my-4">
+<div class="font-label-code text-[11px] text-outline-variant uppercase">Total Test Videos</div>
+<div class="font-data-lg text-[34px] leading-tight font-bold text-on-surface tracking-tight">
+            3,276
+          </div>
+</div>
+<div class="pt-3 border-t border-outline-variant/50 grid grid-cols-3 gap-2 font-label-code text-[11px]">
+<div>
+<div class="text-outline text-[10px]">UNSEEN IDS</div>
+<div class="text-on-surface font-semibold">75 Subject</div>
+</div>
+<div>
+<div class="text-outline text-[10px]">PRECISION</div>
+<div class="text-on-surface font-semibold">99.91%</div>
+</div>
+<div>
+<div class="text-outline text-[10px]">STANDARD</div>
+<div class="text-on-surface font-semibold">Disjoint</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 4. FAKEAVCELEB V1.2 BREAKDOWN & ROC CURVE (Split 60% / 40%) -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-gutter-lg">
+<!-- Left Column (60% / 7.2 cols -> 7 cols) -->
+<div class="lg:col-span-7 obsidian-card rounded-lg p-space-md flex flex-col justify-between border border-outline-variant">
+<div class="space-y-2 mb-4">
+<div class="flex justify-between items-center">
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-primary-container text-[18px]">table_chart</span>
+<h2 class="font-title-md text-title-md font-bold text-primary">FakeAVCeleb v1.2 Category Evaluation Matrix</h2>
+</div>
+<span class="font-label-code text-label-code text-outline">CONFIDENCE INTERVAL: 95%</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            Cross-modal performance disaggregated across four threat vectors. Evaluation enforces strict zero-shot target identity disjointness.
+          </p>
+</div>
+<!-- Diagnostic Data Table -->
+<div class="overflow-x-auto border border-outline-variant rounded bg-surface-container-lowest/80">
+<table class="w-full text-left font-label-code text-[12px] border-collapse">
+<thead>
+<tr class="bg-surface-container-high/60 border-b border-outline-variant text-outline text-[10px] uppercase">
+<th class="py-2.5 px-3">Category Code</th>
+<th class="py-2.5 px-3">Modality Configuration</th>
+<th class="py-2.5 px-3 text-right">Sample (N)</th>
+<th class="py-2.5 px-3 text-right">Combined Recall</th>
+<th class="py-2.5 px-3 text-right">FAR</th>
+<th class="py-2.5 px-3 text-center">Threat Classification</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/40">
+<!-- Row 1: Real Control -->
+<tr class="hover:bg-surface-container/40 transition-colors">
+<td class="py-2.5 px-3 font-bold text-primary">[R-R]</td>
+<td class="py-2.5 px-3 text-on-surface">Real Video + Real Audio (Control)</td>
+<td class="py-2.5 px-3 text-right text-on-surface-variant font-data-md">75</td>
+<td class="py-2.5 px-3 text-right text-tertiary-container font-semibold font-data-md">98.67%</td>
+<td class="py-2.5 px-3 text-right text-on-surface-variant font-data-md">1.33%</td>
+<td class="py-2.5 px-3 text-center">
+<span class="inline-flex items-center space-x-1 px-2 py-0.5 rounded bg-tertiary/10 border border-tertiary/30 text-tertiary text-[10px] font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span>CONTROL · SAFE</span>
+</span>
+</td>
+</tr>
+<!-- Row 2: Fake Video + Real Audio -->
+<tr class="hover:bg-surface-container/40 transition-colors">
+<td class="py-2.5 px-3 font-bold text-[#f59e0b]">[F-R]</td>
+<td class="py-2.5 px-3 text-on-surface">Fake Video (Wav2Lip / FaceSwap) + Real Audio</td>
+<td class="py-2.5 px-3 text-right text-on-surface-variant font-data-md">1,485</td>
+<td class="py-2.5 px-3 text-right text-primary-container font-semibold font-data-md">99.73%</td>
+<td class="py-2.5 px-3 text-right text-on-surface-variant font-data-md">0.27%</td>
+<td class="py-2.5 px-3 text-center">
+<span class="inline-flex items-center space-x-1 px-2 py-0.5 rounded bg-[#f59e0b]/10 border border-[#f59e0b]/30 text-[#f59e0b] text-[10px] font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-[#f59e0b]"></span>
+<span>WAV2LIP / FACESWAP</span>
+</span>
+</td>
+</tr>
+<!-- Row 3: Real Video + Fake Audio -->
+<tr class="hover:bg-surface-container/40 transition-colors">
+<td class="py-2.5 px-3 font-bold text-[#818cf8]">[R-F]</td>
+<td class="py-2.5 px-3 text-on-surface">Real Video + Fake Audio (Voice Clone / TTS)</td>
+<td class="py-2.5 px-3 text-right text-on-surface-variant font-data-md">75</td>
+<td class="py-2.5 px-3 text-right text-[#818cf8] font-semibold font-data-md">93.33%</td>
+<td class="py-2.5 px-3 text-right text-on-surface-variant font-data-md">6.67%</td>
+<td class="py-2.5 px-3 text-center">
+<span class="inline-flex items-center space-x-1 px-2 py-0.5 rounded bg-[#818cf8]/15 border border-[#818cf8]/40 text-[#818cf8] text-[10px] font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-[#818cf8]"></span>
+<span>VOICE CLONE / TTS</span>
+</span>
+</td>
+</tr>
+<!-- Row 4: Dual Modality Fake -->
+<tr class="hover:bg-surface-container/40 transition-colors bg-error-container/5">
+<td class="py-2.5 px-3 font-bold text-error">[F-F]</td>
+<td class="py-2.5 px-3 text-on-surface font-medium">Dual Modality (Both Video &amp; Audio Fake)</td>
+<td class="py-2.5 px-3 text-right text-on-surface font-data-md">1,641</td>
+<td class="py-2.5 px-3 text-right text-tertiary font-bold font-data-md">100.00%</td>
+<td class="py-2.5 px-3 text-right text-tertiary-container font-data-md">0.00%</td>
+<td class="py-2.5 px-3 text-center">
+<span class="inline-flex items-center space-x-1 px-2 py-0.5 rounded bg-error/15 border border-error/40 text-error text-[10px] font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-error animate-pulse"></span>
+<span>DUAL MANIPULATION</span>
+</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="mt-3 pt-2 border-t border-outline-variant/40 flex items-center justify-between text-outline font-label-code text-[10px]">
+<span>Test split uses 100% unseen test identities not present in MTCNN or Xception pretraining splits.</span>
+<span class="text-primary-container font-semibold">TOTAL N = 3,276 EVALUATION UNITS</span>
+</div>
+</div>
+<!-- Right Column (40% / 4.8 cols -> 5 cols) -->
+<div class="lg:col-span-5 obsidian-card rounded-lg p-space-md flex flex-col justify-between border border-outline-variant">
+<div class="space-y-1 mb-2">
+<div class="flex justify-between items-center">
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-primary-container text-[18px]">show_chart</span>
+<h2 class="font-title-md text-title-md font-bold text-primary">ROC &amp; PR Multi-Curve Comparison</h2>
+</div>
+<span class="font-label-code text-label-code text-outline">X: FPR | Y: TPR</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            True Positive Rate vs. False Positive Rate plotted across discriminator thresholds [0.0 - 1.0].
+          </p>
+</div>
+<!-- High-Tech SVG Graph Component -->
+<div class="relative w-full h-[220px] bg-surface-container-lowest border border-outline-variant rounded p-2 flex flex-col justify-end overflow-hidden">
+<!-- Optimal Operating Threshold Tooltip Indicator -->
+<div class="absolute top-4 left-10 z-20 px-2 py-1 bg-surface-container-high/90 border border-primary-container rounded shadow-[0_0_12px_rgba(0,229,255,0.3)] backdrop-blur text-[10px] font-label-code text-primary flex items-center space-x-1.5 pointer-events-none">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-pulse"></span>
+<span>Optimal: τ=0.48 | TPR: 99.88% | FPR: 0.12%</span>
+</div>
+<svg class="w-full h-full overflow-visible" preserveaspectratio="none" viewbox="0 0 340 180">
+<defs>
+<lineargradient id="fusionGlow" x1="0%" x2="100%" y1="0%" y2="0%">
+<stop offset="0%" stop-color="#00e5ff"></stop>
+<stop offset="100%" stop-color="#5be9ad"></stop>
+</lineargradient>
+<filter id="laserBlur">
+<fegaussianblur result="coloredBlur" stddeviation="1.5"></fegaussianblur>
+<femerge>
+<femergenode in="coloredBlur"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+</defs>
+<!-- Grid Lines -->
+<line stroke="#1e293b" stroke-dasharray="2,2" stroke-width="1" x1="20" x2="330" y1="20" y2="20"></line>
+<line stroke="#1e293b" stroke-dasharray="2,2" stroke-width="1" x1="20" x2="330" y1="60" y2="60"></line>
+<line stroke="#1e293b" stroke-dasharray="2,2" stroke-width="1" x1="20" x2="330" y1="100" y2="100"></line>
+<line stroke="#1e293b" stroke-dasharray="2,2" stroke-width="1" x1="20" x2="330" y1="140" y2="140"></line>
+<line stroke="#3b494c" stroke-width="1.5" x1="20" x2="20" y1="20" y2="160"></line>
+<line stroke="#3b494c" stroke-width="1.5" x1="20" x2="330" y1="160" y2="160"></line>
+<!-- Diagonal Chance Baseline -->
+<line opacity="0.4" stroke="#475569" stroke-dasharray="4,4" stroke-width="1" x1="20" x2="330" y1="160" y2="20"></line>
+<!-- Speech Stream Curve (AUC=0.9982) -->
+<path d="M 20 160 Q 28 42 70 28 T 330 20" fill="none" opacity="0.85" stroke="#818cf8" stroke-dasharray="3,3" stroke-width="2"></path>
+<!-- Visual Stream Curve (AUC=0.9991) -->
+<path d="M 20 160 Q 25 32 55 24 T 330 20" fill="none" opacity="0.9" stroke="#00e5ff" stroke-dasharray="4,2" stroke-width="2"></path>
+<!-- Multimodal Late Fusion Curve (AUC=0.9994) hugging top-left axis -->
+<path d="M 20 160 Q 22 24 38 22 T 330 20" fill="none" filter="url(#laserBlur)" stroke="url(#fusionGlow)" stroke-width="3"></path>
+<!-- Tooltip Anchor Point -->
+<circle class="animate-pulse" cx="38" cy="22" fill="#00e5ff" r="4" stroke="#0a0e16" stroke-width="1.5"></circle>
+<line opacity="0.6" stroke="#00e5ff" stroke-dasharray="2,2" stroke-width="1" x1="38" x2="38" y1="22" y2="160"></line>
+</svg>
+</div>
+<!-- Legend with interactive toggles -->
+<div class="mt-3 pt-2 border-t border-outline-variant/40 flex flex-wrap items-center justify-between gap-2 font-label-code text-[11px]">
+<div class="flex items-center space-x-1.5 cursor-pointer">
+<span class="w-3 h-1 bg-gradient-to-r from-primary-container to-tertiary inline-block rounded"></span>
+<span class="text-primary font-bold">Fusion (0.9994)</span>
+</div>
+<div class="flex items-center space-x-1.5 cursor-pointer text-on-surface-variant">
+<span class="w-3 h-0.5 border-t-2 border-dashed border-primary-container inline-block"></span>
+<span>Visual (0.9991)</span>
+</div>
+<div class="flex items-center space-x-1.5 cursor-pointer text-on-surface-variant">
+<span class="w-3 h-0.5 border-t-2 border-dashed border-[#818cf8] inline-block"></span>
+<span>Speech (0.9982)</span>
+</div>
+</div>
+</div>
+</section>
+<!-- 5. DEEP NEURAL ARCHITECTURE BLUEPRINT VISUALIZER (Full Width Bento Card) -->
+<section class="obsidian-card hud-bracket rounded-lg p-space-lg border border-outline-variant space-y-5">
+<!-- Visualizer Header -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-outline-variant pb-3">
+<div>
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-primary-container text-[20px]">account_tree</span>
+<h2 class="font-headline-sm text-headline-sm font-bold text-primary">Multi-Task Late Fusion Neural Architecture Blueprint</h2>
+<span class="px-2 py-0.5 rounded bg-tertiary/10 border border-tertiary/30 text-tertiary font-label-code text-label-code font-bold">
+              Joint Cross-Modal Representation
+            </span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">
+            PyTorch 2.3 CUDA Execution Graph with synchronous spatial-temporal feature fusion and multi-task auxiliary heads.
+          </p>
+</div>
+<div class="font-label-code text-[11px] text-outline flex items-center space-x-2 bg-surface-container px-3 py-1.5 rounded border border-outline-variant">
+<span class="material-symbols-outlined text-[15px] text-primary">speed</span>
+<span>42ms / FRAME INFERENCE LATENCY</span>
+</div>
+</div>
+<!-- Pipeline Diagram: 4 High-Tech Stages -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 relative">
+<!-- STAGE 1: Input Modalities -->
+<div class="space-y-3 bg-surface-container-lowest/90 border border-outline-variant rounded p-3 relative">
+<div class="flex items-center justify-between border-b border-outline-variant pb-2">
+<span class="font-label-code text-[11px] text-primary-container font-bold uppercase">STAGE 01 // INPUT INGEST</span>
+<span class="font-label-code text-[9px] text-outline">SYNCHRONIZED TENSORS</span>
+</div>
+<div class="space-y-2">
+<!-- Node A -->
+<div class="p-2 rounded bg-surface-container border border-outline-variant/60 font-label-code text-[11px] space-y-1 hover:border-primary-container/40 transition-colors">
+<div class="flex justify-between text-primary">
+<span class="font-bold">Video RGB Stream</span>
+<span class="text-outline text-[10px]">[8, 224, 224, 3]</span>
+</div>
+<div class="text-on-surface-variant text-[10px]">8-frame temporal clip @ 24fps</div>
+</div>
+<!-- Node B -->
+<div class="p-2 rounded bg-surface-container border border-outline-variant/60 font-label-code text-[11px] space-y-1 hover:border-primary-container/40 transition-colors">
+<div class="flex justify-between text-primary">
+<span class="font-bold">Lip ROI Stream</span>
+<span class="text-outline text-[10px]">[8, 112, 112, 1]</span>
+</div>
+<div class="text-on-surface-variant text-[10px]">Cropped mouth landmarks</div>
+</div>
+<!-- Node C -->
+<div class="p-2 rounded bg-surface-container border border-outline-variant/60 font-label-code text-[11px] space-y-1 hover:border-[#818cf8]/40 transition-colors">
+<div class="flex justify-between text-[#818cf8]">
+<span class="font-bold">Raw Audio Stream</span>
+<span class="text-outline text-[10px]">[1, 16000]</span>
+</div>
+<div class="text-on-surface-variant text-[10px]">16kHz Mono 1D waveform</div>
+</div>
+<!-- Node D -->
+<div class="p-2 rounded bg-surface-container border border-outline-variant/60 font-label-code text-[11px] space-y-1 hover:border-[#818cf8]/40 transition-colors">
+<div class="flex justify-between text-[#818cf8]">
+<span class="font-bold">Log-Mel Spectrogram</span>
+<span class="text-outline text-[10px]">[64, 128]</span>
+</div>
+<div class="text-on-surface-variant text-[10px]">64-band acoustic spectral map</div>
+</div>
+</div>
+</div>
+<!-- STAGE 2: Parallel Feature Extractors -->
+<div class="space-y-3 bg-surface-container-lowest/90 border border-outline-variant rounded p-3 relative">
+<div class="flex items-center justify-between border-b border-outline-variant pb-2">
+<span class="font-label-code text-[11px] text-primary-container font-bold uppercase">STAGE 02 // PARALLEL TRUNKS</span>
+<span class="font-label-code text-[9px] text-outline">BACKBONE GRAPHS</span>
+</div>
+<div class="space-y-2">
+<!-- Visual Trunk -->
+<div class="p-2.5 rounded bg-surface-container border border-outline-variant font-label-code text-[11px] space-y-1.5 hover:border-primary-container/40 transition-colors">
+<div class="flex justify-between items-center">
+<span class="text-primary font-bold">Visual Trunk</span>
+<span class="text-tertiary text-[9px] bg-tertiary/10 px-1 py-0.5 rounded">FROZEN PRETRAIN</span>
+</div>
+<div class="text-[10px] text-on-surface-variant">MTCNN Align → Xception Conv</div>
+<div class="text-[10px] text-outline">Mean &amp; Std Temporal Pooling</div>
+<div class="pt-1 border-t border-outline-variant/40 flex justify-between text-primary-container font-bold text-[10px]">
+<span>VECTOR EMBEDDING</span>
+<span>[512-dim]</span>
+</div>
+</div>
+<!-- Speech Trunk -->
+<div class="p-2.5 rounded bg-surface-container border border-outline-variant font-label-code text-[11px] space-y-1.5 hover:border-[#818cf8]/40 transition-colors">
+<div class="flex justify-between items-center">
+<span class="text-[#818cf8] font-bold">Speech Trunk</span>
+<span class="text-[#818cf8] text-[9px] bg-[#818cf8]/10 px-1 py-0.5 rounded">WAV2VEC 2.0</span>
+</div>
+<div class="text-[10px] text-on-surface-variant">768-dim Transformer Layers</div>
+<div class="text-[10px] text-outline">Linear Projection + GELU Block</div>
+<div class="pt-1 border-t border-outline-variant/40 flex justify-between text-[#818cf8] font-bold text-[10px]">
+<span>SPEECH EMBEDDING</span>
+<span>[512-dim]</span>
+</div>
+</div>
+<!-- SyncStream Trunk -->
+<div class="p-2.5 rounded bg-surface-container border border-outline-variant font-label-code text-[11px] space-y-1.5 hover:border-tertiary-container/40 transition-colors">
+<div class="flex justify-between items-center">
+<span class="text-tertiary-container font-bold">SyncStream Engine</span>
+<span class="text-tertiary-container text-[9px] bg-tertiary-container/10 px-1 py-0.5 rounded">3D/2D CNN</span>
+</div>
+<div class="text-[10px] text-on-surface-variant">Lip-Audio Cross-Correlation</div>
+<div class="text-[10px] text-outline">Acoustic-Phonetic Alignment</div>
+<div class="pt-1 border-t border-outline-variant/40 flex justify-between text-tertiary-container font-bold text-[10px]">
+<span>SYNC EMBEDDING</span>
+<span>[512-dim]</span>
+</div>
+</div>
+</div>
+</div>
+<!-- STAGE 3: Latent Feature Concatenation Bay -->
+<div class="space-y-3 bg-surface-container-lowest/90 border border-outline-variant rounded p-3 flex flex-col justify-between relative">
+<div>
+<div class="flex items-center justify-between border-b border-outline-variant pb-2 mb-3">
+<span class="font-label-code text-[11px] text-primary-container font-bold uppercase">STAGE 03 // FUSION HUB</span>
+<span class="font-label-code text-[9px] text-outline">JOINT LATENT</span>
+</div>
+<div class="p-3.5 rounded bg-surface-container border border-primary-container/50 shadow-[0_0_16px_rgba(0,229,255,0.15)] space-y-3 text-center">
+<span class="material-symbols-outlined text-primary-container text-[32px] animate-pulse">hub</span>
+<div>
+<div class="font-label-code text-[10px] text-outline uppercase">Cross-Modal Concatenation</div>
+<div class="font-data-lg text-title-md font-bold text-primary">1536-dim Embedding</div>
+</div>
+<!-- Tensor Dimension Math Breakdown -->
+<div class="bg-surface-container-lowest p-2 rounded border border-outline-variant/70 text-left font-label-code text-[10px] space-y-1">
+<div class="flex justify-between text-primary">
+<span>Visual Dim:</span>
+<span>512</span>
+</div>
+<div class="flex justify-between text-[#818cf8]">
+<span>Speech Dim:</span>
+<span>512</span>
+</div>
+<div class="flex justify-between text-tertiary-container">
+<span>Sync Dim:</span>
+<span>512</span>
+</div>
+<div class="pt-1 border-t border-outline-variant text-primary-container font-bold flex justify-between">
+<span>TENSOR SHAPE:</span>
+<span>[B, 1536]</span>
+</div>
+</div>
+</div>
+</div>
+<div class="font-label-code text-[10px] text-outline text-center p-1.5 rounded bg-surface-container border border-outline-variant">
+            LayerNorm τ=0.01 + Residual Pass
+          </div>
+</div>
+<!-- STAGE 4: Multi-Task Classification Head -->
+<div class="space-y-3 bg-surface-container-lowest/90 border border-outline-variant rounded p-3 relative">
+<div class="flex items-center justify-between border-b border-outline-variant pb-2">
+<span class="font-label-code text-[11px] text-primary-container font-bold uppercase">STAGE 04 // MULTI-HEAD MLP</span>
+<span class="font-label-code text-[9px] text-outline">PREDICTION HEADS</span>
+</div>
+<!-- 3-Layer MLP Description -->
+<div class="p-2 rounded bg-surface-container border border-outline-variant font-label-code text-[10px] text-outline-variant space-y-0.5">
+<div>Dense(1536 → 512) + BatchNorm</div>
+<div>Dropout(p=0.30) → Dense(512 → 128)</div>
+<div>Dense(128 → 3) → Sigmoid Array</div>
+</div>
+<!-- 3 Distinct Sigmoid Output Heads -->
+<div class="space-y-1.5">
+<!-- Head 1: Video Prob -->
+<div class="p-2 rounded bg-surface-container border border-outline-variant/80 font-label-code text-[11px] flex justify-between items-center">
+<div>
+<div class="text-primary font-bold">P_video</div>
+<div class="text-outline text-[9px]">Visual Manipulation</div>
+</div>
+<span class="text-primary-container font-bold font-data-md">[0.0 - 1.0]</span>
+</div>
+<!-- Head 2: Audio Prob -->
+<div class="p-2 rounded bg-surface-container border border-outline-variant/80 font-label-code text-[11px] flex justify-between items-center">
+<div>
+<div class="text-[#818cf8] font-bold">P_audio</div>
+<div class="text-outline text-[9px]">Voice Clone Detection</div>
+</div>
+<span class="text-[#818cf8] font-bold font-data-md">[0.0 - 1.0]</span>
+</div>
+<!-- Head 3: Composite Prob -->
+<div class="p-2 rounded bg-surface-container border border-tertiary/50 font-label-code text-[11px] flex justify-between items-center shadow-[0_0_10px_rgba(91,233,173,0.15)]">
+<div>
+<div class="text-tertiary font-bold">P_any</div>
+<div class="text-outline text-[9px]">Composite Risk Verdict</div>
+</div>
+<span class="text-tertiary font-bold font-data-md">[0.0 - 1.0]</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Telemetry Annotation Bar -->
+<div class="p-2.5 rounded bg-surface-container-high/60 border border-outline-variant flex flex-wrap items-center justify-between text-outline font-label-code text-[11px] gap-2">
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-primary text-[15px]">developer_board</span>
+<span>Total Parameters: <strong class="text-on-surface">142.8M</strong> (Trainable: <strong class="text-primary-container">38.4M</strong>)</span>
+</div>
+<div>
+<span>FLOPs: <strong class="text-on-surface">18.2 GFLOPs / frame</strong></span>
+</div>
+<div>
+<span>Inference Latency: <strong class="text-primary-container">42ms</strong> on RTX 4090 [CUDA-0]</span>
+</div>
+<div class="text-tertiary flex items-center space-x-1">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+<span>GRADIENT CHECKPOINTING: ACTIVE</span>
+</div>
+</div>
+</section>
+<!-- 6. MODEL WEIGHTS & CHECKPOINT MANAGEMENT BAY (Bottom Bento Row) -->
+<section class="obsidian-card rounded-lg p-space-md border border-outline-variant space-y-4">
+<!-- Bay Header -->
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-outline-variant/60 pb-3">
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-primary-container text-[18px]">verified_user</span>
+<h2 class="font-title-md text-title-md font-bold text-primary">Model Weights &amp; Checkpoint Registry</h2>
+</div>
+<div class="flex items-center space-x-2">
+<span class="inline-block w-2 h-2 rounded-full bg-tertiary shadow-[0_0_8px_#5be9ad] animate-pulse"></span>
+<span class="font-label-code text-[11px] text-tertiary font-bold tracking-wide">ENGINE STATUS: SYNCHRONIZED</span>
+</div>
+</div>
+<!-- Weights Table -->
+<div class="overflow-x-auto border border-outline-variant rounded bg-surface-container-lowest/80">
+<table class="w-full text-left font-label-code text-[11px] border-collapse">
+<thead>
+<tr class="bg-surface-container-high/60 border-b border-outline-variant text-outline text-[10px] uppercase">
+<th class="py-2.5 px-3">Registry Path</th>
+<th class="py-2.5 px-3">Binary Size</th>
+<th class="py-2.5 px-3">Architecture Target</th>
+<th class="py-2.5 px-3 text-center">Runtime State</th>
+<th class="py-2.5 px-3">Framework Environment</th>
+<th class="py-2.5 px-3">SHA-256 Digest Checksum</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/40">
+<!-- Row 1: Best Model PT -->
+<tr class="hover:bg-surface-container/30 transition-colors">
+<td class="py-2.5 px-3 font-bold text-primary font-label-code flex items-center space-x-1.5">
+<span class="material-symbols-outlined text-[15px] text-primary-container">file_present</span>
+<span>models/best_model.pt</span>
+</td>
+<td class="py-2.5 px-3 text-on-surface font-data-md">476 MB</td>
+<td class="py-2.5 px-3 text-on-surface-variant">Multi-Task Late Fusion Trunk</td>
+<td class="py-2.5 px-3 text-center">
+<span class="inline-flex items-center space-x-1.5 px-2 py-0.5 rounded bg-tertiary/10 border border-tertiary/30 text-tertiary text-[10px] font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span>
+<span>Active / Loaded</span>
+</span>
+</td>
+<td class="py-2.5 px-3 text-on-surface-variant">PyTorch 2.3 CUDA 12.1</td>
+<td class="py-2.5 px-3 text-outline"><code>sha256:7f83b2e9...a891c</code></td>
+</tr>
+<!-- Row 2: Audio Model PT -->
+<tr class="hover:bg-surface-container/30 transition-colors">
+<td class="py-2.5 px-3 font-bold text-[#818cf8] font-label-code flex items-center space-x-1.5">
+<span class="material-symbols-outlined text-[15px] text-[#818cf8]">file_present</span>
+<span>models/audio_model.pt</span>
+</td>
+<td class="py-2.5 px-3 text-on-surface font-data-md">184 MB</td>
+<td class="py-2.5 px-3 text-on-surface-variant">Wav2Vec 2.0 + MLP Head</td>
+<td class="py-2.5 px-3 text-center">
+<span class="inline-flex items-center space-x-1.5 px-2 py-0.5 rounded bg-tertiary/10 border border-tertiary/30 text-tertiary text-[10px] font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span>
+<span>Active / Loaded</span>
+</span>
+</td>
+<td class="py-2.5 px-3 text-on-surface-variant">PyTorch 2.3 CUDA 12.1</td>
+<td class="py-2.5 px-3 text-outline"><code>sha256:3c8f...a92e</code></td>
+</tr>
+<!-- Row 3: AASIST PTH -->
+<tr class="hover:bg-surface-container/30 transition-colors">
+<td class="py-2.5 px-3 font-bold text-[#f59e0b] font-label-code flex items-center space-x-1.5">
+<span class="material-symbols-outlined text-[15px] text-[#f59e0b]">file_present</span>
+<span>aasist/weights/AASIST.pth</span>
+</td>
+<td class="py-2.5 px-3 text-on-surface font-data-md">34 MB</td>
+<td class="py-2.5 px-3 text-on-surface-variant">Graph Attention Spoof Detector</td>
+<td class="py-2.5 px-3 text-center">
+<span class="inline-flex items-center space-x-1.5 px-2 py-0.5 rounded bg-[#f59e0b]/10 border border-[#f59e0b]/30 text-[#f59e0b] text-[10px] font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-[#f59e0b]"></span>
+<span>Standby</span>
+</span>
+</td>
+<td class="py-2.5 px-3 text-on-surface-variant">TorchScript JIT</td>
+<td class="py-2.5 px-3 text-outline"><code>sha256:e10b...f742</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Action Button Toolbar -->
+<div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+<div class="flex flex-wrap items-center gap-2">
+<button class="px-3 py-1.5 rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant hover:border-primary-container text-on-surface font-label-code text-[11px] font-medium transition-colors flex items-center space-x-1.5 active:scale-[0.98]">
+<span class="material-symbols-outlined text-[15px] text-primary">sync</span>
+<span>Reload Weights</span>
+</button>
+<button class="px-3 py-1.5 rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant hover:border-primary-container text-on-surface font-label-code text-[11px] font-medium transition-colors flex items-center space-x-1.5 active:scale-[0.98]">
+<span class="material-symbols-outlined text-[15px] text-primary">fingerprint</span>
+<span>Validate Model Checksums (SHA-256)</span>
+</button>
+<button class="px-3 py-1.5 rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant hover:border-primary-container text-on-surface font-label-code text-[11px] font-medium transition-colors flex items-center space-x-1.5 active:scale-[0.98]">
+<span class="material-symbols-outlined text-[15px] text-primary">download</span>
+<span>Download Benchmark Raw JSON (N=3,276)</span>
+</button>
+</div>
+<button class="px-4 py-1.5 rounded bg-primary-container text-on-primary-fixed hover:bg-primary-fixed-dim transition-all duration-150 font-label-code text-[11px] font-bold flex items-center space-x-1.5 shadow-[0_0_14px_rgba(0,229,255,0.35)] active:scale-[0.98]">
+<span class="material-symbols-outlined text-[16px]">play_circle</span>
+<span>Run Automated Regression Benchmark</span>
+</button>
+</div>
+</section>
+</main>
+<!-- ========================================================================= -->
+<!-- PERSISTENT FORENSIC FOOTER TELEMETRY STATUS BAR                          -->
+<!-- ========================================================================= -->
+<footer class="mt-auto border-t border-outline-variant bg-surface-container-lowest px-margin-lg py-2">
+<div class="max-w-[1440px] mx-auto flex flex-col sm:flex-row items-center justify-between font-label-code text-[10px] text-outline gap-2">
+<div class="flex items-center space-x-2">
+<span class="inline-block w-2 h-2 rounded-full bg-tertiary-container shadow-[0_0_6px_#5be9ad] animate-pulse"></span>
+<span class="text-tertiary-container font-bold">WORKSTATION ONLINE</span>
+<span class="text-outline-variant">|</span>
+<span>AEGIS PIPELINE // PYTORCH 2.3.1+CUDA 12.1</span>
+<span class="text-outline-variant">|</span>
+<span>LATENCY: <strong class="text-primary font-normal">42ms / INFERENCE</strong></span>
+</div>
+<div class="flex items-center space-x-3">
+<span class="text-primary-container font-semibold">SECURE ENCLAVE ACTIVE</span>
+<span class="text-outline-variant">|</span>
+<span class="text-error font-bold uppercase tracking-wider bg-error-container/10 px-2 py-0.5 rounded border border-error/30">
+          CLASSIFICATION: FORENSIC SENSITIVE
+        </span>
+</div>
+</div>
+</footer>
+</body></html>

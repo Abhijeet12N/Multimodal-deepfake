@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Veritas AI · Sliding-Window Audio Verification & Latent Spectral Analysis</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Plus+Jakarta+Sans:wght@100..900&display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "on-tertiary-container": "#ffecec",
+            "surface-tint": "#0053db",
+            "tertiary-fixed-dim": "#ffb3b6",
+            "on-tertiary": "#ffffff",
+            "surface-container-lowest": "#ffffff",
+            "on-primary-fixed-variant": "#003ea8",
+            "tertiary-container": "#d71142",
+            "on-surface": "#131b2e",
+            "on-secondary-fixed-variant": "#005137",
+            "tertiary-fixed": "#ffdada",
+            "secondary-fixed-dim": "#68dba9",
+            "inverse-surface": "#283044",
+            "background": "#faf8ff",
+            "secondary-container": "#82f5c1",
+            "secondary-fixed": "#85f8c4",
+            "outline": "#737686",
+            "primary-fixed-dim": "#b4c5ff",
+            "on-error-container": "#93000a",
+            "error-container": "#ffdad6",
+            "surface-dim": "#d2d9f4",
+            "on-primary-container": "#eeefff",
+            "tertiary": "#ac0031",
+            "surface": "#faf8ff",
+            "on-secondary": "#ffffff",
+            "on-error": "#ffffff",
+            "on-secondary-fixed": "#002114",
+            "inverse-on-surface": "#eef0ff",
+            "surface-container-low": "#f2f3ff",
+            "secondary": "#006c4a",
+            "error": "#ba1a1a",
+            "primary": "#004ac6",
+            "on-primary": "#ffffff",
+            "surface-variant": "#dae2fd",
+            "surface-container": "#eaedff",
+            "on-background": "#131b2e",
+            "surface-container-high": "#e2e7ff",
+            "primary-fixed": "#dbe1ff",
+            "surface-bright": "#faf8ff",
+            "primary-container": "#2563eb",
+            "inverse-primary": "#b4c5ff",
+            "on-tertiary-fixed": "#40000c",
+            "on-primary-fixed": "#00174b",
+            "surface-container-highest": "#dae2fd",
+            "on-tertiary-fixed-variant": "#920028",
+            "on-surface-variant": "#434655",
+            "outline-variant": "#c3c6d7",
+            "on-secondary-container": "#00714e"
+          },
+          borderRadius: {
+            DEFAULT: "0.125rem",
+            lg: "0.25rem",
+            xl: "0.5rem",
+            full: "0.75rem"
+          },
+          spacing: {
+            "space-sm": "0.5rem",
+            "margin-desktop": "2.5rem",
+            "gutter-desktop": "1.5rem",
+            "space-xs": "0.25rem",
+            "margin": "1rem",
+            "space-lg": "1.5rem",
+            "gutter": "1rem",
+            "space-md": "1rem",
+            "margin-tablet": "1.5rem",
+            "space-xl": "2.5rem"
+          },
+          fontFamily: {
+            "mono-md": ["JetBrains Mono"],
+            "headline-lg": ["Plus Jakarta Sans"],
+            "mono-sm": ["JetBrains Mono"],
+            "body-md": ["Inter"],
+            "display-lg": ["Plus Jakarta Sans"],
+            "label-sm": ["Inter"],
+            "mono-lg": ["JetBrains Mono"],
+            "display-lg-mobile": ["Plus Jakarta Sans"],
+            "headline-md": ["Plus Jakarta Sans"],
+            "body-lg": ["Inter"],
+            "label-md": ["Inter"],
+            "body-sm": ["Inter"],
+            "headline-sm": ["Plus Jakarta Sans"]
+          },
+          fontSize: {
+            "mono-md": ["12px", { lineHeight: "18px", letterSpacing: "-0.01em", fontWeight: "500" }],
+            "headline-lg": ["28px", { lineHeight: "36px", letterSpacing: "-0.025em", fontWeight: "600" }],
+            "mono-sm": ["11px", { lineHeight: "16px", fontWeight: "400" }],
+            "body-md": ["14px", { lineHeight: "22px", letterSpacing: "-0.005em", fontWeight: "400" }],
+            "display-lg": ["36px", { lineHeight: "44px", letterSpacing: "-0.03em", fontWeight: "700" }],
+            "label-sm": ["11px", { lineHeight: "14px", letterSpacing: "0.03em", fontWeight: "500" }],
+            "mono-lg": ["14px", { lineHeight: "20px", letterSpacing: "-0.02em", fontWeight: "500" }],
+            "display-lg-mobile": ["28px", { lineHeight: "36px", letterSpacing: "-0.025em", fontWeight: "700" }],
+            "headline-md": ["22px", { lineHeight: "30px", letterSpacing: "-0.02em", fontWeight: "600" }],
+            "body-lg": ["16px", { lineHeight: "26px", letterSpacing: "-0.01em", fontWeight: "400" }],
+            "label-md": ["12px", { lineHeight: "16px", letterSpacing: "0.02em", fontWeight: "600" }],
+            "body-sm": ["13px", { lineHeight: "20px", fontWeight: "400" }],
+            "headline-sm": ["18px", { lineHeight: "26px", letterSpacing: "-0.015em", fontWeight: "600" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+    .spectrogram-gradient {
+      background: linear-gradient(180deg,
+        rgba(30, 58, 138, 0.95) 0%,
+        rgba(3, 105, 161, 0.85) 25%,
+        rgba(13, 148, 136, 0.75) 50%,
+        rgba(202, 138, 4, 0.85) 75%,
+        rgba(225, 29, 72, 0.9) 100%
+      );
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-on-surface antialiased min-h-screen flex flex-col font-body-md text-body-md selection:bg-primary selection:text-white">
+<!-- TOP NAVIGATION BAR -->
+<header class="bg-surface-container-lowest border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+<div class="max-w-[1600px] w-full mx-auto px-6 h-14 flex items-center justify-between">
+<!-- Brand & Subtitle -->
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-primary-container text-white flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[20px]" data-icon="shield">shield</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-headline-sm font-bold tracking-tight text-on-surface">Veritas AI</span>
+<span class="text-slate-300 font-normal">|</span>
+<span class="font-headline-sm text-headline-sm font-semibold text-slate-800">Deepfake Detection Studio</span>
+</div>
+<p class="font-mono-sm text-mono-sm text-slate-500 leading-tight">Multimodal Forensic Analysis · Xception · Wav2Vec 2.0 · SyncStream</p>
+</div>
+</div>
+<!-- Segmented Navigation Pills -->
+<nav class="hidden lg:flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80">
+<button class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 font-label-md text-label-md transition-colors">
+          Multimodal Video Studio
+        </button>
+<button class="px-3.5 py-1.5 rounded-lg bg-white text-primary-container font-label-md text-label-md font-semibold shadow-sm border border-slate-200/60 transition-all flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-primary-container" data-icon="graphic_eq">graphic_eq</span>
+          Audio Forensic Scanner
+        </button>
+<button class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 font-label-md text-label-md transition-colors">
+          Benchmarks & Architecture
+        </button>
+<button class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 font-label-md text-label-md transition-colors">
+          Audit Reports
+        </button>
+</nav>
+<!-- Right Telemetry Pills -->
+<div class="flex items-center gap-2.5">
+<div class="hidden xl:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 font-mono-sm text-mono-sm">
+<span class="material-symbols-outlined text-[15px] text-slate-500" data-icon="memory">memory</span>
+          NVIDIA RTX 4090 · CUDA 12.2
+        </div>
+<div class="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 font-mono-sm text-mono-sm">
+<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          Audio Engine: Ready
+        </div>
+<div class="flex items-center gap-2 pl-2 border-l border-slate-200">
+<div class="w-7 h-7 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700">
+<span class="material-symbols-outlined text-[16px]" data-icon="verified_user">verified_user</span>
+</div>
+<div class="leading-none text-right">
+<span class="font-mono-sm text-mono-sm font-semibold text-slate-900">Analyst #418</span>
+<span class="block text-[10px] text-slate-400 font-label-sm uppercase tracking-wider">TS/SCI</span>
+</div>
+</div>
+</div>
+</div>
+</header>
+<!-- MAIN FORENSIC WORKSPACE -->
+<main class="flex-1 max-w-[1600px] w-full mx-auto px-6 py-5 flex flex-col gap-5">
+<!-- WORKSPACE HEADER & DETECTOR SELECTION BAR -->
+<section class="flex flex-col gap-3">
+<!-- Breadcrumb and Headlines -->
+<div class="flex flex-wrap items-center justify-between gap-4">
+<div>
+<div class="flex items-center gap-2 text-slate-500 font-mono-sm text-mono-sm mb-1">
+<span>Forensic Workspace</span>
+<span>/</span>
+<span class="text-slate-700">Case ID: US-AUDIO-2025-109X</span>
+<span>/</span>
+<span class="px-2 py-0.5 rounded bg-blue-50 text-primary-container font-medium border border-blue-100">Target: investigative_interview_raw.wav</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg font-bold text-slate-900 tracking-tight">
+            Sliding-Window Audio Verification & Latent Spectral Scanner
+          </h1>
+<p class="font-body-md text-body-md text-slate-600 mt-0.5">
+            Continuous sliding-window evaluation for voice cloning, neural TTS synthesis, and audio splicing manipulation.
+          </p>
+</div>
+<div class="flex items-center gap-2">
+<button class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-label-md text-label-md transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[18px]" data-icon="tune">tune</span>
+            Inspector Settings
+          </button>
+<button class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-label-md text-label-md transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[18px]" data-icon="history">history</span>
+            Version Log (v3.4.1)
+          </button>
+</div>
+</div>
+<!-- Detector Control Bar (Card) -->
+<div class="bg-white rounded-xl border border-slate-200 p-3.5 shadow-sm flex flex-wrap items-center justify-between gap-3">
+<div class="flex flex-wrap items-center gap-3">
+<div class="flex items-center gap-2">
+<label class="font-label-md text-label-md text-slate-600 whitespace-nowrap">Active Forensic Detector:</label>
+<div class="relative">
+<select class="appearance-none bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 pr-8 font-label-md text-label-md font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary-container/20 focus:border-primary-container cursor-pointer">
+<option selected="">Wav2Vec 2.0 + MLP (Studio Checkpoint)</option>
+<option>AASIST (Graph Attention Networks)</option>
+<option>AASIST-L (Lightweight Graph Attention)</option>
+<option>Wav2Vec 2.0 (Phase 1 Legacy)</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-2 text-[18px] text-slate-500 pointer-events-none" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+<div class="hidden sm:flex items-center gap-1.5 font-mono-sm text-mono-sm px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-700">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+            Window Length: 3.0s · Stride: 1.0s · Resample: 16 kHz Mono
+          </div>
+</div>
+<div class="flex items-center gap-2">
+<div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 font-mono-sm text-mono-sm font-medium">
+<span class="material-symbols-outlined text-[16px] text-emerald-600" data-icon="check_circle">check_circle</span>
+            WEIGHTS: LOADED · audio_model.pt
+          </div>
+<div class="flex items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined text-[18px] cursor-pointer hover:text-slate-600" data-icon="help_outline">help_outline</span>
+</div>
+</div>
+</div>
+</section>
+<!-- SPLIT WORKSPACE (Left 32%, Right 68% at desktop) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+<!-- LEFT COLUMN: Media Ingestion & Quick Samples (32% -> 4 cols on 12-grid) -->
+<div class="lg:col-span-4 flex flex-col gap-5">
+<!-- CARD 1: Audio File Ingestion -->
+<div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+<div class="px-4 py-3 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-primary-container" data-icon="upload_file">upload_file</span>
+<h2 class="font-headline-sm text-headline-sm font-semibold text-slate-900 text-sm">Audio File Ingestion</h2>
+</div>
+<span class="font-mono-sm text-mono-sm text-slate-500">Buffer: 42.8s</span>
+</div>
+<div class="p-4 flex flex-col gap-4">
+<!-- Drag and drop dropzone -->
+<div class="border-2 border-dashed border-slate-200 hover:border-primary-container/60 rounded-xl p-5 text-center bg-slate-50/50 hover:bg-blue-50/20 transition-all cursor-pointer group">
+<div class="w-10 h-10 mx-auto rounded-full bg-blue-50 text-primary-container flex items-center justify-center group-hover:scale-105 transition-transform mb-2">
+<span class="material-symbols-outlined text-[24px]" data-icon="cloud_upload">cloud_upload</span>
+</div>
+<p class="font-body-md text-body-md text-slate-700 font-medium text-xs">
+                Drag and drop audio recording here
+              </p>
+<p class="font-mono-sm text-mono-sm text-slate-400 mt-0.5">
+                WAV, MP3, M4A, FLAC, OGG, AAC (Max 120MB)
+              </p>
+<button class="mt-2.5 px-3 py-1 rounded bg-white border border-slate-200 text-slate-700 font-label-md text-label-md text-xs hover:bg-slate-50 shadow-2xs">
+                Browse Files
+              </button>
+</div>
+<!-- Loaded Audio File Card -->
+<div class="p-3 bg-slate-50 rounded-lg border border-slate-200 flex flex-col gap-2.5">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded bg-primary-container/10 text-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]" data-icon="audio_file">audio_file</span>
+</div>
+<div>
+<h4 class="font-mono-sm text-mono-sm font-semibold text-slate-900 leading-tight">investigative_interview_raw.wav</h4>
+<span class="font-mono-sm text-mono-sm text-slate-500 text-[10px]">Format: RIFF IEEE Float 16-bit</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-mono-sm text-mono-sm text-[10px] font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]" data-icon="check">check</span> CHECKSUM OK
+                </span>
+</div>
+<!-- Metadata Grid -->
+<div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-200/80 font-mono-sm text-mono-sm text-[11px] text-slate-600">
+<div class="flex justify-between">
+<span class="text-slate-400">Duration:</span>
+<span class="font-medium text-slate-800">42.800s</span>
+</div>
+<div class="flex justify-between">
+<span class="text-slate-400">Sample Rate:</span>
+<span class="font-medium text-slate-800">44.1k → 16 kHz</span>
+</div>
+<div class="flex justify-between">
+<span class="text-slate-400">Channels:</span>
+<span class="font-medium text-slate-800">Stereo → Mono</span>
+</div>
+<div class="flex justify-between">
+<span class="text-slate-400">Signal RMS:</span>
+<span class="font-medium text-slate-800">-14.2 dBFS</span>
+</div>
+</div>
+</div>
+<!-- Embedded Modern Audio Player Preview -->
+<div class="bg-white rounded-lg border border-slate-200 p-3 flex flex-col gap-2.5">
+<div class="flex items-center justify-between text-xs text-slate-500 font-mono-sm">
+<span class="text-primary-container font-semibold">00:16.4</span>
+<span class="text-slate-400">/ 00:42.8</span>
+</div>
+<!-- Waveform scrubber visualization -->
+<div class="relative h-12 bg-slate-50 rounded border border-slate-200 overflow-hidden flex items-center px-1 cursor-pointer">
+<!-- Mini generated waveform bars -->
+<div class="w-full flex items-center justify-between gap-[2px] h-9">
+<!-- Segment 1: Authentic (0-14s) -->
+<div class="flex items-center gap-[2px] w-[32%] h-full">
+<span class="h-3 w-1 bg-slate-300 rounded-full"></span>
+<span class="h-5 w-1 bg-slate-300 rounded-full"></span>
+<span class="h-7 w-1 bg-slate-300 rounded-full"></span>
+<span class="h-4 w-1 bg-slate-300 rounded-full"></span>
+<span class="h-8 w-1 bg-slate-300 rounded-full"></span>
+<span class="h-6 w-1 bg-slate-300 rounded-full"></span>
+<span class="h-3 w-1 bg-slate-300 rounded-full"></span>
+<span class="h-7 w-1 bg-slate-300 rounded-full"></span>
+<span class="h-5 w-1 bg-slate-300 rounded-full"></span>
+<span class="h-8 w-1 bg-slate-300 rounded-full"></span>
+</div>
+<!-- Segment 2: Spliced Clone Flagged (14-22s) -->
+<div class="flex items-center gap-[2px] w-[20%] h-full bg-rose-50 border-x border-rose-300/70 px-1">
+<span class="h-8 w-1 bg-rose-500 rounded-full"></span>
+<span class="h-9 w-1 bg-rose-600 rounded-full"></span>
+<span class="h-7 w-1 bg-rose-500 rounded-full"></span>
+<span class="h-9 w-1 bg-rose-600 rounded-full"></span>
+<span class="h-6 w-1 bg-rose-500 rounded-full"></span>
+</div>
+<!-- Segment 3: Normal remainder (22-42.8s) -->
+<div class="flex items-center gap-[2px] w-[48%] h-full">
+<span class="h-4 w-1 bg-slate-300 rounded-full"></span>
+<span class="h-6 w-1 bg-slate-300 rounded-full"></span>
+<span class="h-8 w-1 bg-slate-300 rounded-full"></span>
+<span class="h-5 w-1 bg-slate-300 rounded-full"></span>
+<span class="h-7 w-1 bg-slate-300 rounded-full"></span>
+<span class="h-4 w-1 bg-slate-300 rounded-full"></span>
+<span class="h-6 w-1 bg-slate-300 rounded-full"></span>
+<span class="h-3 w-1 bg-slate-300 rounded-full"></span>
+<span class="h-5 w-1 bg-slate-300 rounded-full"></span>
+<span class="h-7 w-1 bg-slate-300 rounded-full"></span>
+<span class="h-4 w-1 bg-slate-300 rounded-full"></span>
+<span class="h-2 w-1 bg-slate-300 rounded-full"></span>
+</div>
+</div>
+<!-- Active Playhead Line on Mini player -->
+<div class="absolute top-0 bottom-0 left-[38.3%] w-[2px] bg-primary-container z-10">
+<div class="w-2.5 h-2.5 bg-primary-container rounded-full -ml-[4px] -top-1 absolute shadow-sm"></div>
+</div>
+</div>
+<!-- Controls Row -->
+<div class="flex items-center justify-between pt-1">
+<div class="flex items-center gap-2">
+<button class="w-8 h-8 rounded-full bg-primary-container text-white flex items-center justify-center hover:bg-blue-700 transition shadow-sm">
+<span class="material-symbols-outlined text-[18px]" data-icon="play_arrow">play_arrow</span>
+</button>
+<button class="w-7 h-7 rounded text-slate-500 hover:text-slate-800 hover:bg-slate-100 flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px]" data-icon="replay_10">replay_10</span>
+</button>
+<button class="w-7 h-7 rounded text-slate-500 hover:text-slate-800 hover:bg-slate-100 flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px]" data-icon="forward_10">forward_10</span>
+</button>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-slate-400" data-icon="volume_up">volume_up</span>
+<div class="w-16 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+<div class="w-3/4 h-full bg-slate-600 rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Primary Action Button -->
+<button class="w-full h-10 rounded-lg bg-primary-container hover:bg-blue-700 active:scale-[0.99] text-white font-label-md text-label-md font-semibold flex items-center justify-center gap-2 transition-all shadow-md shadow-blue-500/20">
+<span class="material-symbols-outlined text-[20px]" data-icon="graphic_eq">graphic_eq</span>
+              Run Sliding-Window Forensics
+            </button>
+</div>
+</div>
+<!-- CARD 2: Curated Benchmark Audio Presets -->
+<div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+<div class="px-4 py-3 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-slate-700" data-icon="library_music">library_music</span>
+<h2 class="font-headline-sm text-headline-sm font-semibold text-slate-900 text-sm">Curated Benchmark Audio Presets</h2>
+</div>
+<span class="font-mono-sm text-mono-sm text-slate-400">4 Reference Sets</span>
+</div>
+<div class="p-3 flex flex-col gap-2">
+<!-- Preset 1 -->
+<div class="p-2.5 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all cursor-pointer flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-slate-400 text-[18px]" data-icon="mic">mic</span>
+<div>
+<p class="font-body-md text-body-md font-medium text-slate-800 text-xs">Human Speech (Studio Microphone)</p>
+<p class="font-mono-sm text-mono-sm text-slate-400 text-[10px]">Neumann U87 · 24-bit 96kHz Master</p>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-label-sm text-label-sm font-semibold text-[10px]">
+                Authentic Control
+              </span>
+</div>
+<!-- Preset 2 -->
+<div class="p-2.5 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all cursor-pointer flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-slate-400 text-[18px]" data-icon="neurology">neurology</span>
+<div>
+<p class="font-body-md text-body-md font-medium text-slate-800 text-xs">ElevenLabs Neural Voice Clone</p>
+<p class="font-mono-sm text-mono-sm text-slate-400 text-[10px]">Flash v2.5 · 1-minute reference voice</p>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 font-label-sm text-label-sm font-semibold text-[10px]">
+                Synthetic Voice
+              </span>
+</div>
+<!-- Preset 3 -->
+<div class="p-2.5 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all cursor-pointer flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-slate-400 text-[18px]" data-icon="podcasts">podcasts</span>
+<div>
+<p class="font-body-md text-body-md font-medium text-slate-800 text-xs">Podcast Interview Excerpt</p>
+<p class="font-mono-sm text-mono-sm text-slate-400 text-[10px]">Dual Lavaliers · Ambient room reverbs</p>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-label-sm text-label-sm font-semibold text-[10px]">
+                Authentic Speech
+              </span>
+</div>
+<!-- Preset 4 (Active Selected) -->
+<div class="p-2.5 rounded-lg border-2 border-primary-container bg-blue-50/40 transition-all cursor-pointer flex items-center justify-between shadow-2xs">
+<div class="flex items-center gap-2.5">
+<div class="w-5 h-5 rounded-full bg-primary-container text-white flex items-center justify-center">
+<span class="material-symbols-outlined text-[13px]" data-icon="check">check</span>
+</div>
+<div>
+<p class="font-body-md text-body-md font-semibold text-slate-900 text-xs">Spliced Wiretap Recording</p>
+<p class="font-mono-sm text-mono-sm text-primary-container text-[10px] font-medium">Active Ingested Target (42.8s)</p>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 font-label-sm text-label-sm font-semibold text-[10px]">
+                Spliced Manipulation
+              </span>
+</div>
+</div>
+</div>
+</div>
+<!-- RIGHT COLUMN: Diagnostic Timeline & Deep Telemetry (68% -> 8 cols on 12-grid) -->
+<div class="lg:col-span-8 flex flex-col gap-5">
+<!-- CARD 1: Recording Forensic Verdict Banner -->
+<div class="bg-rose-50/70 border border-rose-200 rounded-xl p-4 shadow-sm flex flex-col gap-2.5">
+<div class="flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-2.5">
+<div class="w-9 h-9 rounded-lg bg-rose-600 text-white flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[22px]" data-icon="gpp_bad">gpp_bad</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-rose-950 font-bold leading-tight">
+                  Spliced Audio Clone Detected
+                </h3>
+<span class="font-mono-sm text-mono-sm text-rose-700">Confidence Factor: 98.4% · Forensic P-Value < 0.0001</span>
+</div>
+</div>
+<div class="px-3 py-1.5 rounded-lg bg-white border border-rose-300 text-rose-800 font-label-md text-label-md font-bold shadow-2xs">
+              Flagged: 4 / 39 Windows (10.2%) · High Splicing Risk (89.6%)
+            </div>
+</div>
+<p class="text-slate-700 text-xs font-body-md leading-relaxed border-t border-rose-200/80 pt-2">
+            Localized synthetic speech anomalies detected between <span class="font-mono font-semibold text-rose-900">00:14.0s</span> and <span class="font-mono font-semibold text-rose-900">00:22.0s</span>. Natural human vocal tract resonances and room reverberations confirmed outside this interval. High probability of insertion attack using diffusion-based neural vocoder.
+          </p>
+<!-- Monospace metrics bar -->
+<div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-rose-200/70 font-mono-sm text-mono-sm text-[11px] text-slate-600">
+<div>
+<span class="text-slate-500">Overall Suspicion:</span>
+<span class="text-rose-600 font-bold ml-1">0.942</span>
+<span class="text-slate-400 ml-1">(Threshold: 0.500)</span>
+</div>
+<div>
+<span class="text-slate-500">SHA-256:</span>
+<span class="text-slate-800 ml-1">3c8fa94e912bf8a01f5c64e0a789d811e</span>
+</div>
+<div>
+<span class="text-slate-500">Checkpoint:</span>
+<span class="text-slate-800 ml-1">wav2vec2_forensic_v3.4</span>
+</div>
+</div>
+</div>
+<!-- CARD 2: Interactive Sliding-Window Timeline & Spectrogram -->
+<div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex flex-col gap-4">
+<!-- Header and Legend -->
+<div class="flex flex-wrap items-center justify-between gap-3 pb-2 border-b border-slate-200">
+<div>
+<h3 class="font-headline-sm text-headline-sm font-semibold text-slate-900">Interactive Sliding-Window Timeline & Spectrogram</h3>
+<p class="font-mono-sm text-mono-sm text-slate-500">Full 42.8s dual-track acoustic verification & latent probability analysis</p>
+</div>
+<!-- Legend Pills -->
+<div class="flex flex-wrap items-center gap-2">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-50 border border-emerald-200 font-mono-sm text-mono-sm text-emerald-800 text-[10px]">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                Authentic Window (<0.30)
+              </span>
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-rose-50 border border-rose-200 font-mono-sm text-mono-sm text-rose-800 text-[10px]">
+<span class="w-2 h-2 rounded-full bg-rose-600"></span>
+                Suspicious Window (>0.50)
+              </span>
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-slate-50 border border-slate-200 font-mono-sm text-mono-sm text-slate-600 text-[10px]">
+<span class="w-2 h-0.5 bg-primary-container border-b border-dashed border-primary-container"></span>
+                Operating Threshold (0.50)
+              </span>
+</div>
+</div>
+<!-- Dual-Track Container with Interactive Scrubbing Area -->
+<div class="relative flex flex-col gap-2 select-none">
+<!-- TRACK A: High-Resolution Mel-Spectrogram (0 to 8 kHz) -->
+<div class="relative bg-slate-900 rounded-lg overflow-hidden border border-slate-300">
+<!-- Frequency Axis Labels (Left Column) -->
+<div class="absolute left-1 top-0 bottom-0 w-8 flex flex-col justify-between py-1 z-20 font-mono-sm text-mono-sm text-[9px] text-slate-300 pointer-events-none">
+<span>8 kHz</span>
+<span>4 kHz</span>
+<span>2 kHz</span>
+<span>0 kHz</span>
+</div>
+<!-- Spectrogram Visual Canvas -->
+<div class="ml-9 h-28 relative overflow-hidden flex">
+<!-- Authentic Part 1 (0 to 14s) -->
+<div class="w-[32.7%] h-full bg-gradient-to-r from-slate-950 via-indigo-950 to-blue-950 relative border-r border-slate-700/50">
+<!-- Simulated acoustic formant ridges -->
+<div class="absolute inset-0 opacity-40 mix-blend-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-teal-400 via-transparent to-transparent"></div>
+<div class="absolute bottom-2 left-4 right-2 h-8 border-b-2 border-amber-400/40 blur-[1px]"></div>
+<div class="absolute bottom-7 left-2 right-4 h-4 border-b-2 border-teal-300/30 blur-[1px]"></div>
+<span class="absolute top-1 left-2 font-mono text-[9px] text-slate-400 uppercase tracking-wider">Natural Frequencies</span>
+</div>
+<!-- Flagged Spliced Interval (14s to 22s) with highlight bounding box -->
+<div class="w-[18.7%] h-full bg-gradient-to-r from-blue-950 via-rose-950 to-purple-950 relative border-2 border-rose-500 bg-rose-950/40">
+<div class="absolute inset-0 bg-rose-500/10 backdrop-brightness-125"></div>
+<!-- Spectral gap / vocoder cutoff visual anomaly -->
+<div class="absolute top-0 left-0 right-0 h-9 bg-slate-950/80 border-b border-dashed border-rose-400 flex items-center justify-center">
+<span class="font-mono text-[8px] text-rose-300 font-semibold tracking-wide">HF LOSS >5.5kHz</span>
+</div>
+<!-- Artificial static harmonics -->
+<div class="absolute bottom-3 left-0 right-0 h-4 border-b-4 border-yellow-300/80"></div>
+<div class="absolute bottom-8 left-0 right-0 h-2 border-b-2 border-rose-400"></div>
+<!-- Overlay Badge -->
+<div class="absolute -top-0.5 left-1/2 -translate-x-1/2 bg-rose-600 text-white font-mono text-[9px] px-1.5 py-0.5 rounded-b font-bold tracking-wider shadow">
+                    SPLICED SYNTHESIS INTERVAL
+                  </div>
+</div>
+<!-- Authentic Part 2 (22s to 42.8s) -->
+<div class="w-[48.6%] h-full bg-gradient-to-r from-blue-950 via-slate-950 to-indigo-950 relative">
+<div class="absolute inset-0 opacity-40 mix-blend-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-400 via-transparent to-transparent"></div>
+<div class="absolute bottom-3 left-4 right-8 h-7 border-b-2 border-amber-400/30 blur-[1px]"></div>
+<div class="absolute bottom-8 left-6 right-2 h-4 border-b-2 border-teal-300/30 blur-[1px]"></div>
+<span class="absolute top-1 right-2 font-mono text-[9px] text-slate-400 uppercase tracking-wider">Natural Acoustic Room Tail</span>
+</div>
+</div>
+</div>
+<!-- TRACK B: Sliding-Window Suspicion Probability Line Chart (0.0 to 1.0) -->
+<div class="relative bg-slate-50 rounded-lg overflow-hidden border border-slate-300 h-28">
+<!-- Probability Axis Labels (Left Column) -->
+<div class="absolute left-1 top-0 bottom-0 w-8 flex flex-col justify-between py-1 z-20 font-mono-sm text-mono-sm text-[9px] text-slate-500 pointer-events-none">
+<span>1.00</span>
+<span class="text-primary-container font-semibold">0.50</span>
+<span>0.00</span>
+</div>
+<!-- Chart Canvas Area -->
+<div class="ml-9 h-full relative">
+<!-- Grid horizontal lines -->
+<div class="absolute top-0 left-0 right-0 border-b border-slate-200"></div>
+<!-- Operating Threshold (0.50) dashed line -->
+<div class="absolute top-1/2 left-0 right-0 border-b border-dashed border-primary-container/80 z-10">
+<span class="absolute right-2 -top-3 font-mono text-[9px] text-primary-container font-semibold">
+                    Threshold: 0.50
+                  </span>
+</div>
+<div class="absolute bottom-0 left-0 right-0 border-b border-slate-200"></div>
+<!-- SVG Plot Curve -->
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 1000 100">
+<!-- Shaded Alert Area under curve above 0.5 -->
+<polygon fill="rgba(225, 29, 72, 0.15)" points="327,88 327,50 350,15 383,2 450,4 514,50 514,88"></polygon>
+<!-- Suspicion Probability Line -->
+<!-- Authentic left baseline: 0.08 to 0.11 -->
+<!-- Spike from 327 (14s) up to 0.984 (score) at 383 (16.4s) -->
+<!-- Drop down at 514 (22s) back to 0.06 -->
+<path d="
+                    M 0,92
+                    C 80,90 150,93 220,89
+                    C 270,91 310,88 327,78
+                    C 340,65 350,18 370,5
+                    C 383,2 410,3 440,8
+                    C 470,12 490,45 514,82
+                    C 540,92 650,91 750,93
+                    C 850,90 920,92 1000,91
+                  " fill="none" stroke="#2563EB" stroke-width="2.5"></path>
+<!-- Highlight red segment for > 0.50 -->
+<path d="
+                    M 338,50
+                    C 350,18 370,5 383,2
+                    C 410,3 440,8 470,12
+                    C 485,25 498,42 505,50
+                  " fill="none" stroke="#E11D48" stroke-width="3.5"></path>
+</svg>
+<!-- Peak score marker dot at 16.4s -->
+<div class="absolute top-[2%] left-[38.3%] -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-rose-600 border-2 border-white shadow-sm z-20"></div>
+</div>
+<!-- Shared Scrubbable Playhead Needle across both tracks -->
+<div class="absolute top-0 bottom-0 left-[41.5%] w-[2px] bg-primary-container z-30 pointer-events-none">
+<!-- Tooltip floating above or beside needle -->
+<div class="absolute -top-12 -left-28 bg-slate-900 text-white font-mono text-[10px] py-1 px-2 rounded shadow-lg whitespace-nowrap border border-slate-700">
+<span class="text-emerald-400 font-semibold">00:16.4s</span> | Score: <span class="text-rose-400 font-bold">0.978</span> (Synthetic Vocoder)
+                  <div class="w-2 h-2 bg-slate-900 rotate-45 absolute -bottom-1 left-28 -translate-x-1/2 border-r border-b border-slate-700"></div>
+</div>
+</div>
+</div>
+<!-- Time markers ruler (0s to 42.8s) -->
+<div class="ml-9 flex items-center justify-between font-mono-sm text-mono-sm text-[10px] text-slate-400 pt-0.5">
+<span>00:00.0</span>
+<span>00:08.0</span>
+<span class="text-rose-600 font-semibold">00:14.0 (Splice In)</span>
+<span class="text-primary-container font-semibold">00:16.4 (Cursor)</span>
+<span class="text-rose-600 font-semibold">00:22.0 (Splice Out)</span>
+<span>00:30.0</span>
+<span>00:42.8</span>
+</div>
+<!-- Transport Bar Below -->
+<div class="flex flex-wrap items-center justify-between gap-3 bg-slate-50 p-2.5 rounded-lg border border-slate-200 mt-1">
+<div class="flex items-center gap-3">
+<span class="font-mono-sm text-mono-sm font-semibold text-slate-700 text-xs">
+                  Active Playhead: <span class="text-primary-container">00:16.4</span> / 00:42.8
+                </span>
+<span class="text-slate-300">|</span>
+<span class="font-mono-sm text-mono-sm text-slate-500 text-xs">
+                  Stride Step #17 of 39
+                </span>
+</div>
+<div class="flex items-center gap-2">
+<button class="px-2.5 py-1 rounded bg-white border border-slate-200 text-slate-700 font-label-md text-label-md text-xs hover:bg-slate-100 flex items-center gap-1 shadow-2xs">
+<span class="material-symbols-outlined text-[15px]" data-icon="skip_previous">skip_previous</span>
+                  Prev Window
+                </button>
+<button class="px-3 py-1 rounded bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 font-label-md text-label-md text-xs font-semibold flex items-center gap-1 shadow-2xs">
+<span class="material-symbols-outlined text-[15px] text-rose-600" data-icon="fast_forward">fast_forward</span>
+                  Jump to Next Flagged Window (00:17.0s)
+                </button>
+</div>
+</div>
+</div>
+</div>
+<!-- CARD 3: Ranked Top 5 Suspicious Windows Table -->
+<div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+<div class="px-4 py-3 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-slate-700" data-icon="format_list_numbered">format_list_numbered</span>
+<h3 class="font-headline-sm text-headline-sm font-semibold text-slate-900 text-sm">Ranked Top 5 Suspicious Windows</h3>
+</div>
+<span class="font-mono-sm text-mono-sm text-slate-500 text-xs">Evaluated via Wav2Vec 2.0 Latent Embeddings</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50 border-b border-slate-200 font-label-sm text-label-sm uppercase text-slate-600 text-[10px]">
+<th class="py-2.5 px-3">Rank</th>
+<th class="py-2.5 px-3">Window Time Range</th>
+<th class="py-2.5 px-3">Model Score</th>
+<th class="py-2.5 px-3">Confidence Level</th>
+<th class="py-2.5 px-3">Artifact Category</th>
+<th class="py-2.5 px-3 text-right">Action</th>
+</tr>
+</thead>
+<tbody class="font-mono-sm text-mono-sm text-xs divide-y divide-slate-100">
+<!-- Row 1 -->
+<tr class="hover:bg-slate-50/80 transition-colors bg-rose-50/20">
+<td class="py-2.5 px-3 font-bold text-rose-700">#1</td>
+<td class="py-2.5 px-3 font-semibold text-slate-900">00:16.0s - 00:19.0s</td>
+<td class="py-2.5 px-3 font-bold text-rose-600">0.984</td>
+<td class="py-2.5 px-3">
+<span class="px-2 py-0.5 rounded bg-rose-100 text-rose-800 font-label-sm text-[10px] font-bold">
+                      Critical Risk
+                    </span>
+</td>
+<td class="py-2.5 px-3 font-body-md text-xs text-slate-700">Synthetic Vocoder Glitch</td>
+<td class="py-2.5 px-3 text-right">
+<button class="px-2 py-1 rounded bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-label-sm text-[11px] inline-flex items-center gap-1 shadow-2xs">
+<span class="material-symbols-outlined text-[13px] text-primary-container" data-icon="play_circle">play_circle</span>
+                      Play Window
+                    </button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-slate-50/80 transition-colors">
+<td class="py-2.5 px-3 font-bold text-rose-600">#2</td>
+<td class="py-2.5 px-3 font-semibold text-slate-900">00:15.0s - 00:18.0s</td>
+<td class="py-2.5 px-3 font-bold text-rose-600">0.962</td>
+<td class="py-2.5 px-3">
+<span class="px-2 py-0.5 rounded bg-rose-100 text-rose-800 font-label-sm text-[10px] font-bold">
+                      High Risk
+                    </span>
+</td>
+<td class="py-2.5 px-3 font-body-md text-xs text-slate-700">Neural TTS Formant Anomaly</td>
+<td class="py-2.5 px-3 text-right">
+<button class="px-2 py-1 rounded bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-label-sm text-[11px] inline-flex items-center gap-1 shadow-2xs">
+<span class="material-symbols-outlined text-[13px] text-primary-container" data-icon="play_circle">play_circle</span>
+                      Play Window
+                    </button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-slate-50/80 transition-colors">
+<td class="py-2.5 px-3 font-bold text-rose-600">#3</td>
+<td class="py-2.5 px-3 font-semibold text-slate-900">00:17.0s - 00:20.0s</td>
+<td class="py-2.5 px-3 font-bold text-rose-600">0.951</td>
+<td class="py-2.5 px-3">
+<span class="px-2 py-0.5 rounded bg-rose-100 text-rose-800 font-label-sm text-[10px] font-bold">
+                      High Risk
+                    </span>
+</td>
+<td class="py-2.5 px-3 font-body-md text-xs text-slate-700">Voice Clone Spectral Gap</td>
+<td class="py-2.5 px-3 text-right">
+<button class="px-2 py-1 rounded bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-label-sm text-[11px] inline-flex items-center gap-1 shadow-2xs">
+<span class="material-symbols-outlined text-[13px] text-primary-container" data-icon="play_circle">play_circle</span>
+                      Play Window
+                    </button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-slate-50/80 transition-colors">
+<td class="py-2.5 px-3 font-bold text-amber-600">#4</td>
+<td class="py-2.5 px-3 font-semibold text-slate-900">00:14.0s - 00:17.0s</td>
+<td class="py-2.5 px-3 font-bold text-amber-600">0.887</td>
+<td class="py-2.5 px-3">
+<span class="px-2 py-0.5 rounded bg-amber-100 text-amber-900 font-label-sm text-[10px] font-bold">
+                      High Risk
+                    </span>
+</td>
+<td class="py-2.5 px-3 font-body-md text-xs text-slate-700">Splice Boundary Discontinuity</td>
+<td class="py-2.5 px-3 text-right">
+<button class="px-2 py-1 rounded bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-label-sm text-[11px] inline-flex items-center gap-1 shadow-2xs">
+<span class="material-symbols-outlined text-[13px] text-primary-container" data-icon="play_circle">play_circle</span>
+                      Play Window
+                    </button>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-slate-50/80 transition-colors">
+<td class="py-2.5 px-3 font-bold text-amber-600">#5</td>
+<td class="py-2.5 px-3 font-semibold text-slate-900">00:21.0s - 00:24.0s</td>
+<td class="py-2.5 px-3 font-bold text-amber-600">0.612</td>
+<td class="py-2.5 px-3">
+<span class="px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 font-label-sm text-[10px] font-semibold">
+                      Moderate Risk
+                    </span>
+</td>
+<td class="py-2.5 px-3 font-body-md text-xs text-slate-700">Transition Smoothing Glitch</td>
+<td class="py-2.5 px-3 text-right">
+<button class="px-2 py-1 rounded bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-label-sm text-[11px] inline-flex items-center gap-1 shadow-2xs">
+<span class="material-symbols-outlined text-[13px] text-primary-container" data-icon="play_circle">play_circle</span>
+                      Play Window
+                    </button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- CARD 4: Acoustic Feature Telemetry Grid (4 clean cards) -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+<div class="bg-white rounded-xl border border-slate-200 p-3.5 shadow-sm flex flex-col justify-between">
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-slate-400 text-[10px]">Feature Signal 01</span>
+<h4 class="font-body-md text-body-md font-semibold text-slate-800 text-xs mt-0.5">Zero-Crossing Rate Jitter</h4>
+</div>
+<div class="mt-2">
+<span class="font-mono-lg text-mono-lg font-bold text-rose-600 text-lg">0.082</span>
+<p class="font-body-sm text-body-sm text-slate-500 text-[11px] leading-tight mt-0.5">Abnormal variance detected in windows 14-22</p>
+</div>
+</div>
+<div class="bg-white rounded-xl border border-slate-200 p-3.5 shadow-sm flex flex-col justify-between">
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-slate-400 text-[10px]">Feature Signal 02</span>
+<h4 class="font-body-md text-body-md font-semibold text-slate-800 text-xs mt-0.5">Spectral Flatness Measure</h4>
+</div>
+<div class="mt-2">
+<span class="font-mono-lg text-mono-lg font-bold text-rose-600 text-lg">0.014</span>
+<p class="font-body-sm text-body-sm text-slate-500 text-[11px] leading-tight mt-0.5">Vocoder smoothing confirmed</p>
+</div>
+</div>
+<div class="bg-white rounded-xl border border-slate-200 p-3.5 shadow-sm flex flex-col justify-between">
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-slate-400 text-[10px]">Feature Signal 03</span>
+<h4 class="font-body-md text-body-md font-semibold text-slate-800 text-xs mt-0.5">Fundamental Freq (F0) Std</h4>
+</div>
+<div class="mt-2">
+<span class="font-mono-lg text-mono-lg font-bold text-amber-600 text-lg">18.2 Hz</span>
+<p class="font-body-sm text-body-sm text-slate-500 text-[11px] leading-tight mt-0.5">Unnatural pitch rigidity</p>
+</div>
+</div>
+<div class="bg-white rounded-xl border border-slate-200 p-3.5 shadow-sm flex flex-col justify-between">
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-slate-400 text-[10px]">Feature Signal 04</span>
+<h4 class="font-body-md text-body-md font-semibold text-slate-800 text-xs mt-0.5">Signal-to-Noise Ratio (SNR)</h4>
+</div>
+<div class="mt-2">
+<span class="font-mono-lg text-mono-lg font-bold text-slate-900 text-lg">34.6 dB</span>
+<p class="font-body-sm text-body-sm text-slate-500 text-[11px] leading-tight mt-0.5">Pristine digital generation</p>
+</div>
+</div>
+</div>
+<!-- BOTTOM ACTIONS BAR -->
+<div class="bg-white rounded-xl border border-slate-200 p-3 shadow-sm flex flex-wrap items-center justify-between gap-3">
+<div class="flex flex-wrap items-center gap-2">
+<button class="px-4 py-2 rounded-lg bg-primary-container hover:bg-blue-700 text-white font-label-md text-label-md font-semibold flex items-center gap-2 shadow-sm transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="picture_as_pdf">picture_as_pdf</span>
+              Download Formal Forensic PDF Dossier
+            </button>
+<button class="px-3.5 py-2 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-label-md text-label-md font-medium flex items-center gap-1.5 transition-colors shadow-2xs">
+<span class="material-symbols-outlined text-[18px] text-slate-500" data-icon="data_object">data_object</span>
+              Export Raw JSON Telemetry
+            </button>
+<button class="px-3 py-2 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-label-md text-label-md font-medium flex items-center gap-1.5 transition-colors shadow-2xs">
+<span class="material-symbols-outlined text-[18px] text-slate-500" data-icon="download">download</span>
+              Download Spliced Segments (WAV)
+            </button>
+</div>
+<div>
+<button class="px-3.5 py-2 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 font-label-md text-label-md font-semibold flex items-center gap-1.5 transition-colors">
+<span class="material-symbols-outlined text-[18px] text-indigo-600" data-icon="autorenew">autorenew</span>
+              Re-analyze with AASIST Graph Attention
+            </button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- FORENSIC FOOTER TELEMETRY STRIP -->
+<footer class="bg-surface-container-lowest border-t border-slate-200 mt-6 py-2.5">
+<div class="max-w-[1600px] mx-auto px-6 flex flex-wrap items-center justify-between text-[11px] font-mono-sm text-mono-sm text-slate-500 gap-2">
+<div class="flex items-center gap-3">
+<span>ENCLAVE: TS/SCI Node #04</span>
+<span>•</span>
+<span>ENGINE: Wav2Vec2-XLSR-53</span>
+<span>•</span>
+<span>SAMPLING: 16000 Hz float32</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+<span class="text-slate-700 font-medium">Veritas Forensic Protocol 4.2 · All Signatures Cryptographically Signed</span>
+</div>
+</div>
+</footer>
+</body></html>

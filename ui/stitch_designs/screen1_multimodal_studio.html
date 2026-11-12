@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AEGIS // NEURAL FORENSICS LAB - Multimodal Deepfake Detection Studio</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS v3 -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "tertiary-fixed": "#6ffbbe",
+            "on-surface-variant": "#bac9cc",
+            "primary-container": "#00e5ff",
+            "surface-container-lowest": "#0a0e16",
+            "surface-container-highest": "#31353e",
+            "on-surface": "#dfe2ee",
+            "surface-bright": "#353942",
+            "tertiary": "#a8ffd2",
+            "inverse-on-surface": "#2c3039",
+            "on-primary": "#00363d",
+            "primary-fixed": "#9cf0ff",
+            "surface-container": "#1c2028",
+            "secondary": "#c0c1ff",
+            "on-secondary": "#1000a9",
+            "outline-variant": "#3b494c",
+            "on-error": "#690005",
+            "on-secondary-fixed-variant": "#2f2ebe",
+            "surface-container-high": "#262a33",
+            "on-tertiary-fixed": "#002113",
+            "on-primary-container": "#00626e",
+            "on-secondary-container": "#b0b2ff",
+            "background": "#080c14",
+            "secondary-container": "#3131c0",
+            "error": "#ffb4ab",
+            "on-tertiary": "#003824",
+            "on-tertiary-container": "#006645",
+            "inverse-surface": "#dfe2ee",
+            "inverse-primary": "#006875",
+            "on-tertiary-fixed-variant": "#005236",
+            "error-container": "#93000a",
+            "secondary-fixed": "#e1e0ff",
+            "surface": "#0d1424",
+            "primary": "#c3f5ff",
+            "surface-variant": "#31353e",
+            "on-primary-fixed": "#001f24",
+            "outline": "#849396",
+            "on-error-container": "#ffdad6",
+            "tertiary-container": "#5be9ad",
+            "surface-container-low": "#111726",
+            "on-primary-fixed-variant": "#004f58",
+            "surface-tint": "#00daf3",
+            "on-secondary-fixed": "#07006c",
+            "tertiary-fixed-dim": "#4edea3",
+            "primary-fixed-dim": "#00daf3",
+            "surface-dim": "#080c14",
+            "secondary-fixed-dim": "#c0c1ff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "margin": "1.25rem",
+            "space-lg": "1.5rem",
+            "space-xs": "0.25rem",
+            "space-xl": "2.25rem",
+            "gutter": "1rem",
+            "space-sm": "0.5rem",
+            "gutter-lg": "1.5rem",
+            "margin-lg": "2rem",
+            "space-md": "1rem"
+          },
+          "fontFamily": {
+            "headline-lg": ["Inter", "sans-serif"],
+            "body-md": ["Inter", "sans-serif"],
+            "label-code": ["JetBrains Mono", "monospace"],
+            "title-md": ["Inter", "sans-serif"],
+            "data-md": ["JetBrains Mono", "monospace"],
+            "headline-xl": ["Inter", "sans-serif"],
+            "headline-xl-mobile": ["Inter", "sans-serif"],
+            "data-lg": ["JetBrains Mono", "monospace"],
+            "headline-md": ["Inter", "sans-serif"],
+            "data-sm": ["JetBrains Mono", "monospace"],
+            "headline-sm": ["Inter", "sans-serif"],
+            "title-sm": ["Inter", "sans-serif"],
+            "body-sm": ["Inter", "sans-serif"],
+            "headline-lg-mobile": ["Inter", "sans-serif"],
+            "body-lg": ["Inter", "sans-serif"]
+          },
+          "fontSize": {
+            "headline-lg": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "body-md": ["13px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "label-code": ["10px", { "lineHeight": "14px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+            "title-md": ["16px", { "lineHeight": "22px", "fontWeight": "500" }],
+            "data-md": ["13px", { "lineHeight": "18px", "letterSpacing": "-0.005em", "fontWeight": "500" }],
+            "headline-xl": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-xl-mobile": ["28px", { "lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+            "data-lg": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-md": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "data-sm": ["11px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "400" }],
+            "headline-sm": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.005em", "fontWeight": "600" }],
+            "title-sm": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+            "body-sm": ["12px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "headline-lg-mobile": ["24px", { "lineHeight": "30px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "body-lg": ["15px", { "lineHeight": "24px", "fontWeight": "400" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    /* Cyber grid overlay */
+    .cyber-grid {
+      background-size: 32px 32px;
+      background-image:
+        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    }
+    /* Pulsing animations */
+    @keyframes hud-pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.05); }
+    }
+    .animate-hud-pulse {
+      animation: hud-pulse 2s infinite ease-in-out;
+    }
+    @keyframes alert-blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    .animate-alert-blink {
+      animation: alert-blink 1.2s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface font-body-md antialiased min-h-screen cyber-grid flex flex-col selection:bg-primary-container selection:text-surface-container-lowest">
+<!-- ================= TOP FORENSIC NAVIGATION BAR ================= -->
+<header class="bg-surface-container-low text-primary docked full-width top-0 z-50 flex justify-between items-center w-full px-margin-lg h-14 max-w-full">
+<!-- Brand Anchor -->
+<div class="flex items-center gap-space-md">
+<div class="relative flex items-center justify-center w-8 h-8 rounded bg-surface-container-lowest border border-outline-variant text-primary-container">
+<span class="material-symbols-outlined text-lg animate-hud-pulse">radar</span>
+<span class="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-primary-container rounded-full shadow-[0_0_8px_#00e5ff]"></span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="font-label-code text-title-md font-bold tracking-wider text-primary">AEGIS // NEURAL FORENSICS LAB</span>
+<span class="font-label-code text-label-code px-1.5 py-0.2 bg-primary-container/10 text-primary-container border border-primary-container/30 rounded">NODE 04-ACTIVE</span>
+</div>
+<span class="font-label-code text-label-code text-outline tracking-wider">Multimodal Late Fusion · Xception · Wav2Vec 2.0 · 3D/2D SyncStream</span>
+</div>
+</div>
+<!-- Navigation Links -->
+<nav class="hidden md:flex items-center gap-6">
+<a class="border-b-2 border-primary-container text-primary-container font-semibold pb-1 font-label-code text-data-sm flex items-center gap-1.5 tracking-wider" href="#">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container shadow-[0_0_6px_#00e5ff]"></span>
+        Triage Console
+      </a>
+<a class="text-on-surface-variant hover:text-primary transition-colors pb-1 font-label-code text-data-sm hover:bg-surface-container transition-all duration-150" href="#">Artifact Inspector</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors pb-1 font-label-code text-data-sm hover:bg-surface-container transition-all duration-150" href="#">Multimodal Fusion</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors pb-1 font-label-code text-data-sm hover:bg-surface-container transition-all duration-150" href="#">Audit Dossier</a>
+</nav>
+<!-- Telemetry Status Pills & Actions -->
+<div class="flex items-center gap-3">
+<!-- Hardware Telemetry -->
+<div class="hidden xl:flex items-center gap-3 px-2.5 py-1 bg-surface-container-lowest border border-outline-variant/60 rounded">
+<div class="flex items-center gap-1.5 text-secondary">
+<span class="material-symbols-outlined text-sm">memory</span>
+<span class="font-label-code text-label-code">RTX 4090 · CUDA</span>
+</div>
+<div class="w-px h-3 bg-outline-variant"></div>
+<div class="flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary shadow-[0_0_6px_#10b981]"></span>
+<span class="font-label-code text-label-code text-tertiary">VIS: READY</span>
+</div>
+<div class="w-px h-3 bg-outline-variant"></div>
+<div class="flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary shadow-[0_0_6px_#10b981]"></span>
+<span class="font-label-code text-label-code text-tertiary">AUD: READY</span>
+</div>
+<div class="w-px h-3 bg-outline-variant"></div>
+<div class="flex items-center gap-1.5">
+<span class="font-label-code text-label-code text-outline">VRAM</span>
+<div class="w-10 h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+<div class="w-[18%] h-full bg-primary-container shadow-[0_0_4px_#00e5ff]"></div>
+</div>
+<span class="font-label-code text-label-code text-on-surface">4.2/24G</span>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex items-center gap-2">
+<button class="px-2.5 py-1 text-xs font-semibold bg-primary-container text-background rounded hover:shadow-[0_0_12px_rgba(0,229,255,0.4)] transition-all font-headline-sm text-headline-sm !text-xs !leading-4 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">download</span>
+          Export Dossier
+        </button>
+<button class="px-2.5 py-1 text-xs font-semibold bg-error-container/40 border border-error/50 text-error rounded hover:bg-error-container/60 transition-all font-headline-sm text-headline-sm !text-xs !leading-4 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">shield_with_heart</span>
+          Emergency Quarantine
+        </button>
+</div>
+<!-- Trailing Icon Actions -->
+<div class="flex items-center border-l border-outline-variant/60 pl-2 gap-1 text-on-surface-variant">
+<button class="p-1 hover:text-primary transition-colors" title="Radar Feed"><span class="material-symbols-outlined text-lg">radar</span></button>
+<button class="p-1 hover:text-primary transition-colors relative" title="Notifications">
+<span class="material-symbols-outlined text-lg">notifications_active</span>
+<span class="absolute top-0.5 right-0.5 w-1.5 h-1.5 bg-error rounded-full"></span>
+</button>
+<button class="p-1 hover:text-primary transition-colors" title="Settings"><span class="material-symbols-outlined text-lg">settings</span></button>
+</div>
+<!-- Lead Forensic Officer Avatar & ID -->
+<div class="flex items-center gap-2 pl-2 border-l border-outline-variant/60">
+<div class="w-7 h-7 rounded bg-surface-container-high border border-outline flex items-center justify-center text-primary font-label-code text-xs font-bold shadow-inner">
+<img alt="Lead Forensic Officer Avatar" class="w-full h-full object-cover rounded opacity-80" data-alt="Cyber forensic investigator badge photo, sharp analytical high contrast silhouette portrait with glowing cyan biometric visor reflections in an obsidian black telemetry lab setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDAgdQJlhDnrar--i6HMg-UBy4ud0naQfbiVKQOUMmdhB9NCakyjAu7VPJWy3WSHm0pzlLmnsFYnQc-a0JVCs7p9KRK2aJi5t8nQ0EBKGWWtcQ4GYvwnD3CoCRzhOdtnFUbngnwpKffJXNTsRA3aNIyKocd8cKaiBo-kzmx1Vo7S-syUgpVdFO2jYS0nRCjX_PxE8kNPQuMN5IOJfjuMVFrW13Bq3b7bpueHNScPat1kC4uC0rJX0Lyxi5jNZaeXkZ0sf3JP2VFp8FM"/>
+</div>
+<div class="hidden 2xl:flex flex-col leading-none">
+<span class="font-label-code text-label-code font-bold text-on-surface">OFFICER-7049</span>
+<span class="font-label-code text-label-code text-outline text-[8px]">L3 CLEARANCE</span>
+</div>
+</div>
+</div>
+</header>
+<!-- ================= SUB-HEADER BREADCRUMB & CONTEXT ================= -->
+<div class="w-full bg-surface-container-lowest/80 border-b border-outline-variant/40 px-margin-lg py-2 flex items-center justify-between">
+<div class="flex items-center gap-2 text-outline font-label-code text-data-sm">
+<span class="text-primary-container flex items-center gap-1"><span class="material-symbols-outlined text-sm">home_storage</span> FORENSICS</span>
+<span>/</span>
+<span>TRIAGE_CONSOLE</span>
+<span>/</span>
+<span class="text-on-surface">MULTIMODAL_INSPECTION_STUDIO</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container text-tertiary border border-outline-variant text-[9px]">SESSION: #8921-DFX</span>
+</div>
+<div class="flex items-center gap-3 font-label-code text-label-code text-outline">
+<span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-pulse"></span> INGESTION_BUS: 1.2 GB/s</span>
+<span class="text-outline-variant">|</span>
+<span>SYNC_STREAM CLUSTER: 8 CORES ONLINE</span>
+</div>
+</div>
+<!-- ================= WORKSPACE BODY (SIDE NAV + 2-COLUMN ASYMMETRIC GRID) ================= -->
+<div class="flex-1 flex overflow-hidden">
+<!-- LEFT EXPANDED/DOCKED SIDE NAVIGATION -->
+<aside class="w-56 bg-surface-container-lowest border-r border-outline-variant flex flex-col justify-between py-space-md px-space-sm flex-shrink-0 select-none">
+<div class="flex flex-col gap-space-sm">
+<!-- Node telemetry header -->
+<div class="px-2 py-2 mb-2 bg-surface-container/60 border border-outline-variant/50 rounded flex items-center gap-2.5">
+<div class="w-6 h-6 rounded bg-primary-container/10 border border-primary-container/40 flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined text-sm">csv</span>
+</div>
+<div class="flex flex-col leading-tight">
+<span class="font-label-code text-label-code font-bold text-primary-container">NODE 04-ACTIVE</span>
+<span class="font-label-code text-label-code text-outline text-[9px]">V8.9 Latent Inspector</span>
+</div>
+</div>
+<button class="w-full py-1.5 px-2 bg-primary-container text-surface-container-lowest font-headline-sm text-headline-sm !text-xs !leading-tight font-bold rounded flex items-center justify-center gap-1.5 shadow-[0_0_10px_rgba(0,229,255,0.25)] hover:shadow-[0_0_15px_rgba(0,229,255,0.45)] transition-all">
+<span class="material-symbols-outlined text-sm">sensors</span>
+          Live Ingest Feed
+        </button>
+<span class="font-label-code text-label-code text-outline uppercase tracking-widest px-2 mt-3">ANALYSIS MODULES</span>
+<!-- Nav Tabs from JSON -->
+<nav class="flex flex-col space-y-1">
+<a class="border-l-2 border-primary-container bg-surface-container text-primary-container font-semibold pl-space-sm py-space-sm flex items-center gap-2 rounded-r font-label-code text-data-sm transition-all" href="#">
+<span class="material-symbols-outlined text-base">csv</span>
+<span>Neural Pipeline</span>
+</a>
+<a class="text-on-surface-variant hover:text-on-surface pl-space-sm py-space-sm hover:bg-surface-container-low transition-colors flex items-center gap-2 rounded-r font-label-code text-data-sm" href="#">
+<span class="material-symbols-outlined text-base">visibility</span>
+<span>Spatial Heatmaps</span>
+</a>
+<a class="text-on-surface-variant hover:text-on-surface pl-space-sm py-space-sm hover:bg-surface-container-low transition-colors flex items-center gap-2 rounded-r font-label-code text-data-sm" href="#">
+<span class="material-symbols-outlined text-base">graphic_eq</span>
+<span>Phonetic Flux</span>
+</a>
+<a class="text-on-surface-variant hover:text-on-surface pl-space-sm py-space-sm hover:bg-surface-container-low transition-colors flex items-center gap-2 rounded-r font-label-code text-data-sm" href="#">
+<span class="material-symbols-outlined text-base">fingerprint</span>
+<span>Latent Artifacts</span>
+</a>
+<a class="text-on-surface-variant hover:text-on-surface pl-space-sm py-space-sm hover:bg-surface-container-low transition-colors flex items-center gap-2 rounded-r font-label-code text-data-sm" href="#">
+<span class="material-symbols-outlined text-base">memory</span>
+<span>Sensor Physics</span>
+</a>
+<a class="text-on-surface-variant hover:text-on-surface pl-space-sm py-space-sm hover:bg-surface-container-low transition-colors flex items-center gap-2 rounded-r font-label-code text-data-sm" href="#">
+<span class="material-symbols-outlined text-base">history</span>
+<span>Incident Logs</span>
+</a>
+</nav>
+</div>
+<!-- Footer Tabs -->
+<div class="border-t border-outline-variant/60 pt-space-sm flex flex-col space-y-1">
+<span class="font-label-code text-label-code text-outline uppercase tracking-widest px-2 mb-1">SYSTEM OPS</span>
+<a class="text-on-surface-variant hover:text-primary pl-space-sm py-1.5 flex items-center gap-2 font-label-code text-data-sm transition-colors" href="#">
+<span class="material-symbols-outlined text-base">terminal</span>
+          Diagnostics
+        </a>
+<a class="text-on-surface-variant hover:text-primary pl-space-sm py-1.5 flex items-center gap-2 font-label-code text-data-sm transition-colors" href="#">
+<span class="material-symbols-outlined text-base">troubleshoot</span>
+          Terminal Access
+        </a>
+</div>
+</aside>
+<!-- MAIN FORENSIC CANVAS (2-COLUMN ASYMMETRIC GRID) -->
+<main class="flex-1 overflow-y-auto p-gutter-lg space-y-gutter-lg bg-background">
+<!-- ================= HERO FORENSIC VERDICT BANNER ================= -->
+<section class="relative overflow-hidden rounded bg-surface/85 backdrop-blur-md border border-error/50 p-space-md shadow-[0_0_30px_-5px_rgba(239,68,68,0.25)]">
+<!-- Corner Brackets -->
+<div class="absolute top-0 left-0 w-2.5 h-2.5 border-t-2 border-l-2 border-error"></div>
+<div class="absolute top-0 right-0 w-2.5 h-2.5 border-t-2 border-r-2 border-error"></div>
+<div class="absolute bottom-0 left-0 w-2.5 h-2.5 border-b-2 border-l-2 border-error"></div>
+<div class="absolute bottom-0 right-0 w-2.5 h-2.5 border-b-2 border-r-2 border-error"></div>
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+<!-- Verdict Headline & Status -->
+<div class="flex items-start gap-3.5">
+<div class="w-12 h-12 rounded bg-error-container/30 border border-error flex items-center justify-center text-error shadow-[0_0_15px_rgba(239,68,68,0.4)] flex-shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-3xl animate-alert-blink">gpp_maybe</span>
+</div>
+<div>
+<div class="flex items-center gap-2.5 flex-wrap">
+<h1 class="font-headline-md text-headline-md text-error tracking-tight font-bold">SYNTHETIC MANIPULATION DETECTED</h1>
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-error/15 border border-error/50 text-error font-label-code text-label-code font-bold tracking-wider animate-pulse">
+<span class="w-2 h-2 rounded-full bg-error shadow-[0_0_8px_#ef4444]"></span>
+                  CRITICAL RISK · 98.4%
+                </span>
+<span class="px-2 py-0.5 rounded bg-surface-container-high border border-outline-variant text-on-surface-variant font-label-code text-label-code">
+                  WAV2LIP SIGNATURE VERIFIED
+                </span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">
+                Deepfake Artifacts Identified in Visual Stream &amp; Audiovisual Desync. Neural boundary warping localized in perioral region.
+              </p>
+</div>
+</div>
+<!-- Quick Telemetry Hash Grid -->
+<div class="flex items-center gap-4 bg-surface-container-lowest/80 border border-outline-variant/80 px-4 py-2 rounded font-label-code text-data-sm self-start lg:self-center">
+<div class="flex flex-col">
+<span class="text-outline text-[10px]">EVIDENCE SHA-256</span>
+<span class="text-primary-container font-mono text-xs">7f83b2e9...a891c</span>
+</div>
+<div class="w-px h-7 bg-outline-variant"></div>
+<div class="flex flex-col">
+<span class="text-outline text-[10px]">SAMPLING LATENCY</span>
+<span class="text-on-surface font-mono text-xs">182 ms</span>
+</div>
+<div class="w-px h-7 bg-outline-variant"></div>
+<div class="flex flex-col">
+<span class="text-outline text-[10px]">INFERENCE TOTAL</span>
+<span class="text-tertiary font-mono text-xs">0.42 s</span>
+</div>
+<div class="w-px h-7 bg-outline-variant"></div>
+<div class="flex flex-col">
+<span class="text-outline text-[10px]">ENGINE VERSION</span>
+<span class="text-secondary font-mono text-xs">v3.4-prod</span>
+</div>
+</div>
+</div>
+</section>
+<!-- ================= LIVE NEURAL PIPELINE STEPPER ================= -->
+<section class="bg-surface/70 backdrop-blur border border-outline-variant/80 rounded p-space-md">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-2">
+<span class="font-label-code text-label-code font-bold text-outline">PIPELINE EXECUTION STATUS // STEP-BY-STEP FLOW</span>
+<span class="w-2 h-2 rounded-full bg-primary-container shadow-[0_0_6px_#00e5ff]"></span>
+</div>
+<span class="font-label-code text-label-code text-primary-container">4 OF 4 PHASES RESOLVED</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-3 relative">
+<!-- Step 1 -->
+<div class="p-2.5 rounded bg-surface-container-lowest/90 border border-tertiary/40 flex items-start gap-2.5 relative">
+<div class="w-6 h-6 rounded-full bg-tertiary/20 text-tertiary flex items-center justify-center flex-shrink-0 mt-0.5 border border-tertiary/50">
+<span class="material-symbols-outlined text-sm">check</span>
+</div>
+<div>
+<div class="font-title-sm text-title-sm text-on-surface font-semibold">1. Frame Sampling</div>
+<div class="font-label-code text-label-code text-outline mt-0.5">8 uniform frames extracted</div>
+<div class="font-label-code text-label-code text-tertiary mt-1">48ms · OK</div>
+</div>
+</div>
+<!-- Step 2 -->
+<div class="p-2.5 rounded bg-surface-container-lowest/90 border border-tertiary/40 flex items-start gap-2.5 relative">
+<div class="w-6 h-6 rounded-full bg-tertiary/20 text-tertiary flex items-center justify-center flex-shrink-0 mt-0.5 border border-tertiary/50">
+<span class="material-symbols-outlined text-sm">check</span>
+</div>
+<div>
+<div class="font-title-sm text-title-sm text-on-surface font-semibold">2. MTCNN Alignment</div>
+<div class="font-label-code text-label-code text-outline mt-0.5">8 faces &amp; lip ROIs cropped</div>
+<div class="font-label-code text-tertiary mt-1">62ms · OK</div>
+</div>
+</div>
+<!-- Step 3 -->
+<div class="p-2.5 rounded bg-surface-container-lowest/90 border border-tertiary/40 flex items-start gap-2.5 relative">
+<div class="w-6 h-6 rounded-full bg-tertiary/20 text-tertiary flex items-center justify-center flex-shrink-0 mt-0.5 border border-tertiary/50">
+<span class="material-symbols-outlined text-sm">check</span>
+</div>
+<div>
+<div class="font-title-sm text-title-sm text-on-surface font-semibold">3. Wav2Vec 2.0 &amp; Sync</div>
+<div class="font-label-code text-label-code text-outline mt-0.5">Audio/lip cross embeddings</div>
+<div class="font-label-code text-tertiary mt-1">112ms · OK</div>
+</div>
+</div>
+<!-- Step 4 -->
+<div class="p-2.5 rounded bg-surface-container-lowest/90 border border-primary-container/60 shadow-[0_0_14px_rgba(0,229,255,0.15)] flex items-start gap-2.5 relative">
+<div class="w-6 h-6 rounded-full bg-primary-container/20 text-primary-container flex items-center justify-center flex-shrink-0 mt-0.5 border border-primary-container animate-hud-pulse">
+<span class="material-symbols-outlined text-sm">model_training</span>
+</div>
+<div>
+<div class="font-title-sm text-title-sm text-primary-container font-semibold">4. Late Fusion MLP</div>
+<div class="font-label-code text-label-code text-on-surface-variant mt-0.5">Sigmoids converged · Final Class</div>
+<div class="font-label-code text-label-code text-primary-container mt-1 font-semibold">CLASSIFICATION TERMINATED</div>
+</div>
+</div>
+</div>
+</section>
+<!-- ================= 2-COLUMN ASYMMETRIC WORKSPACE ================= -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter-lg">
+<!-- ================= LEFT COLUMN (~38% = 5 cols) ================= -->
+<div class="lg:col-span-5 space-y-gutter-lg">
+<!-- CARD 1: INPUT VIDEO STREAM & INGESTION -->
+<div class="rounded bg-surface/75 backdrop-blur-md border border-outline-variant p-space-md space-y-space-md">
+<div class="flex items-center justify-between border-b border-outline-variant/60 pb-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container text-lg">videocam</span>
+<h2 class="font-title-sm text-title-sm text-on-surface font-semibold">Input Video Stream</h2>
+</div>
+<span class="font-label-code text-label-code text-outline bg-surface-container px-2 py-0.5 rounded border border-outline-variant">LIVE SOURCE BAY</span>
+</div>
+<!-- Drag & Drop Zone Mockup -->
+<div class="relative border-2 border-dashed border-primary-container/40 hover:border-primary-container rounded p-4 text-center bg-surface-container-lowest/50 transition-colors group cursor-pointer">
+<div class="flex flex-col items-center justify-center gap-1.5">
+<div class="w-10 h-10 rounded-full bg-primary-container/10 border border-primary-container/30 flex items-center justify-center text-primary-container group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-xl">cloud_upload</span>
+</div>
+<span class="font-headline-sm text-headline-sm !text-xs text-on-surface font-medium">Drop MP4, MOV, AVI, MKV (Max 200MB)</span>
+<span class="font-label-code text-label-code text-outline">or click to browse local secure evidence directories</span>
+</div>
+</div>
+<!-- Active Media Player Preview Container with Bounding Box HUD -->
+<div class="relative rounded overflow-hidden border border-outline-variant bg-surface-container-lowest aspect-video flex items-center justify-center group">
+<!-- Mock Video Target -->
+<img alt="Active forensic video stream target" class="w-full h-full object-cover" data-alt="High-tech forensic security camera still of a middle-aged male witness sitting in an interrogation room with volumetric cold blue spotlighting, faint digital gridlines mapped over his face, highly detailed cinematic forensic visual tone." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD6ql3opMV1cSe2IEbOX7EqSqtzAtdr1L2-YW3p4i_WPwEduUrzrWRvacTpKrFnlD4WbQAf5zqrXljmjQAPh_e3KGxK72bojMW-GTSkTspi2h6BSpFYxTzn4e_YgvhciDHPIj9UR7goKieKFBR4qa1XTHiEw-QcjHqKd_8xCbs90facsgq7w9taK4N3oPxVjeUyfK7dEKFFbPXPwVLYuihbYa2ozeoQqSakyltCooEsiWoukJFr8lIzxw68LOyS4XSKEvIA7WK8xYge"/>
+<!-- HUD Overlay Elements -->
+<div class="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-background/40 pointer-events-none"></div>
+<!-- Facial Bounding Box with Anomaly Accent -->
+<div class="absolute top-[20%] left-[34%] w-[32%] h-[55%] border-2 border-error rounded-sm shadow-[0_0_12px_rgba(239,68,68,0.5)] pointer-events-none">
+<span class="absolute -top-4 -left-0.5 bg-error text-surface-container-lowest font-label-code text-[9px] px-1 font-bold">ROI: FACE_01 [SYNTHETIC: 0.994]</span>
+<div class="absolute inset-x-2 bottom-3 h-8 border border-dashed border-error/80 bg-error/10 flex items-center justify-center">
+<span class="font-label-code text-[8px] text-error font-semibold tracking-tighter">PERIORAL WARPING FLUX</span>
+</div>
+<!-- Crosshairs -->
+<span class="absolute -top-1 -right-1 w-2 h-2 border-t-2 border-r-2 border-error"></span>
+<span class="absolute -bottom-1 -left-1 w-2 h-2 border-b-2 border-l-2 border-error"></span>
+</div>
+<!-- Top Telemetry Tag -->
+<div class="absolute top-2 left-2 flex items-center gap-1.5 px-2 py-0.5 bg-surface-container-lowest/80 border border-outline-variant/60 rounded font-label-code text-[9px]">
+<span class="w-1.5 h-1.5 rounded-full bg-error animate-ping"></span>
+<span class="text-error font-bold">REC_STREAM · FRAME #84</span>
+</div>
+<!-- Player Scrubber & Controls -->
+<div class="absolute bottom-0 inset-x-0 p-2.5 flex flex-col gap-1.5 bg-surface-container-lowest/90 border-t border-outline-variant/60">
+<div class="relative w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden cursor-pointer">
+<div class="absolute left-0 top-0 bottom-0 w-[24%] bg-primary-container shadow-[0_0_8px_#00e5ff]"></div>
+<!-- Anomaly marker on scrubber -->
+<div class="absolute left-[20%] top-0 bottom-0 w-[15%] bg-error/70"></div>
+</div>
+<div class="flex items-center justify-between font-label-code text-label-code">
+<div class="flex items-center gap-2">
+<button class="text-primary hover:text-primary-container"><span class="material-symbols-outlined text-base">pause</span></button>
+<button class="text-on-surface-variant hover:text-primary"><span class="material-symbols-outlined text-base">skip_next</span></button>
+<span class="text-on-surface font-mono">00:03.42 / 00:14.20</span>
+</div>
+<span class="text-outline">24 FPS · 1080p</span>
+</div>
+</div>
+</div>
+<!-- Video Metadata Bar -->
+<div class="p-2.5 rounded bg-surface-container-lowest border border-outline-variant font-label-code text-data-sm grid grid-cols-2 gap-2">
+<div class="flex items-center gap-1 text-on-surface">
+<span class="text-outline text-xs">FILE:</span>
+<span class="truncate text-xs">interview_deepfake_sample.mp4</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface justify-end">
+<span class="text-outline text-xs">SIZE:</span>
+<span class="text-xs">14.2 MB</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface">
+<span class="text-outline text-xs">RES:</span>
+<span class="text-xs">1920x1080 (16:9)</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface justify-end">
+<span class="text-outline text-xs">CODEC:</span>
+<span class="text-xs text-primary-container">H.264 / AAC</span>
+</div>
+</div>
+<!-- Prominent Primary Cyber Action Button -->
+<button class="w-full py-2.5 px-4 bg-primary-container hover:bg-primary-fixed text-surface-container-lowest font-headline-sm text-headline-sm !text-sm font-bold rounded flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(0,229,255,0.4)] hover:shadow-[0_0_25px_rgba(0,229,255,0.65)] transition-all">
+<span class="material-symbols-outlined text-lg animate-spin">autorenew</span>
+              RUN MULTIMODAL INSPECTION
+            </button>
+</div>
+<!-- CARD 2: CURATED EVALUATION SAMPLES -->
+<div class="rounded bg-surface/75 backdrop-blur-md border border-outline-variant p-space-md space-y-3">
+<div class="flex items-center justify-between border-b border-outline-variant/60 pb-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-lg">dataset</span>
+<h2 class="font-title-sm text-title-sm text-on-surface font-semibold">Curated Evaluation Samples</h2>
+</div>
+<span class="font-label-code text-label-code text-outline">N=4 BENCHMARKS</span>
+</div>
+<div class="space-y-2">
+<!-- Sample 1 -->
+<div class="p-2.5 rounded bg-surface-container-lowest border border-outline-variant/60 hover:border-outline transition-colors flex items-center justify-between cursor-pointer group">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-outline group-hover:text-primary text-base">video_file</span>
+<div>
+<div class="font-title-sm text-title-sm text-on-surface font-medium text-xs">Authentic Speech - Presidential Address</div>
+<div class="font-label-code text-label-code text-outline">C-SPAN Live Feed · 1080p60 · Genuine Audio</div>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded bg-tertiary/10 border border-tertiary/40 text-tertiary font-label-code text-label-code font-bold">
+                  REAL (Ground Truth)
+                </span>
+</div>
+<!-- Sample 2 (Active Selected Item) -->
+<div class="p-2.5 rounded bg-surface-container border-2 border-primary-container shadow-[0_0_12px_rgba(0,229,255,0.2)] flex items-center justify-between cursor-pointer">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-primary-container text-base">play_circle</span>
+<div>
+<div class="font-title-sm text-title-sm text-primary font-semibold text-xs flex items-center gap-1.5">
+                      Wav2Lip Face-Dubbed Interview
+                      <span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+</div>
+<div class="font-label-code text-label-code text-on-surface-variant">Synthetic Lip Retargeting · BBC Source</div>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/40 text-amber-400 font-label-code text-label-code font-bold">
+                  FAKE VIDEO
+                </span>
+</div>
+<!-- Sample 3 -->
+<div class="p-2.5 rounded bg-surface-container-lowest border border-outline-variant/60 hover:border-outline transition-colors flex items-center justify-between cursor-pointer group">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-outline group-hover:text-primary text-base">graphic_eq</span>
+<div>
+<div class="font-title-sm text-title-sm text-on-surface font-medium text-xs">AI Voice Clone + Real Video</div>
+<div class="font-label-code text-label-code text-outline">ElevenLabs Audio · Authentic Video Frame</div>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded bg-secondary/15 border border-secondary/40 text-secondary font-label-code text-label-code font-bold">
+                  FAKE AUDIO
+                </span>
+</div>
+<!-- Sample 4 -->
+<div class="p-2.5 rounded bg-surface-container-lowest border border-outline-variant/60 hover:border-outline transition-colors flex items-center justify-between cursor-pointer group">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-outline group-hover:text-primary text-base">warning</span>
+<div>
+<div class="font-title-sm text-title-sm text-on-surface font-medium text-xs">Full Neural Synthesis (Dual Fake)</div>
+<div class="font-label-code text-label-code text-outline">Diffusion Video + VITS Synthesized Speech</div>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded bg-error/15 border border-error/50 text-error font-label-code text-label-code font-bold">
+                  HIGH RISK DUAL FAKE
+                </span>
+</div>
+</div>
+<!-- Quick Telemetry Switch -->
+<div class="pt-2 border-t border-outline-variant/60 flex items-center justify-between font-label-code text-data-sm">
+<span class="text-on-surface-variant text-xs">Auto-trigger pipeline on sample selection</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-8 h-4 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-primary-container peer-checked:after:bg-primary-container after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-outline after:border-outline after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-primary-container/20 border border-outline-variant"></div>
+</label>
+</div>
+</div>
+</div>
+<!-- ================= RIGHT COLUMN (~62% = 7 cols) ================= -->
+<div class="lg:col-span-7 space-y-gutter-lg">
+<!-- TRI-MODALITY SEMI-RADIAL TELEMETRY GAUGES -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+<!-- Gauge 1: Visual Stream -->
+<div class="rounded bg-surface/75 backdrop-blur-md border border-error/40 p-3.5 flex flex-col items-center text-center relative overflow-hidden shadow-[0_0_15px_rgba(239,68,68,0.15)]">
+<span class="font-label-code text-label-code text-outline mb-1 uppercase tracking-wider">VISUAL STREAM (XCEPTION)</span>
+<!-- Semi-Radial SVG Meter -->
+<div class="relative w-28 h-28 my-1 flex items-center justify-center">
+<svg class="w-full h-full -rotate-90 transform" viewbox="0 0 100 100">
+<circle cx="50" cy="50" fill="none" r="40" stroke="rgba(255, 255, 255, 0.05)" stroke-width="8"></circle>
+<circle cx="50" cy="50" fill="none" r="40" stroke="#ef4444" stroke-dasharray="251.2" stroke-dashoffset="1.5" stroke-linecap="round" stroke-width="8" style="filter: drop-shadow(0 0 6px #ef4444);"></circle>
+</svg>
+<div class="absolute flex flex-col items-center">
+<span class="font-label-code text-data-lg text-error font-bold">99.4%</span>
+<span class="font-label-code text-[8px] text-outline">MANIPULATION</span>
+</div>
+</div>
+<div class="font-label-code text-label-code font-bold text-error mt-1">HIGH ALERT</div>
+<p class="font-label-code text-[9px] text-outline mt-0.5">Artifact clusters around mouth &amp; jawline</p>
+</div>
+<!-- Gauge 2: Speech Stream -->
+<div class="rounded bg-surface/75 backdrop-blur-md border border-tertiary/40 p-3.5 flex flex-col items-center text-center relative overflow-hidden">
+<span class="font-label-code text-label-code text-outline mb-1 uppercase tracking-wider">SPEECH (WAV2VEC 2.0)</span>
+<!-- Semi-Radial SVG Meter -->
+<div class="relative w-28 h-28 my-1 flex items-center justify-center">
+<svg class="w-full h-full -rotate-90 transform" viewbox="0 0 100 100">
+<circle cx="50" cy="50" fill="none" r="40" stroke="rgba(255, 255, 255, 0.05)" stroke-width="8"></circle>
+<circle cx="50" cy="50" fill="none" r="40" stroke="#10b981" stroke-dasharray="251.2" stroke-dashoffset="219" stroke-linecap="round" stroke-width="8" style="filter: drop-shadow(0 0 6px #10b981);"></circle>
+</svg>
+<div class="absolute flex flex-col items-center">
+<span class="font-label-code text-data-lg text-tertiary font-bold">12.8%</span>
+<span class="font-label-code text-[8px] text-outline">SYNTHESIS</span>
+</div>
+</div>
+<div class="font-label-code text-label-code font-bold text-tertiary mt-1">NORMAL (GENUINE)</div>
+<p class="font-label-code text-[9px] text-outline mt-0.5">Acoustic spectrogram natural &amp; coherent</p>
+</div>
+<!-- Gauge 3: Multimodal Late Fusion -->
+<div class="rounded bg-surface/75 backdrop-blur-md border border-primary-container/40 p-3.5 flex flex-col items-center text-center relative overflow-hidden shadow-[0_0_15px_rgba(0,229,255,0.15)]">
+<span class="font-label-code text-label-code text-outline mb-1 uppercase tracking-wider">LATE FUSION TRUNK</span>
+<!-- Semi-Radial SVG Meter -->
+<div class="relative w-28 h-28 my-1 flex items-center justify-center">
+<svg class="w-full h-full -rotate-90 transform" viewbox="0 0 100 100">
+<circle cx="50" cy="50" fill="none" r="40" stroke="rgba(255, 255, 255, 0.05)" stroke-width="8"></circle>
+<circle cx="50" cy="50" fill="none" r="40" stroke="#00e5ff" stroke-dasharray="251.2" stroke-dashoffset="4" stroke-linecap="round" stroke-width="8" style="filter: drop-shadow(0 0 6px #00e5ff);"></circle>
+</svg>
+<div class="absolute flex flex-col items-center">
+<span class="font-label-code text-data-lg text-primary-container font-bold">98.4%</span>
+<span class="font-label-code text-[8px] text-outline">COMPOSITE RISK</span>
+</div>
+</div>
+<div class="font-label-code text-label-code font-bold text-primary-container mt-1">CRITICAL VERDICT</div>
+<p class="font-label-code text-[9px] text-outline mt-0.5">High cross-modal audiovisual desynchrony</p>
+</div>
+</div>
+<!-- DUAL INSPECTION ROW (Video Player HUD + Telemetry Grid) -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter-lg">
+<!-- Sub-card Left: Synchronized Forensic Video Viewport (7 cols) -->
+<div class="md:col-span-7 rounded bg-surface/75 backdrop-blur border border-outline-variant p-space-md space-y-2">
+<div class="flex items-center justify-between border-b border-outline-variant/60 pb-1.5">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-base">center_focus_strong</span>
+<span class="font-title-sm text-title-sm text-on-surface font-semibold text-xs">Synchronized Forensic Viewport</span>
+</div>
+<span class="font-label-code text-label-code text-error bg-error/10 px-2 py-0.5 rounded border border-error/30 font-bold">HEATMAP: CONFIDENCE 0.994</span>
+</div>
+<!-- HUD Visual Frame Container -->
+<div class="relative rounded overflow-hidden border border-outline-variant bg-surface-container-lowest aspect-video flex items-center justify-center">
+<img alt="Forensic mesh viewport" class="w-full h-full object-cover" data-alt="Close up biometric thermal heatmap overlay on male lips and jawline against dark cybersecurity background with green mesh alignment crosshairs." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQlpvAtF5azWa0S6EJuR5bT5jiXTW0x424cKovTAaXDveOj15qhGGfOVdbI5D3_fbt7lM7uDojei0YtjfRyu-22WxFv0yOOf9efq6SgFjPe4J9yPywXZkq5YiG4kCsSVk8f1aFeWsLeNnRaSEhHObkyndLh8QzMNCqTQLuUkCcMfiyG2yzxlg9g1Zjpe5pj5qT3MarCxIoCkiO9CQdL4rqhQwjeHvubCNL0CO923KaYB5hYQ2xTAuxN5npwLsAZOU7LdOJCq810mis"/>
+<!-- HUD Mesh lines overlay -->
+<div class="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent pointer-events-none"></div>
+<!-- Forensic Annotations -->
+<div class="absolute inset-x-3 bottom-2 flex items-center justify-between font-label-code text-[9px]">
+<span class="text-error bg-surface-container-lowest/80 px-1.5 py-0.5 border border-error/40 rounded">ANOMALY: BOUNDARY_BLUR_DELTA=0.78</span>
+<span class="text-primary-container bg-surface-container-lowest/80 px-1.5 py-0.5 border border-primary-container/40 rounded">FACIAL LANDMARKS: 68 PTS</span>
+</div>
+</div>
+<!-- Audio Spectrogram Track Visualizer -->
+<div class="p-2 bg-surface-container-lowest rounded border border-outline-variant space-y-1">
+<div class="flex items-center justify-between font-label-code text-[9px]">
+<span class="text-outline">AUDIO ACOUSTIC ENVELOPE (WAV2VEC)</span>
+<span class="text-tertiary">RMS: -18.4 dBFS</span>
+</div>
+<div class="h-6 w-full flex items-end gap-0.5 overflow-hidden">
+<div class="w-1 bg-tertiary h-2"></div>
+<div class="w-1 bg-tertiary h-3"></div>
+<div class="w-1 bg-tertiary h-5"></div>
+<div class="w-1 bg-tertiary h-4"></div>
+<div class="w-1 bg-tertiary h-6"></div>
+<div class="w-1 bg-tertiary h-5"></div>
+<!-- Anomaly Desync Phase in Crimson -->
+<div class="w-1 bg-error h-6"></div>
+<div class="w-1 bg-error h-5"></div>
+<div class="w-1 bg-error h-4"></div>
+<div class="w-1 bg-error h-6"></div>
+<div class="w-1 bg-error h-5"></div>
+<div class="w-1 bg-tertiary h-3"></div>
+<div class="w-1 bg-tertiary h-2"></div>
+<div class="w-1 bg-tertiary h-4"></div>
+<div class="w-1 bg-tertiary h-5"></div>
+<div class="w-1 bg-tertiary h-3"></div>
+<div class="w-1 bg-tertiary h-4"></div>
+<div class="w-1 bg-tertiary h-6"></div>
+<div class="w-1 bg-tertiary h-2"></div>
+<div class="w-1 bg-tertiary h-4"></div>
+<div class="w-1 bg-tertiary h-5"></div>
+<div class="w-1 bg-tertiary h-3"></div>
+<div class="w-1 bg-tertiary h-2"></div>
+<div class="w-1 bg-tertiary h-4"></div>
+<div class="w-1 bg-tertiary h-5"></div>
+<div class="w-1 bg-tertiary h-6"></div>
+<div class="w-1 bg-tertiary h-2"></div>
+<div class="w-1 bg-tertiary h-4"></div>
+<div class="w-1 bg-tertiary h-3"></div>
+</div>
+</div>
+</div>
+<!-- Sub-card Right: Telemetry Data Grid (5 cols) -->
+<div class="md:col-span-5 rounded bg-surface/75 backdrop-blur border border-outline-variant p-space-md space-y-3 flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between border-b border-outline-variant/60 pb-1.5 mb-2.5">
+<span class="font-title-sm text-title-sm text-on-surface font-semibold text-xs">Telemetry Data Grid</span>
+<span class="font-label-code text-label-code text-outline">MOD-09 // LATENT_FLUX</span>
+</div>
+<div class="space-y-2 font-label-code text-data-sm">
+<div class="flex justify-between items-center py-1 border-b border-outline-variant/30">
+<span class="text-outline text-xs">Face Confidence:</span>
+<span class="text-on-surface font-semibold text-xs">99.1% <span class="text-tertiary text-[9px]">(Stable)</span></span>
+</div>
+<div class="flex justify-between items-center py-1 border-b border-outline-variant/30">
+<span class="text-outline text-xs">Audio RMS Level:</span>
+<span class="text-on-surface font-semibold text-xs">-18.4 dBFS</span>
+</div>
+<div class="flex justify-between items-center py-1 border-b border-outline-variant/30">
+<span class="text-outline text-xs">Frame Extraction:</span>
+<span class="text-tertiary font-semibold text-xs">48 ms</span>
+</div>
+<div class="flex justify-between items-center py-1 border-b border-outline-variant/30">
+<span class="text-outline text-xs">Neural Inference:</span>
+<span class="text-on-surface font-semibold text-xs">134 ms</span>
+</div>
+<div class="flex justify-between items-center py-1 border-b border-outline-variant/30">
+<span class="text-outline text-xs">AV Desync Offset:</span>
+<span class="text-error font-bold text-xs bg-error/10 px-1 py-0.5 rounded border border-error/40">+62 ms (Flagged)</span>
+</div>
+<div class="flex justify-between items-center py-1">
+<span class="text-outline text-xs">Lip Sync Cross-Entropy:</span>
+<span class="text-error font-bold text-xs">0.842 <span class="text-outline text-[9px]">(Thresh: 0.25)</span></span>
+</div>
+</div>
+</div>
+<!-- Quick Health Status -->
+<div class="p-2 bg-surface-container-lowest rounded border border-outline-variant/80 flex items-center justify-between font-label-code text-label-code">
+<span class="text-outline">SPECTRAL SIGNATURE:</span>
+<span class="text-error font-bold">SYNTHESIS CONFIRMED</span>
+</div>
+</div>
+</div>
+<!-- SAMPLED FRAME & ROI STRIP GALLERY -->
+<div class="rounded bg-surface/75 backdrop-blur border border-outline-variant p-space-md space-y-3">
+<div class="flex items-center justify-between border-b border-outline-variant/60 pb-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container text-base">photo_library</span>
+<span class="font-title-sm text-title-sm text-on-surface font-semibold text-xs">Sampled Frame Strip</span>
+</div>
+<!-- Tab Switchers -->
+<div class="flex items-center gap-1 font-label-code text-[10px]">
+<button class="px-2 py-0.5 bg-primary-container/20 border border-primary-container text-primary-container rounded font-bold">Face Crops (8 frames)</button>
+<button class="px-2 py-0.5 bg-surface-container border border-outline-variant text-outline hover:text-on-surface rounded">Lip ROIs (SyncStream)</button>
+</div>
+</div>
+<!-- Horizontal Sequence of 8 Cropped Face Cards -->
+<div class="grid grid-cols-4 sm:grid-cols-8 gap-2">
+<!-- Frame 1 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded p-1 flex flex-col items-center">
+<div class="w-full aspect-square bg-surface-container rounded overflow-hidden relative">
+<img alt="Frame 1" class="w-full h-full object-cover" data-alt="Forensic face crop frame 1 of male interview speaker in cold blue studio lighting, subtle green alignment HUD mesh points." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCBJtf_MLiVjiVOCq7v-D-HuBP9rNBwvIcHw887Qzpp-e-1LJYBxgHgeIFTtZ5y800fkiCwBorE7wofaxphA5BLMPcdJPJE1MYd_53ot1smK8SgQg4C_cBE1uttjt5j5L2lW92U8sAf4WtjTZtiHCfoqaKTqBY1f8nSzYCUmDRXpC9p0rKHZ03r8I3WeKDXDVvrEE0aG-13q5zXefQxU7EVqc9edlM4hJVgpYLnoLUB4hC8OCnpYOTuYZ0dJU1JJcVNKmFdSbnLqE3O"/>
+<span class="absolute bottom-0.5 right-0.5 bg-background/80 font-label-code text-[7px] text-tertiary px-0.5">0.08</span>
+</div>
+<span class="font-label-code text-[8px] text-outline mt-1">00:01.20</span>
+</div>
+<!-- Frame 2 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded p-1 flex flex-col items-center">
+<div class="w-full aspect-square bg-surface-container rounded overflow-hidden relative">
+<img alt="Frame 2" class="w-full h-full object-cover" data-alt="Forensic face crop frame 2 of male interview speaker in cold blue studio lighting, facial analysis bounding box." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAsJO4S-NJOr-L6g4lOkTmUXZAoxHL_lftRDzVaWGEBxMuCGXhRiWTQG83BsI4KebXAIzK8G7wo0uMMX6PSwC4X1MMoj5XdWJosNCHMxEFkg9Dyiv6Gg4EnfMb66cLKJKt-x4Yb23r4x78mdukdVoiXLrmiW7MM4uHLLqgKtQEj5c_Y6shekRKvHOcAn2cAto2OJZd7ouYHBIoogbtn7HEaVgWnfnW7ISwp0fo_2QQ7d8fpJ4jvbx3rzZHn-ZYuqoqUEF31nnVgrrC-"/>
+<span class="absolute bottom-0.5 right-0.5 bg-background/80 font-label-code text-[7px] text-tertiary px-0.5">0.11</span>
+</div>
+<span class="font-label-code text-[8px] text-outline mt-1">00:02.40</span>
+</div>
+<!-- Frame 3 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded p-1 flex flex-col items-center">
+<div class="w-full aspect-square bg-surface-container rounded overflow-hidden relative">
+<img alt="Frame 3" class="w-full h-full object-cover" data-alt="Forensic face crop frame 3 of male interview speaker, showing mouth beginning to warp in neural synthesis artifacts." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvRWUm1ZDn6ByG7hZNxkG4pBXzrenj_Hz9bg0Gyb6s7BFyJWSr10K7xymwJnw4_xRQPgj6XgDGHFHup14etHBIezU5Xg0GeunguOKERniqWDFZGOrNOkHNHcuul2bw9Pr48TBk9pbHwW-mgb3nyRNBFt0Bpg6liSB0nOz0edO1XZbIVl2rLoU3wrHPtAsAc87Llsz8ijSvXXaf2n-WjF94lf5zVU9NS4xeVSfyFesqh0D8ch7QgI015T2Jt6AybK4ZI9KDGJ6MY997"/>
+<span class="absolute bottom-0.5 right-0.5 bg-background/80 font-label-code text-[7px] text-tertiary px-0.5">0.14</span>
+</div>
+<span class="font-label-code text-[8px] text-outline mt-1">00:03.60</span>
+</div>
+<!-- Frame 4 (WARN) -->
+<div class="bg-surface-container-lowest border-2 border-error rounded p-1 flex flex-col items-center shadow-[0_0_8px_rgba(239,68,68,0.3)]">
+<div class="w-full aspect-square bg-surface-container rounded overflow-hidden relative">
+<img alt="Frame 4" class="w-full h-full object-cover" data-alt="Forensic face crop frame 4 with highlighted synthetic red artifact box around distorted mouth and blurred jaw contour." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAuQxXiICwkh7dYvYqWbadEpjzQ8oXvPHrsUU-tAqL1TCzQJSus9Cfq7HYvPSx43VvGstXxosBeRtg0qwV_PeoxXGyMVEiNJE8eEfgIp1fLl2oRkvnUpv3DLjalFokjAclwCbSo_JJQr_sRMEQKmXzmBa9SlXzrhQSlXwk8XQCRXZXQGW397fz75h4P8HDs5dUNO9gBjAtTqU-9I7jdVjXDLUS1YABtST3bYS2EiPP9DUw5YoHkb_IdTTTIjxpqWfOWudo2GezNsU3t"/>
+<span class="absolute top-0.5 left-0.5 bg-error text-background font-label-code text-[7px] font-bold px-0.5">WARN</span>
+<span class="absolute bottom-0.5 right-0.5 bg-background/80 font-label-code text-[7px] text-error font-bold px-0.5">0.96</span>
+</div>
+<span class="font-label-code text-[8px] text-error font-semibold mt-1">00:04.80</span>
+</div>
+<!-- Frame 5 (WARN) -->
+<div class="bg-surface-container-lowest border-2 border-error rounded p-1 flex flex-col items-center shadow-[0_0_8px_rgba(239,68,68,0.3)]">
+<div class="w-full aspect-square bg-surface-container rounded overflow-hidden relative">
+<img alt="Frame 5" class="w-full h-full object-cover" data-alt="Forensic face crop frame 5 showing severe Wav2Lip mouth shape mismatch with bright red thermal boundary outline." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD5p5Jg4lTtWjB66yMqZlM1dyHx93opx46vY-VcS9fReyQ5onXQdVmc173valf2ODGS1hvyojCuSWRTPszSV-R5TzHNU89Wo1b-1pQsiGjGFqgHDxRhz3fVzxOpguOEL5ACz6wcjK_Og7z2bsLe1VN38S8ROjj6bafHY-zONwU0bLccgmDaX7bR8wDJjwT-Gk6rn8pchmAgLioGmTbVraY9_FRdQ7Tfbxc87ntgqZQCQlPp1_yAowDIX0nGhElQRSAqG8ItGFCnpTX7"/>
+<span class="absolute top-0.5 left-0.5 bg-error text-background font-label-code text-[7px] font-bold px-0.5">WARN</span>
+<span class="absolute bottom-0.5 right-0.5 bg-background/80 font-label-code text-[7px] text-error font-bold px-0.5">0.99</span>
+</div>
+<span class="font-label-code text-[8px] text-error font-semibold mt-1">00:06.00</span>
+</div>
+<!-- Frame 6 (WARN) -->
+<div class="bg-surface-container-lowest border-2 border-error rounded p-1 flex flex-col items-center shadow-[0_0_8px_rgba(239,68,68,0.3)]">
+<div class="w-full aspect-square bg-surface-container rounded overflow-hidden relative">
+<img alt="Frame 6" class="w-full h-full object-cover" data-alt="Forensic face crop frame 6 showing high frequency pixel noise and texture seams along synthetic lip edge." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBxa8iqfh1qizmZa7u38lbo0aYVcKUAelk6jS74V-dsAbbnZOPNRVURalbF8yByOs2OQgePKNXyK1S-FF-wQHqLsVEqn1bkdVnit1yk0wbxaRVvSzZiXaWmqtJjdQT55YqJd1uROxMLurcPngo_miYPdmRZZK2CXmL-V7cayznAw4IpyIhbfteh7p2BupgWdjBTxMUdgAYX9YhKvrV9A3XFMV03SA7daeBTE8livQo2QCp5AY7G-Dj1ZyJc7hFSeeJAyQwC_l7DbVTh"/>
+<span class="absolute top-0.5 left-0.5 bg-error text-background font-label-code text-[7px] font-bold px-0.5">WARN</span>
+<span class="absolute bottom-0.5 right-0.5 bg-background/80 font-label-code text-[7px] text-error font-bold px-0.5">0.98</span>
+</div>
+<span class="font-label-code text-[8px] text-error font-semibold mt-1">00:07.20</span>
+</div>
+<!-- Frame 7 (WARN) -->
+<div class="bg-surface-container-lowest border-2 border-error rounded p-1 flex flex-col items-center shadow-[0_0_8px_rgba(239,68,68,0.3)]">
+<div class="w-full aspect-square bg-surface-container rounded overflow-hidden relative">
+<img alt="Frame 7" class="w-full h-full object-cover" data-alt="Forensic face crop frame 7 displaying temporal glitch in teeth rendering during deepfake vocalization." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdkil0nx-MZ1syeK7g-GYa-rlodc4KWQUOBs6O3F6y-5x0ong--S1BF-UjlhDh5zq12H-gL5IGtKW9wdgQzpEdNEmL0i2ym18usel_i65JTqF-YDKb4ArxvbEoQYfAF95j7WLsi8314KYSFWcBpv6BDp1GjPTna9r20QLKBEgg4sGC2n6QGAES3O4kQekMG8tLdcLe5KxLDogUwXkyoSfNd-nG-FWIOVb4_7NOuPJkwzBtBNt95mRZ-HdyEsayO-b_M365bT4DJPCt"/>
+<span class="absolute top-0.5 left-0.5 bg-error text-background font-label-code text-[7px] font-bold px-0.5">WARN</span>
+<span class="absolute bottom-0.5 right-0.5 bg-background/80 font-label-code text-[7px] text-error font-bold px-0.5">0.97</span>
+</div>
+<span class="font-label-code text-[8px] text-error font-semibold mt-1">00:08.40</span>
+</div>
+<!-- Frame 8 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded p-1 flex flex-col items-center">
+<div class="w-full aspect-square bg-surface-container rounded overflow-hidden relative">
+<img alt="Frame 8" class="w-full h-full object-cover" data-alt="Forensic face crop frame 8 of interview speaker transitioning back to neutral rest position with reduced artifact count." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHp1nluQz2pXwTeWlucp9lUwvs3x6AynZIOWDozwPLkra7UOt8wng2jdYLLqMIaFgZDiT1VgB7P4B85-2LlVdAAL7KXq6_CxnkoRRVe9_2vxveF9KWM0elvp3hbFi6DF1BMVj9FzgzjIauASBMnlE3403OsHbkwwXIFvCidrkhwFocx1QipI2qdabfxngxRhgbCx5x6lqbZqqXdqwt_0wk979qKh3_mYsOnlVAULMxkP9L6l2Per78clhseIdmVIqPBQZQjlV6VMHd"/>
+<span class="absolute bottom-0.5 right-0.5 bg-background/80 font-label-code text-[7px] text-tertiary px-0.5">0.22</span>
+</div>
+<span class="font-label-code text-[8px] text-outline mt-1">00:09.60</span>
+</div>
+</div>
+</div>
+<!-- AUTOMATED FORENSIC FINDINGS -->
+<div class="rounded bg-surface/75 backdrop-blur border border-outline-variant p-space-md space-y-2.5">
+<div class="flex items-center justify-between border-b border-outline-variant/60 pb-1.5">
+<span class="font-title-sm text-title-sm text-on-surface font-semibold text-xs">Automated Forensic Findings</span>
+<span class="font-label-code text-label-code text-tertiary">3 EVALUATION CLAUSES</span>
+</div>
+<div class="space-y-2">
+<div class="p-2.5 rounded bg-surface-container-lowest border border-error/40 flex items-start gap-2.5">
+<span class="material-symbols-outlined text-error text-lg flex-shrink-0 mt-0.5">warning</span>
+<div class="text-xs text-on-surface font-body-sm leading-relaxed">
+<span class="text-error font-bold">Temporal Inconsistency:</span> Significant temporal inconsistency detected across frames 4 through 7 in facial boundary landmarks and blending artifacts. Residual blending mask boundaries visible in Xception residual layers.
+                </div>
+</div>
+<div class="p-2.5 rounded bg-surface-container-lowest border border-amber-500/40 flex items-start gap-2.5">
+<span class="material-symbols-outlined text-amber-400 text-lg flex-shrink-0 mt-0.5">crisis_alert</span>
+<div class="text-xs text-on-surface font-body-sm leading-relaxed">
+<span class="text-amber-400 font-bold">Phase Discrepancy:</span> SyncStream model reports +62ms phase discrepancy between phoneme audio envelope and visual lip aperture dynamics. Exceeds ISO/IEC 30107-3 biometric liveness tolerance (25ms).
+                </div>
+</div>
+<div class="p-2.5 rounded bg-surface-container-lowest border border-tertiary/40 flex items-start gap-2.5">
+<span class="material-symbols-outlined text-tertiary text-lg flex-shrink-0 mt-0.5">check_circle</span>
+<div class="text-xs text-on-surface font-body-sm leading-relaxed">
+<span class="text-tertiary font-bold">Acoustic Integrity:</span> Audio spectral characteristics match genuine acoustic environment (low spoof probability: 12.8%). Vocal tract formants and ambient reverberance align with recorded physical room geometry.
+                </div>
+</div>
+</div>
+</div>
+<!-- BOTTOM ACTION BAR -->
+<div class="p-3 rounded bg-surface-container-low border border-outline-variant flex flex-col sm:flex-row items-center justify-between gap-3">
+<div class="flex items-center gap-2 w-full sm:w-auto">
+<button class="px-3.5 py-1.5 bg-primary-container text-surface-container-lowest font-headline-sm text-headline-sm !text-xs font-bold rounded flex items-center justify-center gap-1.5 shadow-[0_0_12px_rgba(0,229,255,0.35)] hover:shadow-[0_0_18px_rgba(0,229,255,0.5)] transition-all">
+<span class="material-symbols-outlined text-sm">picture_as_pdf</span>
+                Export Forensic PDF Dossier
+              </button>
+<button class="px-3 py-1.5 bg-surface-container border border-outline-variant hover:border-primary-container text-on-surface font-headline-sm text-headline-sm !text-xs rounded flex items-center justify-center gap-1.5 transition-colors">
+<span class="material-symbols-outlined text-sm">code</span>
+                Export Raw JSON Telemetry
+              </button>
+<button class="px-2.5 py-1.5 bg-surface-container-lowest border border-outline-variant/60 hover:text-primary text-outline rounded flex items-center justify-center transition-colors" title="Share Secure Link">
+<span class="material-symbols-outlined text-sm">link</span>
+</button>
+</div>
+<div class="font-label-code text-label-code text-outline text-right w-full sm:w-auto">
+              Analysis generated: 2025-05-18 14:22:04 UTC · Chain ID #8921-DFX
+            </div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

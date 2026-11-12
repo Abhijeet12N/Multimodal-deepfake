@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Veritas AI · Empirical Benchmarking &amp; Deep Neural Trunk Architecture</title>
+<!-- Fonts: Plus Jakarta Sans, Inter, JetBrains Mono -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Plus Jakarta+Sans:wght@500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS v3 -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface-bright": "#faf8ff",
+            "inverse-primary": "#b4c5ff",
+            "surface-dim": "#d2d9f4",
+            "secondary-fixed-dim": "#68dba9",
+            "on-error": "#ffffff",
+            "tertiary": "#ac0031",
+            "surface-tint": "#0053db",
+            "tertiary-fixed": "#ffdada",
+            "surface-container-low": "#f2f3ff",
+            "primary-fixed-dim": "#b4c5ff",
+            "on-error-container": "#93000a",
+            "error": "#ba1a1a",
+            "on-surface": "#131b2e",
+            "secondary-container": "#82f5c1",
+            "on-primary-fixed-variant": "#003ea8",
+            "primary-container": "#2563eb",
+            "on-primary-container": "#eeefff",
+            "secondary-fixed": "#85f8c4",
+            "on-secondary-container": "#00714e",
+            "on-tertiary": "#ffffff",
+            "inverse-on-surface": "#eef0ff",
+            "surface-container-lowest": "#ffffff",
+            "surface-container": "#eaedff",
+            "secondary": "#006c4a",
+            "on-secondary-fixed": "#002114",
+            "error-container": "#ffdad6",
+            "tertiary-container": "#d71142",
+            "primary-fixed": "#dbe1ff",
+            "on-surface-variant": "#434655",
+            "on-tertiary-fixed": "#40000c",
+            "on-primary": "#ffffff",
+            "background": "#faf8ff",
+            "on-secondary": "#ffffff",
+            "inverse-surface": "#283044",
+            "outline-variant": "#c3c6d7",
+            "on-secondary-fixed-variant": "#005137",
+            "surface": "#faf8ff",
+            "on-primary-fixed": "#00174b",
+            "outline": "#737686",
+            "surface-container-high": "#e2e7ff",
+            "primary": "#004ac6",
+            "on-tertiary-container": "#ffecec",
+            "on-tertiary-fixed-variant": "#920028",
+            "tertiary-fixed-dim": "#ffb3b6",
+            "surface-variant": "#dae2fd",
+            "surface-container-highest": "#dae2fd",
+            "slate-border": "#E2E8F0",
+            "canvas-bg": "#F8FAFC",
+            "brand-cobalt": "#2563EB",
+            "brand-emerald": "#059669",
+            "brand-crimson": "#E11D48",
+            "brand-indigo": "#4F46E5"
+          },
+          borderRadius: {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          fontFamily: {
+            "body-lg": ["Inter", "sans-serif"],
+            "display-lg-mobile": ["Plus Jakarta Sans", "sans-serif"],
+            "mono-sm": ["JetBrains Mono", "monospace"],
+            "body-sm": ["Inter", "sans-serif"],
+            "body-md": ["Inter", "sans-serif"],
+            "headline-md": ["Plus Jakarta Sans", "sans-serif"],
+            "headline-lg": ["Plus Jakarta Sans", "sans-serif"],
+            "mono-md": ["JetBrains Mono", "monospace"],
+            "display-lg": ["Plus Jakarta Sans", "sans-serif"],
+            "mono-lg": ["JetBrains Mono", "monospace"],
+            "label-md": ["Inter", "sans-serif"],
+            "headline-sm": ["Plus Jakarta Sans", "sans-serif"],
+            "label-sm": ["Inter", "sans-serif"]
+          },
+          fontSize: {
+            "body-lg": ["16px", { lineHeight: "26px", letterSpacing: "-0.01em", fontWeight: "400" }],
+            "display-lg-mobile": ["28px", { lineHeight: "36px", letterSpacing: "-0.025em", fontWeight: "700" }],
+            "mono-sm": ["11px", { lineHeight: "16px", fontWeight: "400" }],
+            "body-sm": ["13px", { lineHeight: "20px", fontWeight: "400" }],
+            "body-md": ["14px", { lineHeight: "22px", letterSpacing: "-0.005em", fontWeight: "400" }],
+            "headline-md": ["22px", { lineHeight: "30px", letterSpacing: "-0.02em", fontWeight: "600" }],
+            "headline-lg": ["28px", { lineHeight: "36px", letterSpacing: "-0.025em", fontWeight: "600" }],
+            "mono-md": ["12px", { lineHeight: "18px", letterSpacing: "-0.01em", fontWeight: "500" }],
+            "display-lg": ["36px", { lineHeight: "44px", letterSpacing: "-0.03em", fontWeight: "700" }],
+            "mono-lg": ["14px", { lineHeight: "20px", letterSpacing: "-0.02em", fontWeight: "500" }],
+            "label-md": ["12px", { lineHeight: "16px", letterSpacing: "0.02em", fontWeight: "600" }],
+            "headline-sm": ["18px", { lineHeight: "26px", letterSpacing: "-0.015em", fontWeight: "600" }],
+            "label-sm": ["11px", { lineHeight: "14px", letterSpacing: "0.03em", fontWeight: "500" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: #F8FAFC;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="bg-[#F8FAFC] text-[#0F172A] font-body-md text-body-md antialiased min-h-screen selection:bg-brand-cobalt selection:text-white">
+<!-- ========================================================================= -->
+<!-- 1. TOP NAVIGATION BAR (Veritas AI Design Protocol)                        -->
+<!-- ========================================================================= -->
+<header class="w-full bg-[#FFFFFF] border-b border-[#E2E8F0] sticky top-0 z-50 shadow-sm">
+<div class="max-w-[1536px] mx-auto px-6 h-16 flex items-center justify-between gap-6">
+<!-- Brand Anchor -->
+<div class="flex items-center gap-3.5 shrink-0">
+<div class="w-9 h-9 rounded-lg bg-[#2563EB] flex items-center justify-center text-white shadow-sm shadow-blue-500/20">
+<span class="material-symbols-outlined text-[22px]">shield</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-headline-sm font-bold tracking-tight text-[#0F172A]">VERITAS // NEURAL FORENSICS</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-mono-sm bg-[#EEF2FF] text-[#2563EB] border border-[#C7D2FE] font-medium">BENCH-v1.2</span>
+</div>
+<p class="font-mono-sm text-mono-sm text-[#64748B] flex items-center gap-1.5 leading-none mt-0.5">
+<span>Multimodal Forensic Analysis</span>
+<span class="text-[#CBD5E1]">•</span>
+<span>Xception · Wav2Vec 2.0 · SyncStream</span>
+</p>
+</div>
+</div>
+<!-- Segmented Navigation Cluster -->
+<nav class="hidden md:flex items-center p-1 bg-[#F1F5F9] rounded-lg border border-[#E2E8F0]">
+<a class="px-3.5 py-1.5 text-label-md font-label-md text-[#64748B] hover:text-[#0F172A] rounded transition-colors duration-150" href="#">
+          Multimodal Video Studio
+        </a>
+<a class="px-3.5 py-1.5 text-label-md font-label-md text-[#64748B] hover:text-[#0F172A] rounded transition-colors duration-150" href="#">
+          Audio Forensic Scanner
+        </a>
+<a class="px-3.5 py-1.5 text-label-md font-label-md bg-[#FFFFFF] text-[#2563EB] font-semibold rounded shadow-sm border border-[#E2E8F0] transition-all" href="#">
+          Benchmarks &amp; Architecture
+        </a>
+<a class="px-3.5 py-1.5 text-label-md font-label-md text-[#64748B] hover:text-[#0F172A] rounded transition-colors duration-150" href="#">
+          Audit Reports
+        </a>
+</nav>
+<!-- Telemetry Rails & Clearance Identity -->
+<div class="flex items-center gap-3 shrink-0">
+<!-- GPU Node Status -->
+<div class="hidden lg:flex items-center gap-2 px-2.5 py-1 rounded bg-[#F8FAFC] border border-[#E2E8F0] font-mono-sm text-mono-sm text-[#475569]">
+<span class="material-symbols-outlined text-[15px] text-[#2563EB]">memory</span>
+<span>NVIDIA RTX 4090 · CUDA 12.2</span>
+</div>
+<!-- Engine Status Pulse -->
+<div class="flex items-center gap-2 px-2.5 py-1 rounded bg-[#ECFDF5] border border-[#A7F3D0] font-mono-sm text-mono-sm text-[#059669]">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#059669] opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-[#059669]"></span>
+</span>
+<span class="font-medium">Model Status: All Active</span>
+</div>
+<!-- Analyst Clearance Badge -->
+<div class="flex items-center gap-2.5 pl-2 border-l border-[#E2E8F0]">
+<div class="text-right">
+<div class="font-mono-sm text-mono-sm font-semibold text-[#0F172A]">ANALYST #418</div>
+<div class="text-[10px] font-mono-sm text-[#D97706] flex items-center justify-end gap-1 font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-[#D97706]"></span>
+              TS/SCI CLEARANCE
+            </div>
+</div>
+<div class="w-8 h-8 rounded-lg bg-[#F1F5F9] border border-[#E2E8F0] flex items-center justify-center text-[#475569]">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+</div>
+</div>
+</div>
+</div>
+</header>
+<!-- ========================================================================= -->
+<!-- MAIN WORKSPACE CONTAINER (Max 1536px Forensic Layout)                      -->
+<!-- ========================================================================= -->
+<main class="max-w-[1536px] mx-auto px-6 py-7 space-y-6">
+<!-- 2. BENCHMARK OVERVIEW HEADER -->
+<section class="bg-[#FFFFFF] border border-[#E2E8F0] rounded-xl p-6 shadow-sm">
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-5 border-b border-[#F1F5F9]">
+<div class="space-y-1.5">
+<!-- Breadcrumb Rail -->
+<div class="flex items-center gap-2 font-mono-sm text-mono-sm text-[#64748B]">
+<span>Forensic Workspace</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span>Benchmark Registry</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-[#2563EB] font-medium bg-[#EEF2FF] px-1.5 py-0.5 rounded border border-[#C7D2FE]">FakeAVCeleb-v1.2-eval</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg font-bold tracking-tight text-[#0F172A]">
+            Empirical Benchmarking &amp; Deep Neural Trunk Architecture
+          </h1>
+<p class="font-body-md text-body-md text-[#475569] max-w-4xl">
+            Rigorous performance evaluation on the FakeAVCeleb v1.2 subject-disjoint benchmark dataset (3,276 test videos across 75 unseen identities) and Late Fusion multi-task pipeline architecture.
+          </p>
+</div>
+<!-- Top Right Strategic Actions -->
+<div class="flex items-center gap-3 shrink-0">
+<button class="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-[#FFFFFF] border border-[#E2E8F0] text-[#0F172A] font-label-md text-label-md hover:bg-[#F8FAFC] hover:border-[#CBD5E1] transition-all shadow-sm">
+<span class="material-symbols-outlined text-[18px] text-[#475569]">play_arrow</span>
+<span>Run Regression Benchmark Test</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] text-[#FFFFFF] font-label-md text-label-md shadow-sm shadow-blue-600/20 transition-all">
+<span class="material-symbols-outlined text-[18px]">download</span>
+<span>Export Formal Benchmark PDF Dossier</span>
+</button>
+</div>
+</div>
+<!-- Filter Segmented Chips -->
+<div class="pt-4 flex flex-wrap items-center justify-between gap-4">
+<div class="flex items-center gap-2">
+<span class="font-mono-sm text-mono-sm text-[#64748B] mr-1 uppercase tracking-wider">Evaluation Cohort:</span>
+<button class="px-3 py-1 rounded-full text-label-sm font-label-sm bg-[#2563EB] text-[#FFFFFF] font-medium shadow-sm">
+            All Categories (N=3,276)
+          </button>
+<button class="px-3 py-1 rounded-full text-label-sm font-label-sm bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#475569] border border-[#E2E8F0] transition-colors">
+            Wav2Lip Manipulations (N=1,485)
+          </button>
+<button class="px-3 py-1 rounded-full text-label-sm font-label-sm bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#475569] border border-[#E2E8F0] transition-colors">
+            Neural Voice Clones (N=75)
+          </button>
+<button class="px-3 py-1 rounded-full text-label-sm font-label-sm bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#475569] border border-[#E2E8F0] transition-colors">
+            Dual-Stream Fakes (N=1,641)
+          </button>
+<button class="px-3 py-1 rounded-full text-label-sm font-label-sm bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#475569] border border-[#E2E8F0] transition-colors">
+            Authentic Controls (N=75)
+          </button>
+</div>
+<div class="flex items-center gap-2 font-mono-sm text-mono-sm text-[#64748B]">
+<span class="material-symbols-outlined text-[16px] text-[#059669]">check_circle</span>
+<span>Zero Identity Leakage Verified across 75 Splits</span>
+</div>
+</div>
+</section>
+<!-- 3. HIGH-IMPACT METRIC SCORECARDS (4 Clean Bento Cards) -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+<!-- Card 1: Visual Stream -->
+<div class="bg-[#FFFFFF] border border-[#E2E8F0] rounded-xl p-5 shadow-sm hover:border-[#CBD5E1] transition-all flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-3">
+<span class="font-mono-sm text-mono-sm text-[#64748B] font-semibold uppercase tracking-wider">Visual Stream (Xception)</span>
+<span class="px-2 py-0.5 rounded text-[10px] font-mono-sm bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0] font-semibold">HIGH PRECISION</span>
+</div>
+<div class="flex items-baseline gap-2">
+<div class="font-mono-lg text-[32px] font-bold text-[#2563EB] tracking-tight leading-none">0.9991</div>
+<span class="font-mono-sm text-mono-sm text-[#64748B]">ROC AUC</span>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-[#F1F5F9] space-y-1.5">
+<div class="flex justify-between items-center font-mono-sm text-mono-sm">
+<span class="text-[#64748B]">F1 Score</span>
+<span class="font-semibold text-[#0F172A]">0.9994</span>
+</div>
+<div class="flex justify-between items-center font-mono-sm text-mono-sm">
+<span class="text-[#64748B]">False Positive Rate</span>
+<span class="font-semibold text-[#0F172A]">0.08%</span>
+</div>
+<div class="flex justify-between items-center font-mono-sm text-mono-sm">
+<span class="text-[#64748B]">Equal Error Rate (EER)</span>
+<span class="font-semibold text-[#059669]">0.14%</span>
+</div>
+</div>
+</div>
+<!-- Card 2: Speech Stream -->
+<div class="bg-[#FFFFFF] border border-[#E2E8F0] rounded-xl p-5 shadow-sm hover:border-[#CBD5E1] transition-all flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-3">
+<span class="font-mono-sm text-mono-sm text-[#64748B] font-semibold uppercase tracking-wider">Speech Stream (Wav2Vec 2.0)</span>
+<span class="px-2 py-0.5 rounded text-[10px] font-mono-sm bg-[#EEF2FF] text-[#4F46E5] border border-[#C7D2FE] font-semibold">VOCODER SENSITIVE</span>
+</div>
+<div class="flex items-baseline gap-2">
+<div class="font-mono-lg text-[32px] font-bold text-[#4F46E5] tracking-tight leading-none">0.9982</div>
+<span class="font-mono-sm text-mono-sm text-[#64748B]">ROC AUC</span>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-[#F1F5F9] space-y-1.5">
+<div class="flex justify-between items-center font-mono-sm text-mono-sm">
+<span class="text-[#64748B]">F1 Score</span>
+<span class="font-semibold text-[#0F172A]">0.9875</span>
+</div>
+<div class="flex justify-between items-center font-mono-sm text-mono-sm">
+<span class="text-[#64748B]">False Positive Rate</span>
+<span class="font-semibold text-[#0F172A]">1.25%</span>
+</div>
+<div class="flex justify-between items-center font-mono-sm text-mono-sm">
+<span class="text-[#64748B]">Audio Ingest Latency</span>
+<span class="font-semibold text-[#2563EB]">42ms</span>
+</div>
+</div>
+</div>
+<!-- Card 3: Multimodal Fusion Trunk (Featured) -->
+<div class="bg-[#FFFFFF] border-2 border-[#2563EB] rounded-xl p-5 shadow-md shadow-blue-500/5 hover:shadow-lg transition-all flex flex-col justify-between relative overflow-hidden">
+<div class="absolute -right-6 -bottom-6 opacity-5 pointer-events-none">
+<span class="material-symbols-outlined text-[120px] text-[#2563EB]">verified</span>
+</div>
+<div>
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-1.5">
+<span class="font-mono-sm text-mono-sm text-[#0F172A] font-bold uppercase tracking-wider">MULTIMODAL FUSION TRUNK</span>
+<span class="material-symbols-outlined text-[16px] text-[#2563EB]">verified</span>
+</div>
+<span class="px-2 py-0.5 rounded text-[10px] font-mono-sm bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0] font-bold">STATE OF THE ART</span>
+</div>
+<div class="flex items-baseline gap-2">
+<div class="font-mono-lg text-[32px] font-bold text-[#0F172A] tracking-tight leading-none">0.9994</div>
+<span class="font-mono-sm text-mono-sm text-[#2563EB] font-bold">COMBINED AUC</span>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-[#E2E8F0] space-y-1.5">
+<div class="flex justify-between items-center font-mono-sm text-mono-sm">
+<span class="text-[#475569]">Combined F1</span>
+<span class="font-bold text-[#2563EB]">0.9984</span>
+</div>
+<div class="flex justify-between items-center font-mono-sm text-mono-sm">
+<span class="text-[#475569]">Detection Recall</span>
+<span class="font-bold text-[#059669]">99.88%</span>
+</div>
+<div class="flex justify-between items-center font-mono-sm text-mono-sm">
+<span class="text-[#475569]">Validation Accuracy</span>
+<span class="font-bold text-[#0F172A]">99.82%</span>
+</div>
+</div>
+</div>
+<!-- Card 4: Evaluation Split Integrity -->
+<div class="bg-[#FFFFFF] border border-[#E2E8F0] rounded-xl p-5 shadow-sm hover:border-[#CBD5E1] transition-all flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-3">
+<span class="font-mono-sm text-mono-sm text-[#64748B] font-semibold uppercase tracking-wider">Evaluation Split Integrity</span>
+<span class="px-2 py-0.5 rounded text-[10px] font-mono-sm bg-[#F1F5F9] text-[#475569] border border-[#CBD5E1] font-semibold">DISJOINT VALIDATION</span>
+</div>
+<div class="flex items-baseline gap-2">
+<div class="font-mono-lg text-[32px] font-bold text-[#0F172A] tracking-tight leading-none">3,276</div>
+<span class="font-mono-sm text-mono-sm text-[#64748B]">TEST VIDEOS</span>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-[#F1F5F9] space-y-1.5">
+<div class="flex justify-between items-center font-mono-sm text-mono-sm">
+<span class="text-[#64748B]">Unseen Person Identities</span>
+<span class="font-semibold text-[#0F172A]">75 IDs</span>
+</div>
+<div class="flex justify-between items-center font-mono-sm text-mono-sm">
+<span class="text-[#64748B]">Macro Precision</span>
+<span class="font-semibold text-[#059669]">99.91%</span>
+</div>
+<div class="flex justify-between items-center font-mono-sm text-mono-sm">
+<span class="text-[#64748B]">Identity Leakage Margin</span>
+<span class="font-semibold text-[#059669]">0.0000% (Strict)</span>
+</div>
+</div>
+</div>
+</section>
+<!-- 4. CATEGORY BREAKDOWN & ROC CURVE (Split 60% / 40%) -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+<!-- Left Column (60%): Evaluation Matrix Table -->
+<div class="lg:col-span-7 bg-[#FFFFFF] border border-[#E2E8F0] rounded-xl shadow-sm flex flex-col overflow-hidden">
+<div class="px-5 py-4 bg-[#F8FAFC] border-b border-[#E2E8F0] flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px] text-[#2563EB]">table_chart</span>
+<h2 class="font-headline-sm text-headline-sm font-bold text-[#0F172A]">FakeAVCeleb v1.2 Category Evaluation Matrix</h2>
+</div>
+<span class="font-mono-sm text-mono-sm text-[#64748B]">Subject-Disjoint Splits</span>
+</div>
+<div class="p-0 overflow-x-auto flex-1">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-[#F8FAFC] border-b border-[#E2E8F0]">
+<th class="px-4 py-3 font-mono-sm text-mono-sm text-[#475569] font-semibold uppercase">Category</th>
+<th class="px-4 py-3 font-label-sm text-label-sm text-[#475569] font-semibold uppercase">Modality Configuration</th>
+<th class="px-4 py-3 font-mono-sm text-mono-sm text-[#475569] font-semibold uppercase text-right">Videos (N)</th>
+<th class="px-4 py-3 font-mono-sm text-mono-sm text-[#475569] font-semibold uppercase text-right">Recall</th>
+<th class="px-4 py-3 font-mono-sm text-mono-sm text-[#475569] font-semibold uppercase text-right">False Alarm</th>
+<th class="px-4 py-3 font-label-sm text-label-sm text-[#475569] font-semibold uppercase">Severity Level</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-[#E2E8F0]">
+<!-- Row 1: Real-Real Control -->
+<tr class="hover:bg-[#F8FAFC] transition-colors">
+<td class="px-4 py-3.5 font-mono-sm text-mono-sm font-semibold text-[#0F172A]">[R-R]</td>
+<td class="px-4 py-3.5 font-body-sm text-body-sm text-[#0F172A]">Real Video + Real Audio (Control Baseline)</td>
+<td class="px-4 py-3.5 font-mono-sm text-mono-sm text-right font-medium text-[#475569]">75</td>
+<td class="px-4 py-3.5 font-mono-sm text-mono-sm text-right font-bold text-[#059669]">98.67%</td>
+<td class="px-4 py-3.5 font-mono-sm text-mono-sm text-right text-[#475569]">1.33%</td>
+<td class="px-4 py-3.5">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono-sm bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0] font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-[#059669]"></span>
+                    CONTROL · SAFE
+                  </span>
+</td>
+</tr>
+<!-- Row 2: Fake Video + Real Audio -->
+<tr class="hover:bg-[#F8FAFC] transition-colors">
+<td class="px-4 py-3.5 font-mono-sm text-mono-sm font-semibold text-[#0F172A]">[F-R]</td>
+<td class="px-4 py-3.5 font-body-sm text-body-sm text-[#0F172A]">Fake Video (Wav2Lip / FaceSwap) + Real Audio</td>
+<td class="px-4 py-3.5 font-mono-sm text-mono-sm text-right font-medium text-[#475569]">1,485</td>
+<td class="px-4 py-3.5 font-mono-sm text-mono-sm text-right font-bold text-[#2563EB]">99.73%</td>
+<td class="px-4 py-3.5 font-mono-sm text-mono-sm text-right text-[#475569]">0.27%</td>
+<td class="px-4 py-3.5">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono-sm bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A] font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-[#D97706]"></span>
+                    WAV2LIP / FACESWAP
+                  </span>
+</td>
+</tr>
+<!-- Row 3: Real Video + Fake Audio -->
+<tr class="hover:bg-[#F8FAFC] transition-colors">
+<td class="px-4 py-3.5 font-mono-sm text-mono-sm font-semibold text-[#0F172A]">[R-F]</td>
+<td class="px-4 py-3.5 font-body-sm text-body-sm text-[#0F172A]">Real Video + Fake Audio (Voice Clone / TTS)</td>
+<td class="px-4 py-3.5 font-mono-sm text-mono-sm text-right font-medium text-[#475569]">75</td>
+<td class="px-4 py-3.5 font-mono-sm text-mono-sm text-right font-bold text-[#4F46E5]">93.33%</td>
+<td class="px-4 py-3.5 font-mono-sm text-mono-sm text-right text-[#BA1A1A]">6.67%</td>
+<td class="px-4 py-3.5">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono-sm bg-[#EEF2FF] text-[#4F46E5] border border-[#C7D2FE] font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-[#4F46E5]"></span>
+                    VOICE CLONE / TTS
+                  </span>
+</td>
+</tr>
+<!-- Row 4: Fake Video + Fake Audio -->
+<tr class="hover:bg-[#F8FAFC] transition-colors">
+<td class="px-4 py-3.5 font-mono-sm text-mono-sm font-semibold text-[#0F172A]">[F-F]</td>
+<td class="px-4 py-3.5 font-body-sm text-body-sm text-[#0F172A]">Dual Modality (Both Video &amp; Audio Manipulated)</td>
+<td class="px-4 py-3.5 font-mono-sm text-mono-sm text-right font-medium text-[#475569]">1,641</td>
+<td class="px-4 py-3.5 font-mono-sm text-mono-sm text-right font-bold text-[#E11D48]">100.00%</td>
+<td class="px-4 py-3.5 font-mono-sm text-mono-sm text-right text-[#059669]">0.00%</td>
+<td class="px-4 py-3.5">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono-sm bg-[#FFF1F2] text-[#E11D48] border border-[#FECDD3] font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-[#E11D48]"></span>
+                    DUAL MANIPULATION
+                  </span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-5 py-3 bg-[#F8FAFC] border-t border-[#E2E8F0] flex items-center justify-between text-mono-sm font-mono-sm text-[#64748B]">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-[#2563EB]">info</span>
+<span>Evaluated strictly on subject-disjoint unseen identities not present in training sets.</span>
+</div>
+<div class="font-medium text-[#0F172A]">
+            Macro Recall: 99.88%
+          </div>
+</div>
+</div>
+<!-- Right Column (40%): ROC & PR Multi-Curve Analysis -->
+<div class="lg:col-span-5 bg-[#FFFFFF] border border-[#E2E8F0] rounded-xl shadow-sm flex flex-col p-5">
+<div class="flex items-center justify-between pb-3 border-b border-[#F1F5F9]">
+<div>
+<h2 class="font-headline-sm text-headline-sm font-bold text-[#0F172A]">ROC &amp; Precision-Recall Analysis</h2>
+<p class="font-mono-sm text-mono-sm text-[#64748B]">Empirical False Positive vs True Positive Tradeoff</p>
+</div>
+<span class="px-2 py-0.5 rounded text-[10px] font-mono-sm bg-[#EEF2FF] text-[#2563EB] border border-[#C7D2FE] font-bold">AUC 0.9994</span>
+</div>
+<!-- SVG Vector ROC Curve Plot -->
+<div class="relative w-full h-[230px] my-3">
+<svg class="w-full h-full overflow-visible" preserveaspectratio="none" viewbox="0 0 400 220">
+<!-- Grid Lines -->
+<line stroke="#F1F5F9" stroke-width="1" x1="35" x2="385" y1="20" y2="20"></line>
+<line stroke="#F1F5F9" stroke-width="1" x1="35" x2="385" y1="65" y2="65"></line>
+<line stroke="#F1F5F9" stroke-width="1" x1="35" x2="385" y1="110" y2="110"></line>
+<line stroke="#F1F5F9" stroke-width="1" x1="35" x2="385" y1="155" y2="155"></line>
+<line stroke="#E2E8F0" stroke-width="1" x1="35" x2="385" y1="200" y2="200"></line>
+<line stroke="#E2E8F0" stroke-width="1" x1="35" x2="35" y1="20" y2="200"></line>
+<line stroke="#F1F5F9" stroke-width="1" x1="122.5" x2="122.5" y1="20" y2="200"></line>
+<line stroke="#F1F5F9" stroke-width="1" x1="210" x2="210" y1="20" y2="200"></line>
+<line stroke="#F1F5F9" stroke-width="1" x1="297.5" x2="297.5" y1="20" y2="200"></line>
+<line stroke="#F1F5F9" stroke-width="1" x1="385" x2="385" y1="20" y2="200"></line>
+<!-- Random Guess Diagonal (Faint) -->
+<line stroke="#CBD5E1" stroke-dasharray="3 3" stroke-width="1" x1="35" x2="385" y1="200" y2="20"></line>
+<!-- Speech Stream (Indigo Dashed) -->
+<path d="M 35 200 C 45 45, 70 30, 385 20" fill="none" stroke="#4F46E5" stroke-dasharray="4 2" stroke-width="2"></path>
+<!-- Visual Stream (Cyan Dashed) -->
+<path d="M 35 200 C 40 32, 60 25, 385 20" fill="none" stroke="#06B6D4" stroke-dasharray="3 2" stroke-width="2"></path>
+<!-- Multimodal Late Fusion (Bold Solid Royal Blue) -->
+<path d="M 35 200 C 36 24, 45 22, 385 20" fill="none" stroke="#2563EB" stroke-width="3"></path>
+<!-- Optimal Operating Threshold Point -->
+<circle cx="48" cy="23" fill="#2563EB" r="5" stroke="#FFFFFF" stroke-width="2"></circle>
+<!-- Axis Labels -->
+<text fill="#94A3B8" font-family="JetBrains Mono" font-size="9" x="35" y="215">0.0</text>
+<text fill="#94A3B8" font-family="JetBrains Mono" font-size="9" x="200" y="215">FPR (False Positive Rate)</text>
+<text fill="#94A3B8" font-family="JetBrains Mono" font-size="9" x="375" y="215">1.0</text>
+<text fill="#94A3B8" font-family="JetBrains Mono" font-size="9" x="10" y="25">1.0</text>
+<text fill="#94A3B8" font-family="JetBrains Mono" font-size="9" x="10" y="200">0.0</text>
+</svg>
+<!-- Annotated Operating Threshold Box -->
+<div class="absolute top-2 left-16 bg-[#FFFFFF] border border-[#CBD5E1] rounded shadow-md px-2.5 py-1 text-[11px] font-mono-sm pointer-events-none">
+<div class="font-bold text-[#2563EB] flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-[#2563EB]"></span>
+              Operating Threshold: 0.48
+            </div>
+<div class="text-[#475569] text-[10px]">TPR: 99.88% | FPR: 0.12%</div>
+</div>
+</div>
+<!-- Legend and Toggle Controls -->
+<div class="pt-3 border-t border-[#F1F5F9] grid grid-cols-3 gap-2">
+<label class="flex items-center gap-2 cursor-pointer">
+<input checked="" class="rounded text-[#2563EB] focus:ring-[#2563EB] w-3.5 h-3.5 border-[#CBD5E1]" type="checkbox"/>
+<span class="font-mono-sm text-[11px] text-[#0F172A] font-medium flex items-center gap-1">
+<span class="w-2 h-0.5 bg-[#2563EB] inline-block"></span> Fusion (0.9994)
+            </span>
+</label>
+<label class="flex items-center gap-2 cursor-pointer">
+<input checked="" class="rounded text-[#06B6D4] focus:ring-[#06B6D4] w-3.5 h-3.5 border-[#CBD5E1]" type="checkbox"/>
+<span class="font-mono-sm text-[11px] text-[#475569] flex items-center gap-1">
+<span class="w-2 h-0.5 bg-[#06B6D4] inline-block"></span> Visual (0.9991)
+            </span>
+</label>
+<label class="flex items-center gap-2 cursor-pointer">
+<input checked="" class="rounded text-[#4F46E5] focus:ring-[#4F46E5] w-3.5 h-3.5 border-[#CBD5E1]" type="checkbox"/>
+<span class="font-mono-sm text-[11px] text-[#475569] flex items-center gap-1">
+<span class="w-2 h-0.5 bg-[#4F46E5] inline-block"></span> Audio (0.9982)
+            </span>
+</label>
+</div>
+</div>
+</section>
+<!-- 5. NEURAL ARCHITECTURE BLUEPRINT VISUALIZER (Full Width Bento Card) -->
+<section class="bg-[#FFFFFF] border border-[#E2E8F0] rounded-xl p-6 shadow-sm">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-[#E2E8F0]">
+<div>
+<div class="flex items-center gap-3">
+<h2 class="font-headline-sm text-headline-sm font-bold text-[#0F172A]">
+              Multi-Task Late Fusion Deep Neural Architecture Blueprint
+            </h2>
+<span class="px-2 py-0.5 rounded text-[11px] font-mono-sm bg-[#EEF2FF] text-[#2563EB] border border-[#C7D2FE] font-bold">
+              Joint Cross-Modal Latent Representation
+            </span>
+</div>
+<p class="font-mono-sm text-mono-sm text-[#64748B] mt-1">
+            PyTorch 2.3 CUDA Execution Graph with synchronous spatial-temporal feature fusion.
+          </p>
+</div>
+<div class="flex items-center gap-2">
+<span class="px-2.5 py-1 rounded bg-[#F8FAFC] border border-[#E2E8F0] font-mono-sm text-mono-sm text-[#475569]">
+            Graph Dispatch: cuDNN v8.9
+          </span>
+<button class="px-2.5 py-1 rounded bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#0F172A] font-mono-sm text-mono-sm flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[14px]">terminal</span>
+<span>Export TorchScript .pt</span>
+</button>
+</div>
+</div>
+<!-- Architecture Flow Pipeline Grid -->
+<div class="mt-6 grid grid-cols-1 lg:grid-cols-4 gap-4 relative">
+<!-- STAGE 1: Input Modalities -->
+<div class="bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg p-4 flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between pb-2 mb-3 border-b border-[#E2E8F0]">
+<span class="font-mono-sm text-mono-sm font-bold text-[#64748B] uppercase">Stage 01</span>
+<span class="text-[10px] font-mono-sm bg-[#FFFFFF] px-1.5 py-0.5 rounded border border-[#E2E8F0] text-[#475569]">INPUT TENSORS</span>
+</div>
+<div class="space-y-2.5">
+<div class="p-2.5 rounded bg-[#FFFFFF] border border-[#E2E8F0] shadow-2xs">
+<div class="flex justify-between items-center text-label-sm font-label-sm text-[#0F172A] font-semibold">
+<span>Video Frames</span>
+<span class="font-mono-sm text-[10px] text-[#2563EB]">8 × 224 × 224</span>
+</div>
+<div class="font-mono-sm text-[11px] text-[#64748B] mt-0.5">RGB temporal batch [B, T=8, C=3]</div>
+</div>
+<div class="p-2.5 rounded bg-[#FFFFFF] border border-[#E2E8F0] shadow-2xs">
+<div class="flex justify-between items-center text-label-sm font-label-sm text-[#0F172A] font-semibold">
+<span>Lip Region (ROI)</span>
+<span class="font-mono-sm text-[10px] text-[#2563EB]">8 × 112 × 112</span>
+</div>
+<div class="font-mono-sm text-[11px] text-[#64748B] mt-0.5">Cropped oral phoneme region</div>
+</div>
+<div class="p-2.5 rounded bg-[#FFFFFF] border border-[#E2E8F0] shadow-2xs">
+<div class="flex justify-between items-center text-label-sm font-label-sm text-[#0F172A] font-semibold">
+<span>Audio Waveform</span>
+<span class="font-mono-sm text-[10px] text-[#4F46E5]">16 kHz PCM</span>
+</div>
+<div class="font-mono-sm text-[11px] text-[#64748B] mt-0.5">Monophonic 3.2s temporal window</div>
+</div>
+<div class="p-2.5 rounded bg-[#FFFFFF] border border-[#E2E8F0] shadow-2xs">
+<div class="flex justify-between items-center text-label-sm font-label-sm text-[#0F172A] font-semibold">
+<span>Log-Mel Spectrogram</span>
+<span class="font-mono-sm text-[10px] text-[#4F46E5]">64 Bands</span>
+</div>
+<div class="font-mono-sm text-[11px] text-[#64748B] mt-0.5">FFT 512, hop length 160</div>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-[#E2E8F0] text-center font-mono-sm text-[10px] text-[#64748B]">
+            Synchronous Ingestion Pipeline
+          </div>
+</div>
+<!-- STAGE 2: Parallel Feature Extractors -->
+<div class="bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg p-4 flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between pb-2 mb-3 border-b border-[#E2E8F0]">
+<span class="font-mono-sm text-mono-sm font-bold text-[#64748B] uppercase">Stage 02</span>
+<span class="text-[10px] font-mono-sm bg-[#FFFFFF] px-1.5 py-0.5 rounded border border-[#E2E8F0] text-[#475569]">TRUNK EXTRACTORS</span>
+</div>
+<div class="space-y-3">
+<!-- Visual Trunk -->
+<div class="p-2.5 rounded bg-[#FFFFFF] border-l-2 border-l-[#2563EB] border-y border-r border-[#E2E8F0]">
+<div class="flex justify-between items-center">
+<span class="font-label-sm text-label-sm font-bold text-[#0F172A]">Visual Trunk (Xception)</span>
+<span class="font-mono-sm text-[10px] text-[#059669]">Trainable</span>
+</div>
+<div class="text-[11px] font-body-sm text-[#475569] mt-1">
+                  MTCNN Face Crop → Xception Backbone → Temporal Pooling
+                </div>
+<div class="mt-2 font-mono-sm text-[11px] text-[#2563EB] bg-[#F1F5F9] px-2 py-0.5 rounded font-semibold inline-block">
+                  Output: [512-dim Visual Embedding]
+                </div>
+</div>
+<!-- Speech Trunk -->
+<div class="p-2.5 rounded bg-[#FFFFFF] border-l-2 border-l-[#4F46E5] border-y border-r border-[#E2E8F0]">
+<div class="flex justify-between items-center">
+<span class="font-label-sm text-label-sm font-bold text-[#0F172A]">Speech Trunk (Wav2Vec 2.0)</span>
+<span class="font-mono-sm text-[10px] text-[#475569]">Frozen Base</span>
+</div>
+<div class="text-[11px] font-body-sm text-[#475569] mt-1">
+                  Base Transformer (12 Layers) → Linear Projection + GELU
+                </div>
+<div class="mt-2 font-mono-sm text-[11px] text-[#4F46E5] bg-[#F1F5F9] px-2 py-0.5 rounded font-semibold inline-block">
+                  Output: [512-dim Speech Embedding]
+                </div>
+</div>
+<!-- SyncStream Trunk -->
+<div class="p-2.5 rounded bg-[#FFFFFF] border-l-2 border-l-[#059669] border-y border-r border-[#E2E8F0]">
+<div class="flex justify-between items-center">
+<span class="font-label-sm text-label-sm font-bold text-[#0F172A]">SyncStream Engine</span>
+<span class="font-mono-sm text-[10px] text-[#059669]">Trainable</span>
+</div>
+<div class="text-[11px] font-body-sm text-[#475569] mt-1">
+                  Joint 3D/2D CNN Lip-Audio Cross-Correlation
+                </div>
+<div class="mt-2 font-mono-sm text-[11px] text-[#059669] bg-[#F1F5F9] px-2 py-0.5 rounded font-semibold inline-block">
+                  Output: [512-dim Sync Embedding]
+                </div>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-[#E2E8F0] text-center font-mono-sm text-[10px] text-[#64748B]">
+            Three Independent Modality Encoders
+          </div>
+</div>
+<!-- STAGE 3: Feature Concatenation Bay -->
+<div class="bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg p-4 flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between pb-2 mb-3 border-b border-[#E2E8F0]">
+<span class="font-mono-sm text-mono-sm font-bold text-[#64748B] uppercase">Stage 03</span>
+<span class="text-[10px] font-mono-sm bg-[#FFFFFF] px-1.5 py-0.5 rounded border border-[#E2E8F0] text-[#475569]">FUSION JUNCTION</span>
+</div>
+<div class="space-y-3">
+<div class="p-4 rounded-lg bg-[#FFFFFF] border border-[#CBD5E1] text-center shadow-xs">
+<div class="w-10 h-10 rounded-full bg-[#EEF2FF] text-[#2563EB] flex items-center justify-center mx-auto mb-2 border border-[#C7D2FE]">
+<span class="material-symbols-outlined text-[20px]">hub</span>
+</div>
+<div class="font-headline-sm text-body-lg font-bold text-[#0F172A]">torch.cat()</div>
+<p class="font-mono-sm text-[11px] text-[#64748B] mt-1">Channel-wise Latent Merge</p>
+<div class="mt-3 p-2 bg-[#F8FAFC] rounded border border-[#E2E8F0] font-mono-sm text-mono-sm font-bold text-[#2563EB]">
+                  Tensor: [Batch, 1536]
+                </div>
+</div>
+<div class="p-3 rounded bg-[#FFFFFF] border border-[#E2E8F0] space-y-1.5 font-mono-sm text-[11px]">
+<div class="flex justify-between text-[#475569]">
+<span>Visual Component</span>
+<span class="font-semibold text-[#0F172A]">[0:512]</span>
+</div>
+<div class="flex justify-between text-[#475569]">
+<span>Speech Component</span>
+<span class="font-semibold text-[#0F172A]">[512:1024]</span>
+</div>
+<div class="flex justify-between text-[#475569]">
+<span>SyncStream Component</span>
+<span class="font-semibold text-[#0F172A]">[1024:1536]</span>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-[#E2E8F0] text-center font-mono-sm text-[10px] text-[#64748B]">
+            Joint Unified Embedding Manifold
+          </div>
+</div>
+<!-- STAGE 4: Multi-Task Classification Head -->
+<div class="bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg p-4 flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between pb-2 mb-3 border-b border-[#E2E8F0]">
+<span class="font-mono-sm text-mono-sm font-bold text-[#64748B] uppercase">Stage 04</span>
+<span class="text-[10px] font-mono-sm bg-[#FFFFFF] px-1.5 py-0.5 rounded border border-[#E2E8F0] text-[#475569]">MULTI-TASK HEAD</span>
+</div>
+<!-- MLP Stack description -->
+<div class="p-2.5 rounded bg-[#FFFFFF] border border-[#E2E8F0] mb-3">
+<div class="font-mono-sm text-[11px] font-semibold text-[#475569] mb-1">3-LAYER MLP BLOCK:</div>
+<div class="font-mono-sm text-[10px] text-[#64748B] leading-tight space-y-0.5">
+<div>Dense(1536 → 512) → BatchNorm</div>
+<div>Dropout(0.3) → Dense(512 → 128)</div>
+<div>Dense(128 → 3) → Sigmoid()</div>
+</div>
+</div>
+<!-- 3 Sigmoid Output Heads -->
+<div class="space-y-2">
+<div class="p-2 rounded bg-[#FFFFFF] border border-[#E2E8F0] flex items-center justify-between">
+<div>
+<div class="font-mono-sm text-mono-sm font-bold text-[#2563EB]">P_video</div>
+<div class="text-[10px] font-body-sm text-[#64748B]">Visual Manipulation Risk</div>
+</div>
+<span class="font-mono-sm text-mono-sm font-bold text-[#0F172A] bg-[#EEF2FF] px-2 py-0.5 rounded">0.0003</span>
+</div>
+<div class="p-2 rounded bg-[#FFFFFF] border border-[#E2E8F0] flex items-center justify-between">
+<div>
+<div class="font-mono-sm text-mono-sm font-bold text-[#4F46E5]">P_audio</div>
+<div class="text-[10px] font-body-sm text-[#64748B]">Audio Cloned / TTS Risk</div>
+</div>
+<span class="font-mono-sm text-mono-sm font-bold text-[#0F172A] bg-[#EEF2FF] px-2 py-0.5 rounded">0.0012</span>
+</div>
+<div class="p-2 rounded bg-[#FFFFFF] border-2 border-[#2563EB] flex items-center justify-between">
+<div>
+<div class="font-mono-sm text-mono-sm font-bold text-[#0F172A]">P_any (Composite)</div>
+<div class="text-[10px] font-body-sm text-[#64748B]">Overall Forensic Verdict</div>
+</div>
+<span class="font-mono-sm text-mono-sm font-bold text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded">AUTHENTIC</span>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-[#E2E8F0] text-center font-mono-sm text-[10px] text-[#64748B]">
+            Independent Calibrated Sigmoid Projections
+          </div>
+</div>
+</div>
+<!-- Telemetry Footnote Bar -->
+<div class="mt-4 p-3 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] flex flex-wrap items-center justify-between gap-4 font-mono-sm text-mono-sm text-[#475569]">
+<div class="flex items-center gap-4">
+<span class="flex items-center gap-1.5">
+<span class="text-[#64748B]">Total Parameters:</span>
+<strong class="text-[#0F172A]">142.8M</strong>
+</span>
+<span class="text-[#CBD5E1]">|</span>
+<span class="flex items-center gap-1.5">
+<span class="text-[#64748B]">Trainable Weights:</span>
+<strong class="text-[#2563EB]">38.4M</strong>
+</span>
+<span class="text-[#CBD5E1]">|</span>
+<span class="flex items-center gap-1.5">
+<span class="text-[#64748B]">GFLOPs:</span>
+<strong class="text-[#0F172A]">18.2 / frame</strong>
+</span>
+<span class="text-[#CBD5E1]">|</span>
+<span class="flex items-center gap-1.5">
+<span class="text-[#64748B]">Inference Latency:</span>
+<strong class="text-[#059669]">42ms on RTX 4090</strong>
+</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-[#059669]"></span>
+<span class="text-[#0F172A] font-semibold">PyTorch JIT Graph Optimized</span>
+</div>
+</div>
+</section>
+<!-- 6. MODEL WEIGHTS & CHECKPOINT REGISTRY (Bottom Card) -->
+<section class="bg-[#FFFFFF] border border-[#E2E8F0] rounded-xl shadow-sm overflow-hidden">
+<div class="px-6 py-4 bg-[#F8FAFC] border-b border-[#E2E8F0] flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div>
+<h2 class="font-headline-sm text-headline-sm font-bold text-[#0F172A]">Model Weights &amp; Checkpoint Registry</h2>
+<p class="font-mono-sm text-mono-sm text-[#64748B]">Cryptographically verified forensic models in active VRAM execution</p>
+</div>
+<div class="flex items-center gap-2.5">
+<button class="px-3 py-1.5 rounded-lg bg-[#FFFFFF] border border-[#E2E8F0] hover:bg-[#F8FAFC] text-[#0F172A] font-label-sm text-label-sm flex items-center gap-1.5 transition-all shadow-2xs">
+<span class="material-symbols-outlined text-[16px] text-[#475569]">sync</span>
+<span>Reload Checkpoints</span>
+</button>
+<button class="px-3 py-1.5 rounded-lg bg-[#FFFFFF] border border-[#E2E8F0] hover:bg-[#F8FAFC] text-[#0F172A] font-label-sm text-label-sm flex items-center gap-1.5 transition-all shadow-2xs">
+<span class="material-symbols-outlined text-[16px] text-[#059669]">verified</span>
+<span>Verify SHA-256 Checksums</span>
+</button>
+<button class="px-3 py-1.5 rounded-lg bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#0F172A] font-label-sm text-label-sm flex items-center gap-1.5 transition-all">
+<span class="material-symbols-outlined text-[16px] text-[#2563EB]">code</span>
+<span>Download Raw Benchmark JSON</span>
+</button>
+</div>
+</div>
+<!-- Registry Table -->
+<div class="p-0 overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-[#F8FAFC] border-b border-[#E2E8F0]">
+<th class="px-6 py-3 font-mono-sm text-mono-sm text-[#475569] font-semibold uppercase">Checkpoint Path</th>
+<th class="px-6 py-3 font-mono-sm text-mono-sm text-[#475569] font-semibold uppercase">Memory Size</th>
+<th class="px-6 py-3 font-label-sm text-label-sm text-[#475569] font-semibold uppercase">Architecture Configuration</th>
+<th class="px-6 py-3 font-mono-sm text-mono-sm text-[#475569] font-semibold uppercase">Runtime Status</th>
+<th class="px-6 py-3 font-mono-sm text-mono-sm text-[#475569] font-semibold uppercase">Cryptographic SHA-256 Digest</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-[#E2E8F0] font-mono-sm text-mono-sm">
+<!-- Checkpoint 1 -->
+<tr class="hover:bg-[#F8FAFC] transition-colors">
+<td class="px-6 py-3.5 font-bold text-[#0F172A] flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-[#2563EB]">deployed_code</span>
+<span>models/best_model.pt</span>
+</td>
+<td class="px-6 py-3.5 text-[#475569]">476 MB</td>
+<td class="px-6 py-3.5 font-body-sm text-body-sm text-[#0F172A]">Multimodal Late Fusion (Visual + Audio + Sync)</td>
+<td class="px-6 py-3.5">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0] font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-[#059669]"></span>
+                  Active / Loaded (VRAM)
+                </span>
+</td>
+<td class="px-6 py-3.5 text-[#64748B]">
+<code class="bg-[#F1F5F9] px-2 py-1 rounded text-[#0F172A] border border-[#E2E8F0]">sha256:7f83b2e591c04812a891cf23992b10a9c</code>
+</td>
+</tr>
+<!-- Checkpoint 2 -->
+<tr class="hover:bg-[#F8FAFC] transition-colors">
+<td class="px-6 py-3.5 font-bold text-[#0F172A] flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-[#4F46E5]">audio_file</span>
+<span>models/audio_model.pt</span>
+</td>
+<td class="px-6 py-3.5 text-[#475569]">184 MB</td>
+<td class="px-6 py-3.5 font-body-sm text-body-sm text-[#0F172A]">Standalone Wav2Vec 2.0 Feature Extractor</td>
+<td class="px-6 py-3.5">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0] font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-[#059669]"></span>
+                  Active / Loaded (VRAM)
+                </span>
+</td>
+<td class="px-6 py-3.5 text-[#64748B]">
+<code class="bg-[#F1F5F9] px-2 py-1 rounded text-[#0F172A] border border-[#E2E8F0]">sha256:3c8fa94e912bf8a01f5c64e0a789d811e</code>
+</td>
+</tr>
+<!-- Checkpoint 3 -->
+<tr class="hover:bg-[#F8FAFC] transition-colors">
+<td class="px-6 py-3.5 font-bold text-[#0F172A] flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-[#D97706]">graphic_eq</span>
+<span>aasist/weights/AASIST.pth</span>
+</td>
+<td class="px-6 py-3.5 text-[#475569]">34 MB</td>
+<td class="px-6 py-3.5 font-body-sm text-body-sm text-[#0F172A]">Graph Attention Spoof Detector (Sub-Band)</td>
+<td class="px-6 py-3.5">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A] font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-[#D97706]"></span>
+                  Standby (On Demand)
+                </span>
+</td>
+<td class="px-6 py-3.5 text-[#64748B]">
+<code class="bg-[#F1F5F9] px-2 py-1 rounded text-[#0F172A] border border-[#E2E8F0]">sha256:e10bf798ca0214bcf08129753c14290a</code>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</main>
+<!-- ========================================================================= -->
+<!-- EXECUTIVE AUDIT FOOTER & ENCLAVE TELEMETRY                                -->
+<!-- ========================================================================= -->
+<footer class="mt-12 bg-[#FFFFFF] border-t border-[#E2E8F0] py-6 text-mono-sm text-mono-sm text-[#64748B]">
+<div class="max-w-[1536px] mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 text-[#0F172A] font-bold">
+<span class="material-symbols-outlined text-[18px] text-[#2563EB]">verified</span>
+<span>VERITAS AI · TS/SCI ENCLAVE 04</span>
+</div>
+<span class="text-[#CBD5E1]">|</span>
+<span>FIPS 140-3 Cryptographic Module Verified</span>
+<span class="text-[#CBD5E1]">|</span>
+<span>Evaluation Standard: FakeAVCeleb Protocol v1.2</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-[#059669]"></span>
+<span>CUDA Driver: 535.129.03</span>
+</div>
+<span class="text-[#CBD5E1]">|</span>
+<span>VRAM Allocation: 9.8 GB / 24.0 GB</span>
+<span class="text-[#CBD5E1]">|</span>
+<span class="font-semibold text-[#0F172A]">Empirical Confidence Level: 99.98%</span>
+</div>
+</div>
+</footer>
+</body></html>

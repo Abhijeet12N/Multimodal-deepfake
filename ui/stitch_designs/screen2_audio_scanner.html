@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Audio Forensic Scanner &amp; Spectro-Temporal Timeline // AEGIS</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts: Inter & JetBrains Mono -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS with custom configuration -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-primary-fixed": "#001f24",
+            "on-surface": "#dfe2ee",
+            "primary-fixed": "#9cf0ff",
+            "on-background": "#dfe2ee",
+            "surface-tint": "#00daf3",
+            "surface-dim": "#0f131c",
+            "primary-fixed-dim": "#00daf3",
+            "on-tertiary-container": "#006645",
+            "on-secondary": "#1000a9",
+            "outline": "#849396",
+            "secondary-fixed-dim": "#c0c1ff",
+            "surface-container": "#1c2028",
+            "on-surface-variant": "#bac9cc",
+            "on-secondary-fixed": "#07006c",
+            "background": "#0f131c",
+            "surface-container-low": "#181c24",
+            "secondary-container": "#3131c0",
+            "surface-bright": "#353942",
+            "secondary-fixed": "#e1e0ff",
+            "tertiary-fixed": "#6ffbbe",
+            "on-secondary-container": "#b0b2ff",
+            "on-error-container": "#ffdad6",
+            "surface-variant": "#31353e",
+            "on-tertiary": "#003824",
+            "on-error": "#690005",
+            "on-primary-fixed-variant": "#004f58",
+            "on-primary-container": "#00626e",
+            "surface": "#0f131c",
+            "primary": "#c3f5ff",
+            "tertiary-fixed-dim": "#4edea3",
+            "on-primary": "#00363d",
+            "surface-container-high": "#262a33",
+            "inverse-surface": "#dfe2ee",
+            "tertiary": "#a8ffd2",
+            "inverse-primary": "#006875",
+            "tertiary-container": "#5be9ad",
+            "inverse-on-surface": "#2c3039",
+            "error": "#ffb4ab",
+            "surface-container-highest": "#31353e",
+            "secondary": "#c0c1ff",
+            "on-secondary-fixed-variant": "#2f2ebe",
+            "surface-container-lowest": "#0a0e16",
+            "primary-container": "#00e5ff",
+            "error-container": "#93000a",
+            "outline-variant": "#3b494c",
+            "on-tertiary-fixed-variant": "#005236"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "gutter": "1rem",
+            "space-xs": "0.25rem",
+            "space-md": "1rem",
+            "space-xl": "2.25rem",
+            "margin": "1.25rem",
+            "gutter-lg": "1.5rem",
+            "space-lg": "1.5rem",
+            "space-sm": "0.5rem",
+            "margin-lg": "2rem"
+          },
+          "fontFamily": {
+            "data-sm": ["JetBrains Mono"],
+            "label-code": ["JetBrains Mono"],
+            "headline-lg-mobile": ["Inter"],
+            "headline-xl-mobile": ["Inter"],
+            "headline-xl": ["Inter"],
+            "body-md": ["Inter"],
+            "headline-md": ["Inter"],
+            "headline-lg": ["Inter"],
+            "body-lg": ["Inter"],
+            "title-md": ["Inter"],
+            "data-lg": ["JetBrains Mono"],
+            "body-sm": ["Inter"],
+            "data-md": ["JetBrains Mono"],
+            "title-sm": ["Inter"],
+            "headline-sm": ["Inter"]
+          },
+          "fontSize": {
+            "data-sm": ["11px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "400" }],
+            "label-code": ["10px", { "lineHeight": "14px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+            "headline-lg-mobile": ["24px", { "lineHeight": "30px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-xl-mobile": ["28px", { "lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+            "headline-xl": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "body-md": ["13px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "headline-md": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-lg": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "body-lg": ["15px", { "lineHeight": "24px", "fontWeight": "400" }],
+            "title-md": ["16px", { "lineHeight": "22px", "fontWeight": "500" }],
+            "data-lg": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "body-sm": ["12px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "data-md": ["13px", { "lineHeight": "18px", "letterSpacing": "-0.005em", "fontWeight": "500" }],
+            "title-sm": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+            "headline-sm": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.005em", "fontWeight": "600" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    /* Technical Grid Overlay */
+    .hud-grid {
+      background-image:
+        linear-gradient(to right, rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+    /* Glow Utilities matching Design System */
+    .glow-cyan {
+      box-shadow: 0 0 16px -2px rgba(0, 229, 255, 0.35);
+    }
+    .glow-crimson {
+      box-shadow: 0 0 24px -4px rgba(239, 68, 68, 0.25);
+    }
+    .glow-playhead {
+      box-shadow: 0 0 8px #00e5ff;
+    }
+    /* Hairline gradient borders */
+    .glass-panel {
+      background: rgba(13, 20, 36, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(59, 73, 76, 0.5);
+    }
+    /* Subtle pulse animation for telemetry LEDs */
+    @keyframes pulse-fast {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+    .led-pulse {
+      animation: pulse-fast 1.6s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface antialiased min-h-screen flex flex-col font-body-sm text-body-sm hud-grid selection:bg-primary-container selection:text-surface-container-lowest">
+<!-- ================= TOP NAVIGATION BAR (Shared Component Anchor) ================= -->
+<header class="bg-surface-container-low border-b border-outline-variant flex justify-between items-center w-full px-margin-lg h-14 max-w-full sticky top-0 z-50 backdrop-blur-md">
+<!-- Left: Brand & Telemetry Ident -->
+<div class="flex items-center gap-space-md">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary-container text-headline-sm" data-icon="radar">radar</span>
+<div class="flex flex-col">
+<span class="font-label-code text-title-md font-bold tracking-wider text-primary">NEURAL FORENSIC SUITE</span>
+<span class="font-label-code text-[9px] text-outline tracking-widest leading-none">AEGIS // DEEPFAKE DETECTION STUDIO</span>
+</div>
+</div>
+<span class="font-label-code text-label-code px-1.5 py-0.5 rounded bg-surface-container-high border border-outline-variant text-primary-container">
+        v8.9.4-PROD
+      </span>
+</div>
+<!-- Center Navigation Tabs -->
+<nav class="hidden md:flex items-center gap-space-lg h-full">
+<a class="text-on-surface-variant hover:text-primary transition-colors pb-1 font-body-sm text-body-sm" href="#">
+        Multimodal Video Studio
+      </a>
+<a class="border-b-2 border-primary-container text-primary-container font-semibold pb-1 font-body-sm text-body-sm flex items-center gap-1.5" href="#">
+<span class="material-symbols-outlined text-data-md text-primary-container" data-icon="graphic_eq">graphic_eq</span>
+        Audio Forensic Scanner
+      </a>
+<a class="text-on-surface-variant hover:text-primary transition-colors pb-1 font-body-sm text-body-sm" href="#">
+        Benchmarks &amp; Architecture
+      </a>
+<a class="text-on-surface-variant hover:text-primary transition-colors pb-1 font-body-sm text-body-sm" href="#">
+        Audit History
+      </a>
+</nav>
+<!-- Right Telemetry Hardware Pills & Trailing Controls -->
+<div class="flex items-center gap-space-sm">
+<!-- Hardware Telemetry Status -->
+<div class="hidden xl:flex items-center gap-2 bg-surface-container-lowest border border-outline-variant px-space-sm py-1 rounded">
+<div class="flex items-center gap-1.5 border-r border-outline-variant pr-2">
+<span class="w-2 h-2 rounded-full bg-tertiary-container led-pulse"></span>
+<span class="font-label-code text-label-code text-on-surface">RTX 4090 [CUDA-0]</span>
+</div>
+<div class="flex items-center gap-1 font-label-code text-label-code text-on-surface-variant border-r border-outline-variant pr-2">
+<span>VRAM:</span>
+<span class="text-primary font-semibold">4.2 / 24 GB</span>
+</div>
+<div class="flex items-center gap-1 font-label-code text-label-code">
+<span class="text-outline">AUDIO MODEL:</span>
+<span class="text-tertiary font-medium">READY</span>
+</div>
+</div>
+<!-- Icon Buttons -->
+<div class="flex items-center gap-1 border-l border-outline-variant pl-space-sm">
+<button class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors" title="Telemetry Radar">
+<span class="material-symbols-outlined text-title-md" data-icon="radar">radar</span>
+</button>
+<button class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors relative" title="Notifications">
+<span class="material-symbols-outlined text-title-md" data-icon="notifications_active">notifications_active</span>
+<span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-error"></span>
+</button>
+<button class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors" title="System Settings">
+<span class="material-symbols-outlined text-title-md" data-icon="settings">settings</span>
+</button>
+</div>
+<!-- Operator Avatar -->
+<div class="flex items-center gap-2 pl-space-xs">
+<div class="w-8 h-8 rounded bg-surface-container-high border border-outline-variant flex items-center justify-center font-label-code text-label-code font-bold text-primary-container">
+          FS-09
+        </div>
+</div>
+</div>
+</header>
+<!-- ================= MAIN FORENSIC WORKSPACE ================= -->
+<main class="flex-1 flex flex-col px-margin-lg py-margin gap-margin max-w-[1720px] mx-auto w-full">
+<!-- 2. Main Audio Forensic Workspace Header -->
+<section class="glass-panel p-space-md rounded flex flex-col lg:flex-row lg:items-center justify-between gap-space-md">
+<div class="flex flex-col gap-0.5">
+<div class="flex items-center gap-space-sm flex-wrap">
+<h1 class="font-headline-md text-headline-md text-primary font-semibold tracking-tight">
+            Sliding-Window Audio Verification &amp; Latent Spectral Analysis
+          </h1>
+<span class="font-label-code text-label-code bg-surface-container px-2 py-0.5 rounded border border-outline-variant text-primary-container">
+            #AUD-8921-DFX // STREAM 16kHz
+          </span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+          Continuous sliding-window evaluation for voice cloning, neural TTS synthesis, and audio splicing manipulation.
+        </p>
+</div>
+<!-- Detector Selection Bar -->
+<div class="flex items-center gap-space-sm flex-wrap self-start lg:self-center">
+<!-- Checkpoint Pill -->
+<div class="flex items-center gap-2 bg-surface-container-lowest border border-outline-variant px-space-sm py-1.5 rounded">
+<span class="w-2 h-2 rounded-full bg-tertiary-container led-pulse"></span>
+<span class="font-label-code text-label-code text-tertiary">WEIGHTS: LOADED (audio_model.pt)</span>
+</div>
+<!-- Dropdown Selector -->
+<div class="flex items-center gap-2 bg-surface-container-lowest border border-outline-variant px-space-sm py-1 rounded">
+<span class="font-label-code text-label-code text-outline uppercase">Active Detector:</span>
+<select class="bg-transparent font-label-code text-label-code text-primary focus:outline-none cursor-pointer border-0 p-0 pr-4">
+<option class="bg-surface-container text-on-surface" selected="">Wav2Vec 2.0 + MLP (Studio Checkpoint)</option>
+<option class="bg-surface-container text-on-surface">AASIST Graph Attention (v2.1)</option>
+<option class="bg-surface-container text-on-surface">AASIST-L (Raw Waveform Heavy)</option>
+<option class="bg-surface-container text-on-surface">Wav2Vec 2.0 Legacy (ResNet-34)</option>
+</select>
+</div>
+<!-- Window Config Badge -->
+<div class="font-label-code text-label-code bg-surface-container-high border border-outline-variant px-2.5 py-1.5 rounded text-on-surface-variant">
+          Window: 3.0s · Stride: 1.0s · Resample: 16kHz Mono
+        </div>
+</div>
+</section>
+<!-- 3. Split Workspace Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter-lg flex-1 items-start">
+<!-- ================= LEFT PANEL (32% width -> 4 cols in 12-grid) ================= -->
+<aside class="lg:col-span-4 flex flex-col gap-space-md">
+<!-- Audio Dropzone & Current File Info -->
+<div class="glass-panel p-space-md rounded flex flex-col gap-space-md">
+<div class="flex items-center justify-between border-b border-outline-variant pb-2">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary-container text-title-sm" data-icon="graphic_eq">graphic_eq</span>
+<span class="font-label-code text-label-code font-bold tracking-wider text-outline uppercase">INPUT AUDIO SOURCE</span>
+</div>
+<span class="font-label-code text-label-code text-primary-container">BUFFER INGESTED</span>
+</div>
+<!-- Drop Area -->
+<div class="border-2 border-dashed border-outline-variant hover:border-primary-container transition-all duration-200 bg-surface-container-lowest/70 p-space-md rounded flex flex-col items-center justify-center text-center gap-space-xs group cursor-pointer">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-primary-container group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-headline-sm" data-icon="cloud">cloud</span>
+</div>
+<div class="font-title-sm text-title-sm text-on-surface font-semibold">Drop audio recording here</div>
+<p class="font-label-code text-label-code text-outline">
+              WAV, MP3, M4A, FLAC, OGG, AAC (Max 120MB)
+            </p>
+</div>
+<!-- Loaded File Metadata Card -->
+<div class="bg-surface-container-lowest border border-outline-variant p-space-sm rounded flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2 truncate">
+<span class="material-symbols-outlined text-primary" data-icon="audio_file">audio_file</span>
+<span class="font-data-md text-data-md font-semibold text-primary truncate">podcast_interview_leak.wav</span>
+</div>
+<span class="font-label-code text-[9px] bg-primary-container/10 border border-primary-container/30 text-primary-container px-1.5 py-0.5 rounded">
+                LOADED
+              </span>
+</div>
+<!-- Detailed Grid of Parameters -->
+<div class="grid grid-cols-2 gap-x-2 gap-y-1 pt-1 border-t border-outline-variant/50 font-label-code text-label-code">
+<div class="flex justify-between text-outline">
+<span>Duration:</span>
+<span class="text-on-surface">42.8s</span>
+</div>
+<div class="flex justify-between text-outline">
+<span>Sample Rate:</span>
+<span class="text-on-surface">44.1 → 16 kHz</span>
+</div>
+<div class="flex justify-between text-outline">
+<span>Channels:</span>
+<span class="text-on-surface">Stereo → Mono</span>
+</div>
+<div class="flex justify-between text-outline">
+<span>RMS Level:</span>
+<span class="text-on-surface">-14.2 dBFS</span>
+</div>
+</div>
+</div>
+<!-- Embedded Custom Audio Player Preview -->
+<div class="bg-surface-container-low border border-outline-variant p-space-sm rounded flex flex-col gap-2">
+<div class="flex items-center justify-between text-label-code font-label-code text-outline">
+<span>PLAYER PREVIEW</span>
+<span class="text-primary-container">WINDOW @ 00:16.4s</span>
+</div>
+<!-- Stylized Animated Waveform Preview SVG -->
+<div class="h-10 bg-surface-container-lowest rounded flex items-center px-2 relative overflow-hidden">
+<!-- Spliced Red Aura Region Indicator (14s to 22s relative) -->
+<div class="absolute left-[32%] width-[19%] w-[20%] h-full bg-error-container/40 border-x border-error/50 pointer-events-none"></div>
+<!-- Waveform SVG Bars -->
+<svg class="w-full h-7" preserveaspectratio="none" viewbox="0 0 100 24">
+<path d="M 0 12 L 2 10 L 4 14 L 6 8 L 8 16 L 10 11 L 12 13 L 14 6 L 16 18 L 18 10 L 20 14 L 22 7 L 24 17 L 26 12 L 28 14 L 30 5 L 32 19 L 34 3 L 36 21 L 38 4 L 40 20 L 42 2 L 44 22 L 46 5 L 48 19 L 50 12 L 52 14 L 54 8 L 56 16 L 58 10 L 60 14 L 62 7 L 64 17 L 66 11 L 68 13 L 70 6 L 72 18 L 74 10 L 76 14 L 78 8 L 80 16 L 82 11 L 84 13 L 86 6 L 88 18 L 90 9 L 92 15 L 94 11 L 96 13 L 98 12 L 100 12" fill="none" stroke="#00e5ff" stroke-linecap="round" stroke-width="1.2"></path>
+</svg>
+<!-- Player cursor -->
+<div class="absolute left-[38%] top-0 bottom-0 w-0.5 bg-primary-container glow-playhead"></div>
+</div>
+<!-- Player Controls -->
+<div class="flex items-center justify-between gap-2 pt-1">
+<div class="flex items-center gap-1.5">
+<button class="w-7 h-7 rounded bg-surface-container-high hover:bg-surface-bright flex items-center justify-center text-primary-container transition-colors">
+<span class="material-symbols-outlined text-title-sm" data-icon="play_arrow" data-weight="fill">play_arrow</span>
+</button>
+<button class="w-7 h-7 rounded bg-surface-container-high hover:bg-surface-bright flex items-center justify-center text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined text-title-sm" data-icon="replay_10">replay_10</span>
+</button>
+</div>
+<div class="font-data-sm text-data-sm text-primary">
+                00:16.4 <span class="text-outline">/ 00:42.8</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-data-md text-outline" data-icon="volume_up">volume_up</span>
+<div class="w-14 h-1 bg-surface-bright rounded overflow-hidden">
+<div class="bg-primary-container h-full w-4/5"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Quick Benchmark Audio Presets -->
+<div class="glass-panel p-space-md rounded flex flex-col gap-space-sm">
+<div class="flex items-center justify-between border-b border-outline-variant pb-2">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-secondary text-title-sm" data-icon="dataset">dataset</span>
+<span class="font-label-code text-label-code font-bold tracking-wider text-outline uppercase">BENCHMARK PRESETS</span>
+</div>
+<span class="font-label-code text-label-code text-outline">SELECT TO LOAD</span>
+</div>
+<div class="flex flex-col gap-1.5">
+<!-- Preset 1 -->
+<button class="flex items-center justify-between p-2 rounded bg-surface-container-lowest/60 hover:bg-surface-container border border-outline-variant/60 hover:border-outline text-left transition-colors group">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors text-data-md" data-icon="mic">mic</span>
+<span class="font-body-sm text-body-sm text-on-surface group-hover:text-primary transition-colors">Human Speech (Studio Mic)</span>
+</div>
+<span class="font-label-code text-label-code px-2 py-0.5 rounded bg-tertiary-container/10 border border-tertiary-container/30 text-tertiary font-semibold">
+                REAL CONTROL
+              </span>
+</button>
+<!-- Preset 2 -->
+<button class="flex items-center justify-between p-2 rounded bg-surface-container-lowest/60 hover:bg-surface-container border border-outline-variant/60 hover:border-outline text-left transition-colors group">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors text-data-md" data-icon="smart_toy">smart_toy</span>
+<span class="font-body-sm text-body-sm text-on-surface group-hover:text-primary transition-colors">ElevenLabs Voice Clone Demo</span>
+</div>
+<span class="font-label-code text-label-code px-2 py-0.5 rounded bg-error-container/20 border border-error/40 text-error font-semibold">
+                SYNTHETIC TTS
+              </span>
+</button>
+<!-- Preset 3 -->
+<button class="flex items-center justify-between p-2 rounded bg-surface-container-lowest/60 hover:bg-surface-container border border-outline-variant/60 hover:border-outline text-left transition-colors group">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors text-data-md" data-icon="podcasts">podcasts</span>
+<span class="font-body-sm text-body-sm text-on-surface group-hover:text-primary transition-colors">Jay Shetty Podcast Excerpt</span>
+</div>
+<span class="font-label-code text-label-code px-2 py-0.5 rounded bg-tertiary-container/10 border border-tertiary-container/30 text-tertiary font-semibold">
+                AUTHENTIC
+              </span>
+</button>
+<!-- Preset 4 (Currently Loaded) -->
+<button class="flex items-center justify-between p-2 rounded bg-surface-container border border-primary-container/40 text-left transition-colors group">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-data-md" data-icon="call_split">call_split</span>
+<span class="font-body-sm text-body-sm text-primary font-medium">Zelensky Spliced Phone Audio</span>
+</div>
+<span class="font-label-code text-label-code px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/40 text-amber-400 font-semibold">
+                FLAGGED SPLICED
+              </span>
+</button>
+</div>
+</div>
+<!-- Primary Action Button -->
+<button class="w-full py-3 px-4 bg-primary-container text-surface-container-lowest font-headline-sm text-title-sm font-bold rounded flex items-center justify-center gap-2 glow-cyan hover:brightness-110 active:scale-[0.99] transition-all">
+<span class="material-symbols-outlined text-headline-sm" data-icon="graphic_eq">graphic_eq</span>
+          Run Sliding-Window Forensics
+        </button>
+</aside>
+<!-- ================= RIGHT PANEL (68% width -> 8 cols in 12-grid) ================= -->
+<section class="lg:col-span-8 flex flex-col gap-space-md">
+<!-- Recording Verdict Banner -->
+<div class="p-space-md rounded bg-gradient-to-r from-error-container/30 via-surface-container-low to-surface-container-low border border-error/50 glow-crimson flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div class="flex items-start gap-3">
+<div class="p-2.5 rounded bg-error-container/40 border border-error text-error flex items-center justify-center">
+<span class="material-symbols-outlined text-headline-md" data-icon="warning" data-weight="fill">warning</span>
+</div>
+<div class="flex flex-col gap-0.5">
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-headline-sm font-bold text-error tracking-wide">
+                  SPLICED AUDIO CLONE DETECTED
+                </span>
+<span class="font-label-code text-label-code bg-error-container/40 border border-error/60 text-error px-2 py-0.5 rounded font-bold">
+                  HIGH SEVERITY
+                </span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant max-w-xl">
+                Recording contains 4 flagged synthetic speech windows between
+                <span class="text-error font-semibold font-data-sm">00:14.0s</span> and
+                <span class="text-error font-semibold font-data-sm">00:22.0s</span>. Natural human speech detected outside this region.
+              </p>
+</div>
+</div>
+<!-- Meta Telemetry Stats -->
+<div class="flex md:flex-col lg:flex-row items-center gap-3 border-t md:border-t-0 md:border-l border-outline-variant pt-2 md:pt-0 md:pl-space-md font-label-code">
+<div class="flex flex-col text-right">
+<span class="text-[10px] text-outline">RECORDING SCORE</span>
+<span class="font-data-lg text-data-lg text-error font-bold leading-tight">0.942</span>
+<span class="text-[9px] text-outline">Threshold: 0.500</span>
+</div>
+<div class="w-px h-8 bg-outline-variant hidden md:block"></div>
+<div class="flex flex-col text-right">
+<span class="text-[10px] text-outline">FLAGGED WINDOWS</span>
+<span class="font-data-lg text-data-lg text-on-surface font-bold leading-tight">4 / 39</span>
+<span class="text-[9px] text-error">10.2% Total</span>
+</div>
+<div class="w-px h-8 bg-outline-variant hidden md:block"></div>
+<div class="flex flex-col text-right">
+<span class="text-[10px] text-outline">SPLICING CHANCE</span>
+<span class="font-data-lg text-data-lg text-error font-bold leading-tight">89.6%</span>
+<span class="text-[9px] text-error font-medium">HIGH RISK</span>
+</div>
+</div>
+</div>
+<!-- Interactive Sliding-Window Forensic Timeline -->
+<div class="glass-panel p-space-md rounded flex flex-col gap-space-sm">
+<!-- Timeline Header & Legend -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-outline-variant pb-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container text-headline-sm" data-icon="timeline">timeline</span>
+<h2 class="font-title-md text-title-md text-on-surface font-semibold">
+                Temporal Suspicion Score &amp; Spectrogram Heatmap
+              </h2>
+</div>
+<!-- Legends -->
+<div class="flex items-center gap-space-sm font-label-code text-label-code flex-wrap">
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary-container"></span>
+<span class="text-on-surface-variant">Safe / Authentic (&lt;0.30)</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-error"></span>
+<span class="text-on-surface-variant">Suspicious (&gt;0.50)</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-4 h-0.5 border-t border-dashed border-primary-container"></span>
+<span class="text-primary-container">Threshold = 0.50</span>
+</div>
+</div>
+</div>
+<!-- Dual-Track Canvas & Visualizer Container -->
+<div class="relative bg-surface-container-lowest border border-outline-variant rounded p-3 flex flex-col gap-2">
+<!-- Axis Labels & Time Markers Top -->
+<div class="flex justify-between items-center font-label-code text-[10px] text-outline px-8">
+<span>00:00.0</span>
+<span>00:08.0</span>
+<span class="text-error font-bold">00:14.0 [SPLICE START]</span>
+<span class="text-error font-bold">00:22.0 [SPLICE END]</span>
+<span>00:30.0</span>
+<span>00:36.0</span>
+<span>00:42.8</span>
+</div>
+<!-- Top Track: Mel-Spectrogram (0-8 kHz) -->
+<div class="relative h-28 bg-[#05080e] rounded overflow-hidden border border-outline-variant/40">
+<!-- Y-Axis labels (Frequency) -->
+<div class="absolute left-1.5 top-1 font-label-code text-[9px] text-outline z-10">8 kHz</div>
+<div class="absolute left-1.5 top-1/2 -translate-y-1/2 font-label-code text-[9px] text-outline z-10">4 kHz</div>
+<div class="absolute left-1.5 bottom-1 font-label-code text-[9px] text-outline z-10">0 kHz</div>
+<!-- Spectrogram Simulation Graphic (SVG Heatmap representation) -->
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 800 120">
+<defs>
+<!-- Normal Authentic Spectral Gradient -->
+<lineargradient id="authenticSpectra" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#1e1b4b" stop-opacity="0.8"></stop>
+<stop offset="40%" stop-color="#0284c7" stop-opacity="0.6"></stop>
+<stop offset="70%" stop-color="#059669" stop-opacity="0.7"></stop>
+<stop offset="100%" stop-color="#facc15" stop-opacity="0.9"></stop>
+</lineargradient>
+<!-- Spliced Synthetic Vocoder Artifact Gradient (high energy bands, unnatural cutoffs) -->
+<lineargradient id="syntheticSpectra" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#450a0a" stop-opacity="0.9"></stop>
+<stop offset="25%" stop-color="#dc2626" stop-opacity="0.85"></stop>
+<stop offset="55%" stop-color="#ea580c" stop-opacity="0.9"></stop>
+<stop offset="85%" stop-color="#f59e0b" stop-opacity="0.95"></stop>
+<stop offset="100%" stop-color="#ffffff" stop-opacity="1"></stop>
+</lineargradient>
+</defs>
+<!-- Natural speech pattern 0s - 14s (0 to 260px) -->
+<rect fill="url(#authenticSpectra)" height="90" opacity="0.85" width="260" x="0" y="30"></rect>
+<!-- Formant stripes -->
+<line stroke="#38bdf8" stroke-dasharray="8 6" stroke-width="3" x1="10" x2="250" y1="45" y2="45"></line>
+<line stroke="#4ade80" stroke-dasharray="14 10" stroke-width="4" x1="10" x2="250" y1="70" y2="70"></line>
+<line stroke="#fbbf24" stroke-dasharray="12 4" stroke-width="5" x1="10" x2="250" y1="95" y2="95"></line>
+<!-- SYNTHETIC SPLICED REGION 14s - 22s (261px to 415px) -->
+<rect fill="url(#syntheticSpectra)" height="115" opacity="0.95" width="154" x="261" y="5"></rect>
+<!-- Phase discontinuities and robotic formant ridges -->
+<line stroke="#ffffff" stroke-dasharray="3 3" stroke-width="4" x1="261" x2="415" y1="15" y2="15"></line>
+<line stroke="#ef4444" stroke-dasharray="1 0" stroke-width="5" x1="261" x2="415" y1="35" y2="35"></line>
+<line stroke="#f97316" stroke-dasharray="2 1" stroke-width="6" x1="261" x2="415" y1="60" y2="60"></line>
+<line stroke="#fbbf24" stroke-dasharray="1 0" stroke-width="6" x1="261" x2="415" y1="85" y2="85"></line>
+<!-- Natural speech pattern 22s - 42.8s (416px to 800px) -->
+<rect fill="url(#authenticSpectra)" height="95" opacity="0.8" width="384" x="416" y="25"></rect>
+<line stroke="#38bdf8" stroke-dasharray="10 8" stroke-width="3" x1="420" x2="790" y1="48" y2="48"></line>
+<line stroke="#4ade80" stroke-dasharray="12 6" stroke-width="4" x1="420" x2="790" y1="72" y2="72"></line>
+<line stroke="#fbbf24" stroke-dasharray="8 6" stroke-width="5" x1="420" x2="790" y1="96" y2="96"></line>
+</svg>
+<!-- Spliced Region Overlay Box with Crimson Frame -->
+<div class="absolute left-[32.6%] width-[19.3%] w-[19.3%] top-0 bottom-0 border-2 border-error bg-error/10 pointer-events-none flex items-start justify-center pt-1">
+<span class="font-label-code text-[9px] bg-error-container/90 text-error font-bold px-1.5 py-0.5 rounded shadow">
+                  [SYNTHESIS REGION: 14.0s - 22.0s]
+                </span>
+</div>
+</div>
+<!-- Bottom Track: Sliding-Window Suspicion Score (0.0 to 1.0) -->
+<div class="relative h-28 bg-[#05080e] rounded overflow-hidden border border-outline-variant/40">
+<!-- Y-Axis labels (Scores) -->
+<div class="absolute left-1.5 top-1 font-label-code text-[9px] text-error font-bold z-10">1.00</div>
+<div class="absolute left-1.5 top-1/2 -translate-y-1/2 font-label-code text-[9px] text-primary-container z-10">0.50 (TH)</div>
+<div class="absolute left-1.5 bottom-1 font-label-code text-[9px] text-tertiary font-bold z-10">0.00</div>
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 800 100">
+<!-- Grid Lines -->
+<line opacity="0.6" stroke="#00e5ff" stroke-dasharray="4 4" stroke-width="1" x1="0" x2="800" y1="50" y2="50"></line>
+<line opacity="0.4" stroke="#3b494c" stroke-dasharray="2 2" stroke-width="0.5" x1="0" x2="800" y1="20" y2="20"></line>
+<line opacity="0.4" stroke="#3b494c" stroke-dasharray="2 2" stroke-width="0.5" x1="0" x2="800" y1="80" y2="80"></line>
+<!-- Suspicion Fill Area Gradient -->
+<defs>
+<lineargradient id="scoreAreaGradient" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#ef4444" stop-opacity="0.4"></stop>
+<stop offset="60%" stop-color="#ef4444" stop-opacity="0.1"></stop>
+<stop offset="100%" stop-color="#10b981" stop-opacity="0.0"></stop>
+</lineargradient>
+</defs>
+<!-- Area Under Score Line -->
+<path d="M 0 92
+                         L 60 90 L 120 92 L 180 88 L 220 91 L 255 86
+                         L 265 18 L 290 8 L 320 4 L 350 3 L 380 6 L 405 14 L 415 88
+                         L 460 92 L 520 94 L 600 89 L 700 93 L 800 91
+                         L 800 100 L 0 100 Z" fill="url(#scoreAreaGradient)"></path>
+<!-- Probability Score Curve -->
+<path d="M 0 92
+                         L 60 90 L 120 92 L 180 88 L 220 91 L 255 86
+                         L 265 18 L 290 8 L 320 4 L 350 3 L 380 6 L 405 14 L 415 88
+                         L 460 92 L 520 94 L 600 89 L 700 93 L 800 91" fill="none" stroke="#ef4444" stroke-linejoin="round" stroke-width="2.5"></path>
+<!-- Green segment for Authentic baseline (0-13s) -->
+<path d="M 0 92 L 60 90 L 120 92 L 180 88 L 220 91 L 255 86" fill="none" stroke="#10b981" stroke-width="2.5"></path>
+<!-- Green segment for Authentic baseline (22s-42.8s) -->
+<path d="M 415 88 L 460 92 L 520 94 L 600 89 L 700 93 L 800 91" fill="none" stroke="#10b981" stroke-width="2.5"></path>
+<!-- Score Peak Dot at 16.4s -->
+<circle cx="310" cy="4" fill="#ef4444" r="4.5" stroke="#ffffff" stroke-width="1.5"></circle>
+</svg>
+<!-- Synchronized Scrubber Playhead Needle (at 00:16.4s = ~38.3%) -->
+<div class="absolute left-[38.3%] top-0 bottom-0 w-0.5 bg-primary-container glow-playhead z-20 pointer-events-none">
+<!-- Floating Real-time Tooltip -->
+<div class="absolute -top-1 left-2 bg-surface-container-high/95 border border-primary-container px-2 py-1 rounded shadow-xl whitespace-nowrap z-30 font-label-code text-[10px] flex items-center gap-1.5">
+<span class="text-primary-container font-bold">Time: 00:16.4s</span>
+<span class="text-outline">|</span>
+<span class="text-error font-bold">Score: 0.978 (Synthetic Vocoder)</span>
+</div>
+</div>
+</div>
+<!-- Linked Audio Playback Bar -->
+<div class="flex items-center justify-between gap-space-md pt-2 border-t border-outline-variant/60 flex-wrap">
+<div class="flex items-center gap-2">
+<button class="w-8 h-8 rounded bg-surface-container hover:bg-surface-bright flex items-center justify-center text-primary-container transition-colors">
+<span class="material-symbols-outlined text-title-md" data-icon="play_arrow" data-weight="fill">play_arrow</span>
+</button>
+<div class="font-data-md text-data-md text-on-surface">
+<span class="text-primary font-bold">00:16.4</span>
+<span class="text-outline">/ 00:42.8</span>
+</div>
+</div>
+<!-- Quick Navigation Button -->
+<button class="px-2.5 py-1.5 bg-error-container/20 hover:bg-error-container/40 border border-error/50 rounded font-label-code text-label-code text-error flex items-center gap-1.5 transition-colors">
+<span class="material-symbols-outlined text-data-md" data-icon="fast_forward">fast_forward</span>
+                Jump to First Flagged Window (00:14.0s)
+              </button>
+</div>
+</div>
+</div>
+<!-- Top Suspicious Windows Diagnostic Table -->
+<div class="glass-panel p-space-md rounded flex flex-col gap-space-sm">
+<div class="flex items-center justify-between border-b border-outline-variant pb-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-error text-title-md" data-icon="troubleshoot">troubleshoot</span>
+<h3 class="font-title-sm text-title-sm text-on-surface font-semibold">
+                Top 5 Windows by Raw Suspicion Score (Ranked Analysis)
+              </h3>
+</div>
+<span class="font-label-code text-label-code text-outline">STRIDE: 1.0s · WINDOW: 3.0s</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left font-label-code text-label-code border-collapse">
+<thead>
+<tr class="border-b border-outline-variant text-outline bg-surface-container-lowest/50">
+<th class="py-2 px-3">RANK</th>
+<th class="py-2 px-3">TIME WINDOW</th>
+<th class="py-2 px-3">MODEL SCORE</th>
+<th class="py-2 px-3">CONFIDENCE TYPE</th>
+<th class="py-2 px-3">ANOMALY CATEGORY</th>
+<th class="py-2 px-3 text-right">ACTION</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/40">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container/60 transition-colors bg-error-container/10">
+<td class="py-2 px-3 font-bold text-error">#1</td>
+<td class="py-2 px-3 text-on-surface font-data-sm">00:16.0s - 00:19.0s</td>
+<td class="py-2 px-3">
+<span class="px-2 py-0.5 rounded bg-error-container/40 border border-error text-error font-bold">
+                      0.984 (CRITICAL)
+                    </span>
+</td>
+<td class="py-2 px-3 text-primary-container">Synthetic Vocoder</td>
+<td class="py-2 px-3 text-on-surface-variant">Phase Discontinuity &amp; Formant Glitch</td>
+<td class="py-2 px-3 text-right">
+<button class="px-2 py-1 bg-surface-container hover:bg-surface-bright text-primary border border-outline-variant rounded transition-colors inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-label-code" data-icon="volume_up">volume_up</span> Play
+                    </button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container/60 transition-colors bg-error-container/5">
+<td class="py-2 px-3 font-bold text-error">#2</td>
+<td class="py-2 px-3 text-on-surface font-data-sm">00:15.0s - 00:18.0s</td>
+<td class="py-2 px-3">
+<span class="px-2 py-0.5 rounded bg-error-container/30 border border-error/70 text-error font-bold">
+                      0.962 (HIGH)
+                    </span>
+</td>
+<td class="py-2 px-3 text-primary-container">Neural TTS</td>
+<td class="py-2 px-3 text-on-surface-variant">Unnatural Pitch Contour</td>
+<td class="py-2 px-3 text-right">
+<button class="px-2 py-1 bg-surface-container hover:bg-surface-bright text-primary border border-outline-variant rounded transition-colors inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-label-code" data-icon="volume_up">volume_up</span> Play
+                    </button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container/60 transition-colors bg-error-container/5">
+<td class="py-2 px-3 font-bold text-error">#3</td>
+<td class="py-2 px-3 text-on-surface font-data-sm">00:17.0s - 00:20.0s</td>
+<td class="py-2 px-3">
+<span class="px-2 py-0.5 rounded bg-error-container/30 border border-error/70 text-error font-bold">
+                      0.951 (HIGH)
+                    </span>
+</td>
+<td class="py-2 px-3 text-primary-container">Voice Clone</td>
+<td class="py-2 px-3 text-on-surface-variant">Latent Spectral Gap</td>
+<td class="py-2 px-3 text-right">
+<button class="px-2 py-1 bg-surface-container hover:bg-surface-bright text-primary border border-outline-variant rounded transition-colors inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-label-code" data-icon="volume_up">volume_up</span> Play
+                    </button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container/60 transition-colors">
+<td class="py-2 px-3 font-bold text-amber-400">#4</td>
+<td class="py-2 px-3 text-on-surface font-data-sm">00:14.0s - 00:17.0s</td>
+<td class="py-2 px-3">
+<span class="px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/40 text-amber-400 font-bold">
+                      0.887 (HIGH)
+                    </span>
+</td>
+<td class="py-2 px-3 text-on-surface">Splice Boundary</td>
+<td class="py-2 px-3 text-on-surface-variant">High-Frequency Energy Drop</td>
+<td class="py-2 px-3 text-right">
+<button class="px-2 py-1 bg-surface-container hover:bg-surface-bright text-primary border border-outline-variant rounded transition-colors inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-label-code" data-icon="volume_up">volume_up</span> Play
+                    </button>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-surface-container/60 transition-colors">
+<td class="py-2 px-3 font-bold text-amber-400">#5</td>
+<td class="py-2 px-3 text-on-surface font-data-sm">00:21.0s - 00:24.0s</td>
+<td class="py-2 px-3">
+<span class="px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/40 text-amber-400 font-bold">
+                      0.612 (MODERATE)
+                    </span>
+</td>
+<td class="py-2 px-3 text-on-surface">Transition</td>
+<td class="py-2 px-3 text-on-surface-variant">Spectral Boundary Artifact</td>
+<td class="py-2 px-3 text-right">
+<button class="px-2 py-1 bg-surface-container hover:bg-surface-bright text-primary border border-outline-variant rounded transition-colors inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-label-code" data-icon="volume_up">volume_up</span> Play
+                    </button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Acoustic Feature Fingerprint Grid (4 Cards) -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-sm">
+<!-- Card 1 -->
+<div class="bg-surface-container-low border border-outline-variant p-3 rounded flex flex-col justify-between gap-2">
+<div class="flex items-center justify-between text-outline font-label-code text-label-code">
+<span>ZCR JITTER</span>
+<span class="material-symbols-outlined text-error" data-icon="show_chart">show_chart</span>
+</div>
+<div>
+<div class="font-data-lg text-data-lg text-error font-bold">0.082</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant text-[11px] leading-tight">
+                Abnormal variance in windows 14-22
+              </div>
+</div>
+<div class="w-full bg-surface-container h-1 rounded overflow-hidden">
+<div class="bg-error h-full w-[82%]"></div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-low border border-outline-variant p-3 rounded flex flex-col justify-between gap-2">
+<div class="flex items-center justify-between text-outline font-label-code text-label-code">
+<span>SPECTRAL FLATNESS</span>
+<span class="material-symbols-outlined text-error" data-icon="equalizer">equalizer</span>
+</div>
+<div>
+<div class="font-data-lg text-data-lg text-error font-bold">0.014</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant text-[11px] leading-tight">
+                Vocoder smoothing detected
+              </div>
+</div>
+<div class="w-full bg-surface-container h-1 rounded overflow-hidden">
+<div class="bg-error h-full w-[74%]"></div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-container-low border border-outline-variant p-3 rounded flex flex-col justify-between gap-2">
+<div class="flex items-center justify-between text-outline font-label-code text-label-code">
+<span>F0 STD DEV (PITCH)</span>
+<span class="material-symbols-outlined text-amber-400" data-icon="tune">tune</span>
+</div>
+<div>
+<div class="font-data-lg text-data-lg text-amber-400 font-bold">18.2 Hz</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant text-[11px] leading-tight">
+                Unnaturally flat pitch modulation
+              </div>
+</div>
+<div class="w-full bg-surface-container h-1 rounded overflow-hidden">
+<div class="bg-amber-400 h-full w-[60%]"></div>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="bg-surface-container-low border border-outline-variant p-3 rounded flex flex-col justify-between gap-2">
+<div class="flex items-center justify-between text-outline font-label-code text-label-code">
+<span>SNR LEVEL</span>
+<span class="material-symbols-outlined text-tertiary" data-icon="speed">speed</span>
+</div>
+<div>
+<div class="font-data-lg text-data-lg text-tertiary font-bold">34.6 dB</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant text-[11px] leading-tight">
+                Clean digital synthesis floor
+              </div>
+</div>
+<div class="w-full bg-surface-container h-1 rounded overflow-hidden">
+<div class="bg-tertiary h-full w-[90%]"></div>
+</div>
+</div>
+</div>
+<!-- Export & Actions Footer Bar -->
+<div class="glass-panel p-space-sm rounded flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm border-t border-outline-variant">
+<div class="flex items-center gap-space-xs text-outline font-label-code text-label-code">
+<span class="material-symbols-outlined text-primary" data-icon="verified_user">verified_user</span>
+<span>FORENSIC SIGNATURE: SHA-256 (3c8f...a92e)</span>
+</div>
+<div class="flex items-center gap-space-sm flex-wrap">
+<button class="px-3 py-1.5 rounded bg-surface-container-high/60 hover:bg-surface-container-high border border-outline-variant text-on-surface font-body-sm text-body-sm transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-label-code" data-icon="download">download</span>
+              Download Forensic Report (JSON)
+            </button>
+<button class="px-3 py-1.5 rounded bg-surface-container-high/60 hover:bg-surface-container-high border border-outline-variant text-on-surface font-body-sm text-body-sm transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-label-code" data-icon="cut">cut</span>
+              Export Spliced Segments (WAV)
+            </button>
+<button class="px-3 py-1.5 rounded bg-transparent hover:bg-primary-container/10 border border-primary-container text-primary-container font-body-sm text-body-sm transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-label-code" data-icon="autorenew">autorenew</span>
+              Re-run with AASIST Graph Attention
+            </button>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- ================= WORKSPACE FOOTER STATUS BAR ================= -->
+<footer class="bg-surface-container-lowest border-t border-outline-variant px-margin-lg py-1.5 flex items-center justify-between text-outline font-label-code text-[11px] mt-auto">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-container"></span>
+<span class="text-on-surface">WORKSTATION ONLINE</span>
+</div>
+<span>AEGIS PIPELINE // AUDIO SLICER ENGINE 2.4.1</span>
+<span>LATENCY: 48ms / 1.0s WINDOW</span>
+</div>
+<div class="flex items-center gap-3">
+<span>SECURE ENCLAVE ACTIVE</span>
+<span>CLASSIFICATION: FORENSIC SENSITIVE</span>
+</div>
+</footer>
+</body></html>
