@@ -1,9 +1,17 @@
 # Multimodal Deepfake Detection Studio
-## Project report and presentation notes
+## Current project report for PPT generation
 
 Prepared: 12 November 2026
 
-Scope: This report describes the implementation and saved results available in the local project. Historical benchmark measurements, recent audio tests, and planned upgrades are presented separately. Colab training outcomes are not treated as completed without exported checkpoints and evaluation reports.
+Scope: This is the current presentation source as of 12 November 2026. It includes the installed fine-tuned AASIST checkpoint, verified validation exports, the latest reserved-clip tests, and remaining calibration work. Historical multimodal benchmarks, validation results, and exploratory audio tests are separate forms of evidence.
+
+## Instructions for generating the PPT
+
+Create a 16-slide academic project presentation from this report, following Section 12. Use three to five short bullets per slide and put the explanation in speaker notes. Use a clean technical theme, readable tables, and the existing project figures identified in Section 14. Keep team members, guide, college, and department as editable placeholders because those details were not provided.
+
+Use the implemented architecture and measured values in this report. Identify the 99.69% overall accuracy as a saved multimodal benchmark result, the 0.999649 AASIST AUC as validation performance, and the 3/8 result as an exploratory local audio test. Explain that the fine-tuned model still misclassifies all four provisionally real clips. Present SSL-AASIST as deferred and calibration/final ASVspoof evaluation as incomplete. Do not invent performance gains, successful deployment claims, references, names, or completed training stages.
+
+The slide outline supplies content, speaker notes, and suggested visuals. The technical sections provide the detail needed to answer presentation questions.
 
 ## 1. Abstract
 
@@ -37,6 +45,12 @@ The project objectives are:
 | Frontend | HTML, CSS, JavaScript, Canvas timeline, and native media playback |
 | Evaluation | NumPy, scikit-learn, CSV/JSON/JSONL reports, and automated checks |
 | Training workflow | Existing multimodal/audio training scripts and a Colab AASIST upgrade notebook |
+
+AASIST source is supplied through the pinned `third_party/aasist` Git submodule at
+commit `a04c9863f63d44471dde8a6abcb3b082b07cd1d1`. New clones use
+`git clone --recurse-submodules`; existing clones use `git submodule update --init --recursive`.
+The upstream license and notice remain with its source. Project fine-tuned checkpoints
+and datasets are distributed separately and remain excluded from the main Git repository.
 
 The UI offers a multimodal video studio, an audio forensic scanner, and a benchmark/architecture view. Supported inputs include common video formats and WAV, MP3, M4A, FLAC, OGG, and AAC audio. Local CPU inference is supported; the prepared fine-tuning workflow targets a GPU runtime.
 
@@ -82,12 +96,12 @@ Three embeddings -> concatenation -> shared MLP -> video / audio / overall predi
 |---|---|---|---|
 | Studio Wav2Vec + MLP | Wav2Vec contextual embeddings and the existing standalone classifier | 3 s / 1.5 s | Integrated; evaluated on reserved clips |
 | Phase 1 Wav2Vec + MLP | Normalized waveform, frozen Wav2Vec CNN features, 512-dimensional mean pooling, two-class MLP | 2 s / 1 s | Integrated; training-preprocessing parity corrected |
-| AASIST | Raw-waveform sinc filterbank and spectro-temporal graph attention | 4.0375 s / 2 s | Pretrained upstream checkpoint integrated and evaluated |
+| AASIST | Raw-waveform sinc filterbank and spectro-temporal graph attention | 4.0375 s / 2 s | Pretrained and supplied fine-tuned checkpoints integrated and evaluated locally |
 | AASIST-L | Compact AASIST configuration | 4.0375 s / 2 s | Pretrained upstream checkpoint integrated and evaluated |
 | SSL-AASIST | SSL frontend with AASIST-style detection backend | Model dependent | Adapter/workflow exists; runtime/training validation remains incomplete and work is deferred |
 | XLSR-MamBo | Optional adapter in the registry | Model dependent | No completed local evaluation is established in this report |
 
-AASIST and AASIST-L were integrated using upstream implementations and checkpoints. They should be described as integrated pretrained models, rather than newly invented architectures or successfully fine-tuned project models. The local evidence does not establish that they are more accurate than Wav2Vec on arbitrary uploads.
+AASIST and AASIST-L use upstream architectures and pretrained checkpoints. Two user-supplied fine-tuned AASIST exports have now been inspected; the selected epoch-4 checkpoint is integrated locally. AASIST-L fine-tuning has not been established from the supplied files. These are integrated and fine-tuned upstream architectures, rather than newly invented model architectures. The local evidence does not establish superior accuracy on arbitrary uploads.
 
 The Phase 1 Wav2Vec detector assigns class 0 to bona fide and class 1 to spoof; its higher score means more spoof-like. AASIST uses upstream class 0 for spoof and class 1 for bona fide; its raw bona fide logit increases toward genuine speech. Preserving these different score directions is essential.
 
@@ -136,7 +150,7 @@ ASVspoof 2019 LA manifests reference 25,380 training, 24,844 development, and 71
 
 The recent Studio evaluation reserves eight local recordings: four provisionally labeled real and four fake. These labels come from their folders and need independent source verification. All eight clips are excluded from training and threshold tuning. Their file hashes support repeatable comparisons.
 
-The prepared Colab workflow downloads the official raw LA archive directly to Colab storage. It separates weight training, best-epoch selection, calibration, and held-out evaluation. Exported fine-tuned model results have not been verified locally at the time of this report.
+The prepared Colab workflow downloads the official raw LA archive directly to Colab storage. It separates weight training, best-epoch selection, calibration, and held-out evaluation. Two supplied fine-tuned AASIST checkpoints and their validation scores have now been verified locally. Their exports do not contain independent development calibration or final held-out ASVspoof evaluation results.
 
 ## 8. Saved results
 
@@ -156,11 +170,12 @@ The saved ablation file reports lower overall AUC when the image or synchronizat
 
 ### 8.2 Recent eight-clip Studio audio evaluation
 
-Source: reports/audio_pipeline_evaluation/report.md. These results are separate from the multimodal benchmark.
+Sources: reports/audio_pipeline_evaluation/report.md for the earlier four-model run and reports/finetuned_audio_evaluation/selected/report.md for the selected fine-tuned model. These results are separate from the multimodal benchmark.
 
 | Detector | Correct / 8 | Inconclusive | Real clips predicted fake / 4 | Fake clips detected / 4 |
 |---|---:|---:|---:|---:|
-| AASIST | 3 | 0 | 4 | 3 |
+| Pretrained AASIST | 3 | 0 | 4 | 3 |
+| Fine-tuned AASIST (selected) | 3 | 0 | 4 | 3 |
 | AASIST-L | 4 | 0 | 4 | 4 |
 | Phase 1 Wav2Vec + MLP | 3 | 0 | 3 | 2 |
 | Studio Wav2Vec + MLP | 2 | 4 | 0 | 2 |
@@ -172,6 +187,19 @@ AASIST-L detected all four provisionally fake clips but also classified all four
 ### 8.3 Feature-based audio benchmark
 
 A saved Phase 1 Wav2Vec report on 71,237 ASVspoof evaluation feature examples records ROC AUC 0.9815 and EER approximately 7.13%. This is a native feature benchmark, not evidence of the same performance on uploaded MP3 recordings. Timing from cached-feature classification is not raw-audio end-to-end inference latency.
+
+### 8.4 Supplied fine-tuned AASIST checkpoints
+
+Both supplied exports contain validation predictions for the same 10,511 recordings. Run 20261108_060713, epoch 4, has validation ROC AUC 0.999649, compared with 0.999331 for run 20261112_074111, epoch 2. The higher-AUC checkpoint was selected before testing the reserved clips and installed as the default AASIST (fine-tuned) option.
+
+| Export | Selected epoch | Validation AUC | Validation EER | Real false positives at threshold 0 |
+|---|---:|---:|---:|---:|
+| 8 November run (selected) | 4 | 0.999649 | 0.648% | 28 / 1,211 |
+| 12 November run | 2 | 0.999331 | 0.990% | 58 / 1,211 |
+
+The validation set contains 1,211 bona fide and 9,300 spoof examples. The installed copy is models/aasist_finetuned.pth. Its provenance and checksum are recorded in reports/finetuned_audio_evaluation/selection.json. Validation EER is a curve statistic; its associated threshold was not installed. Both ZIPs lack independent development calibration and final ASVspoof evaluation outputs.
+
+Its reserved-clip results remain 3/8 correct: 3/4 fake clips detected and all 4/4 real clips incorrectly flagged. This is the same binary outcome as the historical pretrained AASIST run. Fine-tuning and local integration are established; improved web-audio accuracy is not. No calibration or threshold adjustment was fitted during installation. See reports/finetuned_audio_evaluation/report.md for provenance and limitations.
 
 ## 9. Important development work completed
 
@@ -185,8 +213,9 @@ A saved Phase 1 Wav2Vec report on 71,237 ASVspoof evaluation feature examples re
 - Added recording score/threshold cards, prediction qualification, and playback-timer initialization.
 - Restricted calibration use to matching checkpoints, preprocessing, windowing, and aggregation.
 - Prepared a resumable dataset downloader and Colab fine-tuning, calibration, evaluation, and export workflow.
+- Inspected two supplied fine-tuned AASIST exports, selected by validation AUC, installed the chosen checkpoint, and evaluated all eight reserved clips.
 
-The most recent presentation changes passed 17 JavaScript regression tests covering verdicts, score presentation, window flags, and playback timer behavior. This is a software check, not a measurement of detection accuracy.
+The fine-tuned deployment changes passed 24 relevant Python regression tests. Earlier presentation changes passed 17 JavaScript regression tests covering verdicts, scores, flags, and playback. Two actual multipart API uploads also matched the selected checkpoint results. Software checks establish execution behavior, not detection accuracy.
 
 ## 10. Limitations and remaining work
 
@@ -194,7 +223,7 @@ The main unresolved issue is generalization to audio outside the training distri
 
 Other limitations include sparse video-frame sampling, a reused face bounding box, limited audio coverage in the multimodal path, imperfect alignment between sampled video and the initial audio segment, and the absence of a universally validated calibration artifact for arbitrary uploaded recordings. Window flags are model diagnostics and have not been validated as exact manipulation boundaries.
 
-The next development order is to execute and inspect the prepared Colab workflow, evaluate fine-tuned AASIST/AASIST-L with separate development data, calibrate the complete recording pipeline, and compare frozen candidates on the reserved clips and a larger independently labeled test set. Any new deployment decision should consider genuine-audio false positives, fake-audio recall, uncertainty rate, and runtime together.
+The next development order is to complete the independent development-calibration and held-out evaluation stages for the supplied AASIST checkpoint, validate the complete recording pipeline on representative audio, and compare frozen candidates on a larger independently labeled test set. No fine-tuned AASIST-L export has been supplied. Any deployment decision should consider genuine-audio false positives, fake-audio recall, uncertainty rate, and runtime together.
 
 Further improvements include temporally aligned audiovisual sampling, better face tracking, more representative audio sources and codecs, multilingual testing, stronger speech-region detection, and repeated latency measurements on the intended hardware. SSL-AASIST remains deferred until its dependencies and training can be validated in isolation.
 
@@ -220,97 +249,183 @@ Further improvements include temporally aligned audiovisual sampling, better fac
 | training/finetune_aasist.py | Prepared training, calibration, evaluation, export pipeline |
 | notebooks/AASIST_Colab_Upgrade.ipynb | Colab execution workflow |
 
-## 12. Suggested presentation: 15 slides
+## 12. Slide-ready presentation: 16 slides
+
+Suggested length: 10-15 minutes. Adjust the delivery time to your institution's requirements.
 
 ### Slide 1 - Project title
 
 - Multimodal Deepfake Detection Studio.
-- Detection of visual manipulation and synthetic speech using deep learning.
-- Add team members, guide, department, and institution.
+- Deep learning for visual manipulation and synthetic-speech analysis.
+- Team: [names]; guide: [name]; department and institution: [details].
+
+Speaker notes: Introduce this as an implemented research prototype with a web interface, multimodal analysis, and interchangeable audio models. The latest addition is a supplied fine-tuned AASIST checkpoint.
+
+Suggested visual: A current screenshot of the Studio homepage.
 
 ### Slide 2 - Problem statement
 
-- Deepfakes can manipulate faces, voices, or both.
+- Media manipulation can change the face, voice, or both.
 - Single-modality analysis can miss complementary evidence.
-- Short suspicious segments require timestamped inspection.
+- Long recordings need timestamped inspection of suspicious segments.
 
-### Slide 3 - Project objectives
+Speaker notes: Explain why a genuine video can contain fake audio and why genuine speech can accompany a manipulated face. Detection supports review; a model prediction alone does not establish provenance.
 
-- Combine facial, speech, and audiovisual features.
-- Provide separate video, audio, and overall predictions.
-- Support selectable audio detectors and diagnostic playback.
+Suggested visual: A simple four-case grid: real/real, fake/real, real/fake, fake/fake.
 
-### Slide 4 - System architecture
+### Slide 3 - Objectives and project scope
 
-- Three streams: Xception, Wav2Vec 2.0, and joint 3D/2D CNN.
-- Three 512-dimensional embeddings feed a shared fusion network.
-- Three binary output heads support manipulation analysis.
+- Combine visual, speech, and audiovisual representations.
+- Predict video manipulation, audio manipulation, and overall manipulation.
+- Support standalone audio, detector selection, and interactive diagnostics.
+- Evaluate reproducibly with separate fitting and testing stages.
 
-### Slide 5 - Video preprocessing and visual stream
+Speaker notes: The project covers the application pipeline and model integration. It also records errors and uncertain outcomes so that accuracy limitations remain visible.
 
-- Sample eight frames; obtain face and lip crops using MTCNN.
-- Resize faces to 299 x 299 and extract Xception features.
+Suggested visual: A short checklist of the implemented modules.
+
+### Slide 4 - Existing approach and proposed system
+
+- Baseline: Wav2Vec features with MLP audio classifiers.
+- Multimodal path: Xception + Wav2Vec + 3D/2D compatibility stream.
+- Audio upgrade: common adapters for pretrained and fine-tuned AASIST.
+- Flask Studio presents recording scores and window diagnostics.
+
+Speaker notes: The contribution is the integrated workflow, modular detector comparison, preprocessing corrections, and transparent presentation. AASIST and Wav2Vec are upstream architectures rather than inventions of this project.
+
+Suggested visual: A baseline-to-integrated-system comparison table.
+
+### Slide 5 - System architecture
+
+- Visual branch: sampled faces -> Xception -> 512-dimensional embedding.
+- Speech branch: waveform -> Wav2Vec -> 512-dimensional embedding.
+- Compatibility branch: lip images + log-mel -> 3D/2D CNN -> 512 dimensions.
+- Concatenate 1,536 features -> MLP -> three binary heads.
+
+Speaker notes: Late fusion combines the learned embeddings before classification. The output heads are task-specific, but all receive shared fused features; they are not completely independent modality decisions.
+
+Suggested visual: A three-branch architecture diagram with a shared fusion trunk.
+
+### Slide 6 - Visual preprocessing and features
+
+- Sample eight frames across the video.
+- MTCNN selects a face; reuse its box for face and lip crops.
+- Resize faces to 299 x 299 pixels; run Xception.
 - Pool temporal mean and standard deviation.
 
-### Slide 6 - Audio and audiovisual streams
+Speaker notes: The network learns appearance patterns associated with its training labels. It does not implement a separate explicit eye-blink or facial-boundary authenticity test. Sparse sampling and box reuse are current limitations.
 
-- Normalize input format to 16 kHz mono.
-- Use Wav2Vec speech representations and log-mel features.
-- Combine lip-image and spectrogram features for audiovisual compatibility.
+Suggested visual: The Studio face/lip crop gallery.
 
-### Slide 7 - Standalone audio model comparison
+### Slide 7 - Speech and audiovisual features
 
-- Existing Studio and Phase 1 Wav2Vec + MLP baselines.
-- Newly integrated pretrained AASIST and AASIST-L.
-- SSL-AASIST deferred; no completed training result claimed.
+- Multimodal audio: initial three seconds, 16 kHz mono.
+- Frozen Wav2Vec contextual features with trainable projection.
+- 112 x 112 lip crops and 64-band log-mel spectrogram.
+- Joint 3D/2D CNN learns audiovisual compatibility.
 
-### Slide 8 - UI-to-backend workflow
+Speaker notes: The compatibility branch is a learned representation, not a measured lip-sync delay. Sampling video over the full clip while using initial audio limits strict alignment in longer clips.
 
-- Select detector and upload media.
-- Flask validates input and invokes inference.
-- Return recording scores, thresholds, windows, and timings.
+Suggested visual: Lip crops beside a spectrogram, connected to the two CNN branches.
 
-### Slide 9 - Sliding-window analysis
+### Slide 8 - Standalone audio model inventory
 
-- Use detector-specific overlapping windows.
-- Aggregate active-window scores for the recording decision.
-- Window flags support review; their count is not a vote or a fake-audio percentage.
+- Studio Wav2Vec + MLP: 3-second windows, 1.5-second hop.
+- Phase 1 Wav2Vec + MLP: 2-second windows, 1-second hop.
+- AASIST/AASIST-L: raw waveform, 4.0375-second windows, 2-second hop.
+- Selected fine-tuned AASIST is the current local default.
 
-### Slide 10 - Datasets and evaluation
+Speaker notes: AASIST learns spectro-temporal relationships through graph attention. AASIST-L is its compact alternative. Only AASIST fine-tuned exports were supplied; SSL-AASIST is deferred and XLSR-MamBo has no completed local evaluation here.
 
-- FakeAVCeleb for the saved multimodal benchmark.
-- ASVspoof 2019 LA for audio development and benchmark work.
-- Eight reserved local clips for a separate exploratory comparison.
+Suggested visual: The detector table from Section 5 and a screenshot of the dropdown.
 
-### Slide 11 - Historical multimodal results
+### Slide 9 - Audio flow: UI to backend
 
-- Overall accuracy: 99.69%; overall ROC AUC: 0.9994.
-- Overall F1: 0.9984; balanced accuracy: approximately 99.19%.
-- Identify these as saved benchmark results and disclose category imbalance.
+- Select detector and upload a recording.
+- POST /api/analyze-audio -> validation and checkpoint loader.
+- Decode, resample, generate windows, and run batched inference.
+- Aggregate recording score; return verdict, thresholds, windows, and timings.
 
-### Slide 12 - Current audio findings
+Speaker notes: Name ui/app.py as the API entry point and audio_detection/service.py as the shared inference service. app.js and audio-presentation.js render the returned result. The older standalone predictor uses its own compatible path.
 
-- AASIST and Wav2Vec still show false positives and missed detections.
-- AASIST-L flags all four real clips as fake in the small local test.
-- Local exploratory results do not establish general accuracy.
+Suggested visual: A sequence diagram: browser -> Flask -> audio service -> detector -> browser.
 
-### Slide 13 - Implementation improvements
+### Slide 10 - Scores, window flags, and uncertainty
 
-- Detector selection moved to the UI.
-- Corrected preprocessing and score orientation; improved decoding.
-- Added transparent score/threshold presentation and playback diagnostics.
+- Current shared UI service averages relevant active-window scores.
+- Phase 1 score rises toward spoof; AASIST bona fide logit rises toward real.
+- Window flags support review and are not a majority vote.
+- Scores remain uncalibrated unless a matching artifact is accepted.
 
-### Slide 14 - Limitations and future work
+Speaker notes: Use the saved podcast example: average 0.911344 below threshold 0.984982 despite 45/63 flags. Explain that a flagged-window ratio is not a fake-audio percentage. The updated UI displays the recording score and threshold.
 
-- Validate generalization on representative, independently labeled recordings.
-- Execute Colab fine-tuning and recording-level calibration.
-- Improve audiovisual alignment, tracking, robustness, and runtime evaluation.
+Suggested visual: A result screenshot containing both score cards and the timeline.
 
-### Slide 15 - Project takeaway
+### Slide 11 - Datasets and evaluation separation
 
-- Implemented an integrated multimodal research studio with modular audio comparison.
-- Demonstrated strong saved benchmark results and identified real-world audio limitations.
-- The next milestone is independently validated audio improvement.
+- FakeAVCeleb: four real/fake audio-video combinations.
+- Saved multimodal test artifacts contain 3,276 examples.
+- ASVspoof LA: 25,380 train, 24,844 dev, 71,237 eval examples.
+- Reserve eight local clips separately; do not fit to them.
+
+Speaker notes: The saved multimodal dataset is imbalanced. Audio feature-cache benchmarks differ from end-to-end uploaded-recording tests. The planned raw-audio workflow separates training, validation, calibration development, and final evaluation.
+
+Suggested visual: results/split_distribution.png with split sizes and a train/val/dev/eval flow.
+
+### Slide 12 - Historical multimodal results
+
+- Overall accuracy: 99.69%; overall F1: 0.9984.
+- Overall ROC AUC: 0.9994; balanced accuracy: about 99.19%.
+- Visual ROC AUC: 0.9991; audio ROC AUC: 0.9982.
+- These are saved benchmark measurements, not unrestricted deployment accuracy.
+
+Speaker notes: Cite results/test_results.json. Category imbalance matters: overall recall on real-video/fake-audio examples is 93.33%. The ablation results also do not show that every added modality improves every metric.
+
+Suggested visual: results/roc_3tasks.png and the three-task results table.
+
+### Slide 13 - Fine-tuned AASIST selection
+
+- Two supplied AASIST exports use the same 10,511 validation recordings.
+- 8 November, epoch 4: validation AUC 0.999649.
+- 12 November, epoch 2: validation AUC 0.999331.
+- Select the higher validation AUC before reserved-clip testing.
+
+Speaker notes: The selected model is installed as models/aasist_finetuned.pth. Strong validation performance is not proof of transfer to podcast recordings. Neither export contains independent development calibration or final ASVspoof evaluation outputs.
+
+Suggested visual: The two-row validation comparison in Section 8.4.
+
+### Slide 14 - Current audio findings and limitations
+
+- Fine-tuned AASIST: 3/4 fake clips detected; 1/4 missed.
+- All 4/4 provisionally real clips were incorrectly flagged.
+- Overall correct: 3/8; same binary outcome as pretrained AASIST.
+- Generalization and recording-level calibration remain unresolved.
+
+Speaker notes: Show the errors openly. These eight folder-labeled clips are an exploratory check, not an accuracy estimate for all audio. No threshold was adjusted to make them pass, and fine-tuning has not solved the observed false positives.
+
+Suggested visual: A confusion-count table from the latest fine-tuned evaluation.
+
+### Slide 15 - Demonstration and implementation contribution
+
+- Show the model selector and upload a known-source clip.
+- Explain the recording score, threshold, and calibration status.
+- Click a window and play the corresponding segment.
+- Highlight preprocessing fixes, provenance checks, API flow, and error reporting.
+
+Speaker notes: Include a difficult or incorrect result so the demonstration reflects current behavior. Report that 24 relevant Python tests and 17 earlier UI tests passed, while distinguishing software behavior from detection accuracy.
+
+Suggested visual: A sequence of three current UI screenshots and a short file/module map.
+
+### Slide 16 - Next steps and project takeaway
+
+- Complete independent development calibration and final ASVspoof evaluation.
+- Validate on representative compressed, multilingual, and diverse-source audio.
+- Improve audiovisual alignment, tracking, and runtime measurements.
+- Delivered an integrated research studio; reliable arbitrary-audio verification is still a research goal.
+
+Speaker notes: End with the concrete outcome: multimodal inference, modular audio comparison, fine-tuned checkpoint integration, and repeatable evidence. The next milestone is independently validated improvement rather than a higher score on the same eight clips.
+
+Suggested visual: A completed / remaining checklist followed by questions.
 
 ## 13. Suggested demonstration and viva points
 
@@ -324,13 +439,13 @@ Q: Is a model score of 0.99 equivalent to 99% certainty? A: No. Calibration and 
 
 Q: Why can many windows be flagged while the recording is predicted bona fide? A: The shared pipeline uses the mean score and its decision threshold; the window count is a separate diagnostic.
 
-Q: Did this project invent AASIST? A: No. The project integrates upstream pretrained models, implements adapters and the application pipeline, and prepares a separate fine-tuning workflow.
+Q: Did this project invent AASIST? A: No. The project integrates upstream models, implements adapters and the application pipeline, and provides a fine-tuning workflow. Two fine-tuned AASIST exports were supplied and the selected checkpoint was tested locally.
 
 Q: Is the system production ready? A: It is a research prototype. Current local audio errors and incomplete validation prevent a claim of reliable unrestricted verification.
 
 ## 14. Evidence and presentation assets
 
-Use results/test_results.json and results/per_category.csv for saved multimodal metrics; results/ablation.csv for ablations; reports/audio_pipeline_evaluation/report.md and predictions.csv for the recent eight-clip comparison; docs/audio_upgrade_execution.md for upgrade status; and the model, preprocessing, service, and UI files above for implementation details.
+Use results/test_results.json and results/per_category.csv for historical multimodal metrics; results/ablation.csv for ablations; reports/audio_pipeline_evaluation/ for the earlier eight-clip comparison; reports/finetuned_audio_evaluation/selection.json and selected/ for the new fine-tuned results; reports/baseline_audio_benchmark/ for the native Wav2Vec evaluation; docs/audio_upgrade_execution.md for upgrade status; and the implementation files listed above for architecture details. reports/README.md indexes the retained evidence folders.
 
 Existing figures available for slides include results/roc_3tasks.png, results/training_curves.png, results/split_distribution.png, and results/ablation.png. Use the ablation figure with the metric and experimental setup clearly identified. Add a fresh screenshot after restarting the app and loading the updated UI.
 

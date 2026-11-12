@@ -130,7 +130,7 @@ Clone the repository and set up a virtual environment:
 
 #### Windows PowerShell:
 ```powershell
-git clone https://github.com/Abhijeet12N/Multimodal-deepfake.git
+git clone --recurse-submodules https://github.com/Abhijeet12N/Multimodal-deepfake.git
 cd Multimodal-deepfake
 
 python -m venv .venv
@@ -141,7 +141,7 @@ pip install -r requirements.txt
 
 #### Linux / macOS:
 ```bash
-git clone https://github.com/Abhijeet12N/Multimodal-deepfake.git
+git clone --recurse-submodules https://github.com/Abhijeet12N/Multimodal-deepfake.git
 cd Multimodal-deepfake
 
 python3 -m venv .venv
@@ -150,16 +150,31 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
+If you already cloned the repository, initialize its pinned AASIST dependency:
+
+```powershell
+git submodule update --init --recursive
+```
+
+The source lives in `third_party/aasist` at tested commit
+`a04c9863f63d44471dde8a6abcb3b082b07cd1d1`. Its MIT license and notice stay with the
+upstream source. See [third-party dependencies](third_party/README.md).
+
 ### 2. Model Checkpoints
 
-Place the multimodal video and currently used standalone audio checkpoints inside `models/`. The official AASIST checkpoint is kept in the sibling `aasist` repository and can be selected for testing:
+Place your multimodal, standalone audio, and fine-tuned checkpoints inside `models/`.
+The pinned AASIST submodule includes its official pretrained baseline checkpoints:
 
 ```text
 models/
 ├── best_model.pt     # Multimodal video detector weights
 └── audio_model.pt    # Existing standalone Wav2Vec + MLP detector
-../aasist/models/weights/AASIST.pth  # Optional AASIST checkpoint
+third_party/aasist/models/weights/AASIST.pth    # Official upstream baseline
+third_party/aasist/models/weights/AASIST-L.pth  # Official lightweight baseline
 ```
+
+Project-trained checkpoints, uploaded ZIPs, datasets, and caches are not committed.
+Share the fine-tuned `models/aasist_finetuned.pth` through a separate artifact download.
 
 You can also specify custom checkpoint paths using environment variables:
 
@@ -173,6 +188,17 @@ $env:AASIST_CHECKPOINT_PATH = "D:\checkpoints\AASIST.pth"
 Choose the audio detector in the **Audio Forensic Scanner** dropdown. The available choices are the Studio Wav2Vec + MLP model, the Phase 1 Wav2Vec + MLP model, AASIST, and AASIST-L. `AUDIO_MODEL_PATH`, `LEGACY_AUDIO_CHECKPOINT_PATH`, and `AASIST_CHECKPOINT_PATH` configure checkpoint locations only. AASIST remains experimental until it has been calibrated on a representative development set. SSL-AASIST training is deferred.
 
 For the fresh eight-clip results and the Colab fine-tuning/calibration workflow, see the [audio upgrade execution guide](docs/audio_upgrade_execution.md). The raw dataset can stay in Colab/Drive; the notebook exports checkpoints and calibration for the local studio.
+
+The supplied fine-tuned AASIST export is now installed locally as `models/aasist_finetuned.pth`.
+When present, it becomes the default **AASIST (fine-tuned)** dropdown choice, unless an
+explicit checkpoint override points elsewhere. [Selection and fresh evaluation](reports/finetuned_audio_evaluation/report.md)
+show strong validation performance but persistent false positives on the reserved real clips;
+the supplied archives do not include independent calibration or final evaluation outputs.
+
+For presentation preparation, use the current [PPT generation report](reports/PPT_Generation_Report.pdf)
+or its [editable source](reports/PPT_Generation_Report.md). It includes a 16-slide outline,
+speaker notes, model comparisons, and measured results. The [report index](reports/README.md)
+explains the supporting evidence folders.
 
 ---
 

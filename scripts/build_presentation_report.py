@@ -1,4 +1,4 @@
-"""Render the editable presentation report as a PDF without changing its sources."""
+"""Render the canonical PPT generation report as a PDF."""
 from __future__ import annotations
 
 from html import escape
@@ -12,7 +12,7 @@ from reportlab.platypus import LongTable, Paragraph, SimpleDocTemplate, Spacer, 
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = ROOT / "reports" / "Presentation_Project_Report_November_2026.md"
+SOURCE = ROOT / "reports" / "PPT_Generation_Report.md"
 OUTPUT = SOURCE.with_suffix(".pdf")
 
 
@@ -45,14 +45,14 @@ def build() -> None:
         canvas.line(doc.leftMargin, 1.35 * cm, A4[0] - doc.rightMargin, 1.35 * cm)
         canvas.setFont("Helvetica", 8)
         canvas.setFillColor(colors.HexColor("#52606d"))
-        canvas.drawString(doc.leftMargin, cm, "Multimodal Deepfake Detection Studio | Presentation report")
+        canvas.drawString(doc.leftMargin, cm, "Multimodal Deepfake Detection Studio | PPT generation report")
         canvas.drawRightString(A4[0] - doc.rightMargin, cm, str(doc.page))
         canvas.restoreState()
 
     document = SimpleDocTemplate(
         str(OUTPUT), pagesize=A4, leftMargin=1.65 * cm, rightMargin=1.65 * cm,
         topMargin=1.65 * cm, bottomMargin=1.8 * cm,
-        title="Multimodal Deepfake Detection Studio - Presentation Project Report",
+        title="Multimodal Deepfake Detection Studio - PPT Generation Report",
         author="Multimodal Deepfake Project", pageCompression=1,
     )
     lines = SOURCE.read_text(encoding="utf-8").splitlines()
