@@ -8,12 +8,13 @@ from __future__ import annotations
 import hashlib
 import os
 from pathlib import Path
-from typing import Any, List, Optional, Union
+from typing import Any, List, Optional, Union, TYPE_CHECKING
 
 import numpy as np
 import torch
 import torch.nn as nn
-from transformers import Wav2Vec2Model, Wav2Vec2Processor
+if TYPE_CHECKING:
+    from transformers import Wav2Vec2Model, Wav2Vec2Processor
 
 from ..interfaces import AudioDetector
 
@@ -54,6 +55,10 @@ class LegacyWav2VecDetector(AudioDetector):
             self.load(str(checkpoint_path), device=device)
 
     def load(self, checkpoint_path: str, device: str = "cpu") -> None:
+        # AASIST training shares the detector registry but needs no Hugging Face
+        # packages. Import the Wav2Vec dependency only when that model is used.
+        from transformers import Wav2Vec2Model, Wav2Vec2Processor
+
         self.device = torch.device(device)
         path = Path(checkpoint_path).expanduser().resolve()
         if not path.is_file():
@@ -116,7 +121,7 @@ class LegacyWav2VecDetector(AudioDetector):
         waveforms: torch.Tensor | np.ndarray,
         lengths: list[int] | torch.Tensor | None = None,
     ) -> dict[str, Any]:
-        if self.backbone is None or self.classifier is None:
+        if self.backbone is None or self.classifier is None or self.processor is None:
             raise RuntimeError("Model is not loaded. Call load() first.")
 
         if isinstance(waveforms, np.ndarray):
@@ -133,8 +138,19 @@ class LegacyWav2VecDetector(AudioDetector):
         elif num_samples > target_len:
             waveforms = waveforms[:, :target_len]
 
+        # Match extract_wav2vec_features._process_batch: fixed-length padding
+        # happens BEFORE processor normalization, including for short clips.
+        # Passing the raw waveform directly into the CNN changes the feature
+        # distribution relative to the cached features used for training.
+        inputs = self.processor(
+            [row for row in waveforms.detach().cpu().numpy()],
+            sampling_rate=self.requirements()["sample_rate"],
+            return_tensors="pt",
+            padding=True,
+        )
+        input_values = inputs.input_values.to(self.device)
         # Extract 512-dim CNN acoustic representations
-        cnn_features = self.backbone.feature_extractor(waveforms)
+        cnn_features = self.backbone.feature_extractor(input_values)
         cnn_features = cnn_features.transpose(1, 2)
         embeddings = cnn_features.mean(dim=1)  # (batch_size, 512)
 
@@ -168,4 +184,5 @@ class LegacyWav2VecDetector(AudioDetector):
             "checkpoint_path": self.checkpoint_path,
             "checkpoint_sha256": self.checkpoint_sha256,
             "threshold": self.threshold,
+            "preprocessing_version": "phase1_processor_fixed_length_v1",
         }

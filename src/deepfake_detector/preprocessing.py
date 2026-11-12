@@ -205,7 +205,8 @@ def load_audio_windows(
     window_hop_seconds: float = AUDIO_WINDOW_HOP,
 ) -> Tuple[np.ndarray, list[int], float]:
     """Load an audio recording and compute window start offsets for sliding-window analysis."""
-    waveform, _ = librosa.load(str(audio_path), sr=sample_rate, mono=True)
+    from .audio_detection.preprocessing import load_audio
+    waveform, _ = load_audio(audio_path, target_sr=sample_rate, mono=True)
     if waveform.size == 0:
         raise ValueError("Decoded audio waveform is empty.")
 

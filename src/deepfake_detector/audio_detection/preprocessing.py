@@ -57,7 +57,11 @@ def load_audio(
             if mono and audio.ndim > 1:
                 audio = audio.mean(axis=1)
             if sr != target_sr:
-                audio = librosa.resample(audio, orig_sr=sr, target_sr=target_sr)
+                # librosa's default resampler is soxr_hq. Call it directly to
+                # avoid initializing unrelated librosa/numba kernels at first
+                # use, while preserving the same resampling algorithm.
+                import soxr
+                audio = soxr.resample(audio, sr, target_sr, quality="HQ")
             duration = float(len(audio) / target_sr)
             return audio.astype(np.float32, copy=False), duration
         except Exception:

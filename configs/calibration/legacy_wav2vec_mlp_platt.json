@@ -22,6 +22,8 @@
     "sample_count": 24844
   },
   "fit_data": {
+    "protocol": "native_benchmark",
+    "score_level": "native_input",
     "source_file": "reports\\calibration_fit_wav2vec_dev\\manifest_asvspoof2019_dev_per_recording_predictions.csv",
     "dataset": [
       "asvspoof2019_la"

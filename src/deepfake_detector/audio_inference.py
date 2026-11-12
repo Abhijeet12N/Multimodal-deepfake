@@ -63,6 +63,8 @@ class StandaloneAudioPredictor:
             audio_seconds=self.audio_seconds,
             window_hop_seconds=self.window_hop_seconds,
         )
+        decode_seconds = time.time() - start
+        inference_started = time.perf_counter()
 
         sample_count = int(self.sample_rate * self.audio_seconds)
         window_probabilities: list[float] = []
@@ -88,6 +90,7 @@ class StandaloneAudioPredictor:
             window_probabilities.extend(float(value) for value in probabilities)
 
         probability = float(np.mean(window_probabilities)) if window_probabilities else 0.0
+        model_seconds = time.perf_counter() - inference_started
         peak_score = float(np.max(window_probabilities)) if window_probabilities else 0.0
 
         top_indices = sorted(
@@ -151,4 +154,8 @@ class StandaloneAudioPredictor:
             "top_windows": top_windows,
             "all_windows": all_windows,
             "inference_seconds": round(time.time() - start, 2),
+            "timings": {
+                "decode_seconds": round(decode_seconds, 6),
+                "model_seconds": round(model_seconds, 6),
+            },
         }

@@ -1,88 +1,35 @@
-"""Deepfake Detector - Multimodal Deepfake Detection System.
+"""Multimodal detection APIs, loaded on demand.
 
-Combines visual features (Xception), audio representations (Wav2Vec 2.0),
-and lip-sync consistency (3D/2D SyncStream) for robust deepfake analysis.
+Audio-only evaluation and Colab training avoid importing face/video dependencies.
+Existing public imports retain their names.
 """
-
-from .config import (
-    ALLOWED_AUDIO_EXTENSIONS,
-    ALLOWED_VIDEO_EXTENSIONS,
-    AUDIO_LEN,
-    AUDIO_SR,
-    AUDIO_WINDOW_HOP,
-    DEVICE,
-    EMBED_DIM,
-    IMG_SIZE,
-    LIP_SIZE,
-    N_FRAMES,
-)
-from .model import (
-    AudioClassifier,
-    AudioStream,
-    ImageStream,
-    MultiTaskDetector,
-    SyncStream,
-)
-from .preprocessing import (
-    VideoPreprocessor,
-    load_audio_windows,
-    prepare_tensors_for_model,
-)
-from .inference import (
-    DeepfakePredictor,
-    category_from_path,
-    interpret,
-)
-from .audio_inference import StandaloneAudioPredictor
-from .reporting import build_report, risk_level
-from .audio_detection import (
-    AASISTDetector,
-    AudioDetector,
-    LegacyWav2VecDetector,
-    SSLAASISTDetector,
-    StandaloneAudioService,
-    XLSRMamBoDetector,
-    get_detector,
-    list_detectors,
-)
+from importlib import import_module
 
 __version__ = "1.0.0"
+_EXPORT_GROUPS = {
+    ".config": ["ALLOWED_AUDIO_EXTENSIONS", "ALLOWED_VIDEO_EXTENSIONS", "AUDIO_LEN",
+                "AUDIO_SR", "AUDIO_WINDOW_HOP", "DEVICE", "EMBED_DIM", "IMG_SIZE",
+                "LIP_SIZE", "N_FRAMES"],
+    ".model": ["AudioClassifier", "AudioStream", "ImageStream", "MultiTaskDetector", "SyncStream"],
+    ".preprocessing": ["VideoPreprocessor", "load_audio_windows", "prepare_tensors_for_model"],
+    ".inference": ["DeepfakePredictor", "category_from_path", "interpret"],
+    ".audio_inference": ["StandaloneAudioPredictor"],
+    ".reporting": ["build_report", "risk_level"],
+    ".audio_detection": ["AASISTDetector", "AudioDetector", "LegacyWav2VecDetector",
+                         "SSLAASISTDetector", "StandaloneAudioService", "XLSRMamBoDetector",
+                         "get_detector", "list_detectors"],
+}
+_EXPORTS = {name: module for module, names in _EXPORT_GROUPS.items() for name in names}
+__all__ = list(_EXPORTS)
 
-__all__ = [
-    # Inference
-    "DeepfakePredictor",
-    "StandaloneAudioPredictor",
-    "StandaloneAudioService",
-    "AudioDetector",
-    "LegacyWav2VecDetector",
-    "AASISTDetector",
-    "SSLAASISTDetector",
-    "XLSRMamBoDetector",
-    "get_detector",
-    "list_detectors",
-    "interpret",
-    "category_from_path",
-    "build_report",
-    "risk_level",
-    # Preprocessing
-    "VideoPreprocessor",
-    "prepare_tensors_for_model",
-    "load_audio_windows",
-    # Models
-    "MultiTaskDetector",
-    "ImageStream",
-    "AudioStream",
-    "SyncStream",
-    "AudioClassifier",
-    # Constants
-    "DEVICE",
-    "N_FRAMES",
-    "AUDIO_SR",
-    "AUDIO_LEN",
-    "AUDIO_WINDOW_HOP",
-    "IMG_SIZE",
-    "LIP_SIZE",
-    "EMBED_DIM",
-    "ALLOWED_VIDEO_EXTENSIONS",
-    "ALLOWED_AUDIO_EXTENSIONS",
-]
+
+def __getattr__(name):
+    if name not in _EXPORTS:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    value = getattr(import_module(_EXPORTS[name], __name__), name)
+    globals()[name] = value
+    return value
+
+
+def __dir__():
+    return sorted(set(globals()) | set(__all__))

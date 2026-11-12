@@ -7,6 +7,8 @@ Produces structured output schema.
 from __future__ import annotations
 
 import time
+import hashlib
+import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -51,6 +53,32 @@ class StandaloneAudioService:
         self.aggregator = RecordingScoreAggregator(strategy=aggregation_strategy)
         self.threshold = float(self.reqs.get("calibrated_threshold", 0.5))
 
+    def pipeline_signature(self) -> str:
+        """Bind recording calibration to weights, preprocessing and aggregation."""
+        pipeline = {
+            "model_id": self.meta.get("model_id"),
+            "checkpoint_sha256": self.meta.get("checkpoint_sha256"),
+            "preprocessing_version": self.meta.get("preprocessing_version", "upstream_v1"),
+            "requirements": self.reqs,
+            "aggregation": vars(self.aggregator),
+            "vad_enabled": self.vad_enabled,
+            "decoder_version": "soundfile_soxr_hq_ffmpeg_v1",
+        }
+        return hashlib.sha256(json.dumps(pipeline, sort_keys=True).encode()).hexdigest()
+
+    def accepts_calibrator(self, candidate: ScoreCalibrator) -> bool:
+        provenance = candidate.fit_data
+        return bool(
+            candidate.fitted
+            and candidate.model_id == self.meta.get("model_id")
+            and candidate.score_orientation == self.reqs.get("score_orientation")
+            and provenance.get("split") in {"dev", "val"}
+            and int(provenance.get("sample_count", 0)) >= 1000
+            and provenance.get("protocol") == "studio_sliding_window"
+            and provenance.get("score_level") == "recording"
+            and provenance.get("pipeline_signature") == self.pipeline_signature()
+        )
+
     def predict(self, audio_path: str | Path) -> dict[str, Any]:
         """Analyze an audio file and produce structured detection results."""
         t0 = time.time()
@@ -59,6 +87,8 @@ class StandaloneAudioService:
             raise FileNotFoundError(f"Audio file not found: {path}")
 
         waveform, duration = load_audio(path, target_sr=self.reqs["sample_rate"])
+        decoded_at = time.perf_counter()
+        decode_seconds = time.time() - t0
         windows = self.window_generator.generate_windows(waveform)
 
         if not windows:
@@ -89,6 +119,7 @@ class StandaloneAudioService:
         all_window_results: list[dict[str, Any]] = []
         fake_window_scores: list[float] = []
         bonafide_window_scores: list[float] = []
+        inference_started = time.perf_counter()
 
         for b_start in range(0, len(active_windows), self.batch_size):
             b_windows = active_windows[b_start : b_start + self.batch_size]
@@ -135,6 +166,8 @@ class StandaloneAudioService:
                     win_dict["bonafide_score"] = round(bonafide_score, 4)
                 all_window_results.append(win_dict)
 
+        model_seconds = time.perf_counter() - inference_started
+        window_seconds = inference_started - decoded_at
         # Recording-level aggregation
         rec_score = self.aggregator.aggregate(fake_window_scores)
         if orientation == "higher_is_bonafide":
@@ -143,23 +176,10 @@ class StandaloneAudioService:
         else:
             raw_rec = rec_score
 
-        # Calibration is fitted on window scores, so calibrate each window
-        # first and aggregate calibrated probabilities at the recording level.
+        # Recording calibration must be fitted on scores produced by this exact
+        # windowing/VAD/aggregation pipeline. It does not calibrate window flags.
         if self.calibrator is not None and self.calibrator.fitted:
-            calibration_scores = (
-                bonafide_window_scores
-                if orientation == "higher_is_bonafide"
-                else fake_window_scores
-            )
-            window_probabilities = np.asarray(
-                self.calibrator.predict_proba(np.asarray(calibration_scores, dtype=np.float64)),
-                dtype=np.float64,
-            ).tolist()
-            for window_result, probability in zip(all_window_results, window_probabilities):
-                window_result["calibrated_fake_probability"] = round(float(probability), 4)
-                window_result["is_fake"] = probability >= self.calibrator.operating_threshold
-
-            calibrated_prob = round(float(self.aggregator.aggregate(window_probabilities)), 4)
+            calibrated_prob = float(self.calibrator.predict_proba(raw_rec))
             calibration_version = self.calibrator.version
             lower, upper = self.uncertain_band or self.calibrator.uncertain_band or (None, None)
             if lower is not None and lower <= calibrated_prob <= upper:
@@ -173,7 +193,7 @@ class StandaloneAudioService:
                 calibrated_prob = None  # Do not invent uncalibrated probabilities for logits
             else:
                 is_fake_verdict = raw_rec >= self.threshold
-                calibrated_prob = round(raw_rec, 4)
+                calibrated_prob = None
             verdict = "fake" if is_fake_verdict else "real"
 
         # Flagged windows for interval merging
@@ -192,7 +212,7 @@ class StandaloneAudioService:
             "model_id": self.meta.get("model_id"),
             "model_version": self.meta.get("checkpoint_sha256", "unknown")[:10],
             "raw_recording_score": round(raw_rec, 6),
-            "calibrated_fake_probability": calibrated_prob,
+            "calibrated_fake_probability": round(calibrated_prob, 6) if calibrated_prob is not None else None,
             "calibration_version": calibration_version,
             "threshold": (
                 self.calibrator.operating_threshold
@@ -200,6 +220,8 @@ class StandaloneAudioService:
                 else self.threshold
             ),
             "model_threshold": self.threshold,
+            "window_threshold": self.threshold,
+            "pipeline_signature": self.pipeline_signature(),
             "score_orientation": orientation,
             "duration_seconds": round(duration, 3),
             "speech_duration_seconds": round(speech_duration, 3),
@@ -211,5 +233,10 @@ class StandaloneAudioService:
             "top_windows": sorted(all_window_results, key=lambda w: w["fake_score"], reverse=True)[:5],
             "windows": all_window_results,
             "inference_seconds": elapsed,
+            "timings": {
+                "decode_seconds": round(decode_seconds, 6),
+                "window_seconds": round(window_seconds, 6),
+                "model_seconds": round(model_seconds, 6),
+            },
             "warnings": warnings,
         }

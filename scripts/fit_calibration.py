@@ -109,6 +109,14 @@ def parse_args() -> argparse.Namespace:
         help="Optional independent held-out CSV to evaluate calibration generalization.",
     )
     parser.add_argument(
+        "--prediction-protocol", choices=["native_benchmark", "studio_sliding_window"],
+        default="native_benchmark", help="Protocol that generated the calibration scores.",
+    )
+    parser.add_argument(
+        "--pipeline-json", type=Path,
+        help="For studio recording calibration: descriptor containing pipeline_signature and model_id.",
+    )
+    parser.add_argument(
         "--eval-split",
         choices=["eval", "test"],
         default="eval",
@@ -156,6 +164,8 @@ def load_data(
     valid_mask = ~np.isnan(scores) & ~np.isnan(labels)
     scores = scores[valid_mask]
     labels = labels[valid_mask]
+    if not np.isfinite(scores).all() or not np.isin(labels, [0, 1]).all():
+        raise ValueError("Scores must be finite and labels must be 0 (real) or 1 (fake).")
 
     return scores, labels
 
@@ -163,9 +173,33 @@ def load_data(
 def main():
     args = parse_args()
 
+    pipeline = {}
+    if args.prediction_protocol == "studio_sliding_window":
+        if not args.pipeline_json or not args.pipeline_json.is_file():
+            raise ValueError("Studio recording calibration requires --pipeline-json from dev scoring.")
+        pipeline = json.loads(args.pipeline_json.read_text(encoding="utf-8"))
+        if pipeline.get("model_id") != args.model_id or not pipeline.get("pipeline_signature"):
+            raise ValueError("Pipeline descriptor must identify this model and its pipeline_signature.")
+        if pipeline.get("score_orientation") != args.score_orientation:
+            raise ValueError("Pipeline score orientation does not match --score-orientation.")
+
     if not args.predictions_csv.is_file():
         logger.error("Predictions file not found: %s", args.predictions_csv)
         sys.exit(1)
+
+    if args.eval_csv:
+        if not args.eval_csv.is_file():
+            raise ValueError(f"Held-out evaluation file not found: {args.eval_csv}")
+        fit_rows = pd.read_csv(args.predictions_csv)
+        held_rows = pd.read_csv(args.eval_csv)
+        fit_rows = fit_rows[fit_rows["split"].astype(str).str.lower() == args.split]
+        held_rows = held_rows[held_rows["split"].astype(str).str.lower() == args.eval_split]
+        for identity in ("sample_id", "source_id", "sha256", "speaker_id"):
+            if identity in fit_rows and identity in held_rows:
+                fit_ids = set(fit_rows[identity].dropna().astype(str)) - {""}
+                held_ids = set(held_rows[identity].dropna().astype(str)) - {""}
+                if fit_ids & held_ids:
+                    raise ValueError(f"Calibration/evaluation overlap detected in {identity}.")
 
     scores, labels = load_data(args.predictions_csv, args.split, require_split=True)
     logger.info(
@@ -211,6 +245,9 @@ def main():
         "dataset": sorted(fit_df["dataset"].dropna().astype(str).unique().tolist()) if "dataset" in fit_df else [],
         "split": args.split,
         "sample_count": int(len(scores)),
+        "protocol": args.prediction_protocol,
+        "score_level": "recording" if args.prediction_protocol == "studio_sliding_window" else "native_input",
+        "pipeline_signature": pipeline.get("pipeline_signature"),
     }
 
     metrics = calibrator.evaluate(scores, labels)
