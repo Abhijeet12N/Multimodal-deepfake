@@ -116,15 +116,22 @@ python scripts/benchmark_audio.py \
 To fit Platt scaling or Isotonic regression on development-set scores:
 ```bash
 python scripts/fit_calibration.py \
-    --predictions-csv reports/per_recording_predictions.csv \
+    --predictions-csv reports/calibration_fit_wav2vec_dev/manifest_asvspoof2019_dev_per_recording_predictions.csv \
+    --split dev \
+    --prediction-protocol native_benchmark \
     --method platt \
-    --model-id aasist \
-    --score-orientation higher_is_bonafide \
+    --model-id legacy_wav2vec_mlp \
+    --score-orientation higher_is_fake \
     --operating-threshold 0.50 \
     --uncertain-lower 0.40 \
     --uncertain-upper 0.60 \
-    --output configs/calibration/aasist_platt.json
+    --output configs/calibration/legacy_wav2vec_mlp_platt.json
 ```
+
+This example uses the retained native Wav2Vec development scores. It does not calibrate
+uploaded recordings or the fine-tuned AASIST checkpoint. AASIST needs separate recording-level
+development scores and a matching pipeline descriptor; the reserved eight clips must stay out
+of fitting. See the [current report index](../reports/README.md) for the cleaned artifact layout.
 
 ---
 

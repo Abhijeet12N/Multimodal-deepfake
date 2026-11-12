@@ -164,6 +164,11 @@ Phase 2 deliverables are committed and verifiable via command-line execution:
   - Generates `reports/legacy_eval_report.json` and Markdown summaries
 - **Automated Test Suite**: `tests/test_evaluation_pipeline.py` (13 tests, all passing)
 
+The filenames above describe generated outputs. Duplicate aliases and superseded
+six-clip reports are not retained in the cleaned reports folder. The canonical saved
+native evaluation is under `reports/baseline_audio_benchmark/`; current eight-clip
+results and calibration provenance are indexed in [reports/README.md](../reports/README.md).
+
 ### Reproduction Command
 
 To reproduce the legacy baseline evaluation with one command:

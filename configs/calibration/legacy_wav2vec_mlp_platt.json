@@ -32,7 +32,7 @@
     "sample_count": 24844
   },
   "held_out_evaluation": {
-    "source_file": "reports\\manifest_asvspoof2019_eval_per_recording_predictions.csv",
+    "source_file": "reports/baseline_audio_benchmark/manifest_asvspoof2019_eval_per_recording_predictions.csv",
     "dataset": [
       "asvspoof2019_la"
     ],

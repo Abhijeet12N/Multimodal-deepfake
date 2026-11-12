@@ -5,12 +5,15 @@ isotonic regression, or temperature scaling.
 
 Usage:
     python scripts/fit_calibration.py \
-        --predictions-csv reports/per_recording_predictions.csv \
+        --predictions-csv reports/calibration_fit_wav2vec_dev/manifest_asvspoof2019_dev_per_recording_predictions.csv \
         --split dev \
         --method platt \
-        --model-id aasist \
+        --model-id legacy_wav2vec_mlp \
         --score-orientation higher_is_fake \
-        --output configs/calibration/aasist_platt.json
+        --output configs/calibration/legacy_wav2vec_mlp_platt.json
+
+This example fits the historical native-feature benchmark. Studio recording calibration
+requires independent recording scores and a matching --pipeline-json descriptor.
 """
 from __future__ import annotations
 

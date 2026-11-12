@@ -1,0 +1,155 @@
+{
+  "inspected_date": "2026-11-12",
+  "model_selection_split": "val",
+  "selection_rule": "Highest recomputed validation ROC AUC on the same 10,511 labeled recordings; selection made before reserved-clip inference.",
+  "selected_run_id": "20261108_060713",
+  "active_checkpoint": "models/aasist_finetuned.pth",
+  "active_checkpoint_sha256": "7c7ef265a2d393634202392e33a868c5a7dd4db46b8e39ef58e134c27dca65ba",
+  "calibration_applied": false,
+  "threshold": 0.0,
+  "score_orientation": "higher_is_bonafide",
+  "candidates": [
+    {
+      "run_id": "20261108_060713",
+      "model_id": "aasist",
+      "checkpoint_path": "models/finetuned/20261108_060713/aasist/aasist_finetuned.pth",
+      "checkpoint_sha256": "7c7ef265a2d393634202392e33a868c5a7dd4db46b8e39ef58e134c27dca65ba",
+      "epoch": 4,
+      "val_auc": 0.9996493611429282,
+      "validation_count": 10511,
+      "validation_class_counts": {
+        "0": 1211,
+        "1": 9300
+      },
+      "validation_speakers": [
+        "LA_0074",
+        "LA_0075",
+        "LA_0076",
+        "LA_0078",
+        "LA_0099",
+        "LA_0100",
+        "LA_0103",
+        "LA_0104",
+        "LA_0105",
+        "LA_0106"
+      ],
+      "validation_eer": 0.006475098336929386,
+      "validation_confusion_at_zero": [
+        [
+          1183,
+          28
+        ],
+        [
+          10,
+          9290
+        ]
+      ],
+      "parent_checkpoint_sha256": "51d2d9cf0738172f61e2a384ec50a54a55363240f67c971ed55a92435bc1a1c0",
+      "manifest_sha256": "11d3b4ba1936ad25cb47205d7e8d249df01d607a55f3bfb95e9cc8e60e7fece1",
+      "archive_filename": "20261108_060713-20261112T085615Z-1-001.zip",
+      "archive_sha256": "20be9da819231412b862137c96da606fd002faa4b3771b1dc49b8bf56801485b",
+      "included_files": [
+        "aasist_finetuned.pth",
+        "training_history.json",
+        "val_scores.csv"
+      ],
+      "missing_outputs": [
+        "dev_scores.csv",
+        "aasist_platt.json",
+        "pipeline.json",
+        "eval_scores.csv",
+        "evaluation.json"
+      ]
+    },
+    {
+      "run_id": "20261112_074111",
+      "model_id": "aasist",
+      "checkpoint_path": "models/finetuned/20261112_074111/aasist/aasist_finetuned.pth",
+      "checkpoint_sha256": "bb6a901ad691582ef70ad63f3f605f7efac34dfe779a2fae2f5bc5209e6025cb",
+      "epoch": 2,
+      "val_auc": 0.9993311312964492,
+      "validation_count": 10511,
+      "validation_class_counts": {
+        "0": 1211,
+        "1": 9300
+      },
+      "validation_speakers": [
+        "LA_0074",
+        "LA_0075",
+        "LA_0076",
+        "LA_0078",
+        "LA_0099",
+        "LA_0100",
+        "LA_0103",
+        "LA_0104",
+        "LA_0105",
+        "LA_0106"
+      ],
+      "validation_eer": 0.009900819548404882,
+      "validation_confusion_at_zero": [
+        [
+          1153,
+          58
+        ],
+        [
+          6,
+          9294
+        ]
+      ],
+      "parent_checkpoint_sha256": "51d2d9cf0738172f61e2a384ec50a54a55363240f67c971ed55a92435bc1a1c0",
+      "manifest_sha256": "11d3b4ba1936ad25cb47205d7e8d249df01d607a55f3bfb95e9cc8e60e7fece1",
+      "archive_filename": "20261112_074111-20261112T085649Z-1-001.zip",
+      "archive_sha256": "600c32d0c3c2611cbfee17b915e5803708ed5d44d710ac1ac4f2db1c3637c993",
+      "included_files": [
+        "aasist_finetuned.pth",
+        "training_history.json",
+        "val_scores.csv"
+      ],
+      "missing_outputs": [
+        "dev_scores.csv",
+        "aasist_platt.json",
+        "pipeline.json",
+        "eval_scores.csv",
+        "evaluation.json"
+      ]
+    }
+  ],
+  "reserved_clip_result": {
+    "completed": 8,
+    "errors": 0,
+    "correct": 3,
+    "uncertain": 0,
+    "accuracy_including_abstentions": 0.375,
+    "real_false_positive_rate": 1.0,
+    "fake_recall": 0.75,
+    "balanced_accuracy_including_abstentions": 0.375,
+    "true_positives": 3,
+    "true_negatives": 0,
+    "false_positives": 4,
+    "false_negatives": 1,
+    "total_analysis_seconds": 54.141148500086274,
+    "load_seconds": 0.10571780003374442
+  },
+  "historical_pretrained_result": {
+    "completed": 8,
+    "errors": 0,
+    "correct": 3,
+    "uncertain": 0,
+    "accuracy_including_abstentions": 0.375,
+    "real_false_positive_rate": 1.0,
+    "fake_recall": 0.75,
+    "balanced_accuracy_including_abstentions": 0.375,
+    "true_positives": 3,
+    "true_negatives": 0,
+    "false_positives": 4,
+    "false_negatives": 1,
+    "total_analysis_seconds": 65.69273770001018,
+    "load_seconds": 0.049704300006851554
+  },
+  "limitations": [
+    "Only validation exports were provided; no separate calibration or final ASVspoof evaluation artifacts were included.",
+    "The training manifest and all raw split identities were not supplied, so complete training-data leakage auditing could not be repeated locally.",
+    "Validation performance is not general web-audio accuracy. Reserved clip labels are provisional.",
+    "No thresholds or calibration were fitted to validation scores or reserved clips during installation."
+  ]
+}

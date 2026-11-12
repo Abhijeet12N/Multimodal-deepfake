@@ -1,0 +1,25 @@
+{
+  "route": "POST /api/analyze-audio",
+  "detector_field_omitted": true,
+  "default_detector": "aasist",
+  "checks": [
+    {
+      "filename": "Real Podcast Bill Gates.mp3",
+      "status_code": 200,
+      "model_id": "aasist",
+      "model_version": "7c7ef265a2",
+      "verdict": "fake",
+      "raw_recording_score": -3.357393,
+      "calibration_version": null
+    },
+    {
+      "filename": "Fake audio.mp3",
+      "status_code": 200,
+      "model_id": "aasist",
+      "model_version": "7c7ef265a2",
+      "verdict": "fake",
+      "raw_recording_score": -1.785945,
+      "calibration_version": null
+    }
+  ]
+}

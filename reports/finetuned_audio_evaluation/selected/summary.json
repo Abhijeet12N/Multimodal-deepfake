@@ -1,0 +1,31 @@
+{
+  "protocol": "studio_sliding_window",
+  "split": "eval",
+  "fit_on_clips": false,
+  "threads": 2,
+  "torch_version": "2.14.1+cpu",
+  "cuda_available": false,
+  "models": {
+    "aasist": {
+      "completed": 8,
+      "errors": 0,
+      "correct": 3,
+      "uncertain": 0,
+      "accuracy_including_abstentions": 0.375,
+      "real_false_positive_rate": 1.0,
+      "fake_recall": 0.75,
+      "balanced_accuracy_including_abstentions": 0.375,
+      "true_positives": 3,
+      "true_negatives": 0,
+      "false_positives": 4,
+      "false_negatives": 1,
+      "total_analysis_seconds": 54.141148500086274,
+      "load_seconds": 0.10571780003374442
+    }
+  },
+  "limitations": [
+    "Labels are supplied by folder names; source authenticity has not been independently verified.",
+    "Eight clips are a smoke evaluation, not an estimate of general accuracy.",
+    "EER and AUC need a larger independent test set for reliable comparison."
+  ]
+}

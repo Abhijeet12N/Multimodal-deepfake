@@ -1,0 +1,9 @@
+model_id,label,filename,verdict,score,calibrated_fake_probability,threshold,flagged_windows,total_windows,analysis_seconds,sha256,error
+aasist,real,Real Podcast Bill Gates.mp3,fake,-3.357393,,0.0,5,5,2.305297299986705,28fb1c6ae339730704e64e3f73eb2c9bee80e3a2376c24a7ebb1b95d4fd84195,
+aasist,real,Real Podcast Elon Musk.mp3,fake,-2.190495,,0.0,25,32,12.467182699998375,3e86f73353047125e408d3480acb46169ecf4a302b7545d281c92c3df1c7cb1e,
+aasist,real,Such a great quote 🔥 #shorts - Jay Shetty.mp3,fake,-2.105913,,0.0,5,5,1.9259854000410996,f762b6541d372cd8b882a79fd83d2b061c178b1fae0b11f80a568192f6ad66aa,
+aasist,real,What is the best advice Alia Bhatt has ever received #jayshetty #podcast #aliabhatt - Jay Shetty Podcast.mp3,fake,-0.318235,,0.0,2,4,1.6106714000343345,121fc077b8b1ac7102f06d39808df3461b42822e8fc7422a5bd9bb9261553d16,
+aasist,fake,Deepfake video of Volodymyr Zelensky surrendering surfaces on social media - The Telegraph.mp3,fake,-5.919692,,0.0,34,34,13.31334870000137,c2dcd1ca5879b50b534cf88605c8165e3af65d5cb5eead52ee020ed0e0693ce2,
+aasist,fake,Fake audio.mp3,fake,-1.785945,,0.0,24,28,11.54026320000412,b560922368fe2111761bd35efcafc430b06f897ebd03f7248b1abcaa6b5078e3,
+aasist,fake,Fake clip.mp3,real,1.383129,,0.0,1,6,2.576292800018564,220af7be035c4bfae4bc1e601b9ec699dae2027f71d626304da453151c7f4ea1,
+aasist,fake,Fake donald trump.mp3,fake,-0.206659,,0.0,11,22,8.402107000001706,8c7e9b3aa8e4521d7aad727c218786a3b135146ea1f8cd96cb0d5620e537f60c,
